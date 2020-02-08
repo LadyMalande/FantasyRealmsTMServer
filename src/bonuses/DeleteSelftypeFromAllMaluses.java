@@ -8,14 +8,16 @@ import server.Type;
 import java.util.ArrayList;
 
 public class DeleteSelftypeFromAllMaluses extends Bonus  {
+    public long serialVersionUID = 5;
     public int priority = 5;
     private Type deleteThisTypeFromMaluses;
-    public String text;
+    public final String text;
 
     public DeleteSelftypeFromAllMaluses(Type t){
 
         this.deleteThisTypeFromMaluses = t;
         this.text = "Remove word " + BigSwitches.switchTypeForName(deleteThisTypeFromMaluses) + " from all maluses";
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

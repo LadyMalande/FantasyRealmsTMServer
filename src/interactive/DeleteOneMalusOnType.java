@@ -10,7 +10,7 @@ import java.util.*;
 
 public class DeleteOneMalusOnType extends Interactive {
     public int priority = 1;
-    public String text;
+    public final String text;
     public ArrayList<Type> types;
     private int thiscardid;
 

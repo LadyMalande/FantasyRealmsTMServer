@@ -5,7 +5,8 @@ import server.Card;
 import java.util.ArrayList;
 
 public class PlusForEachOdd extends Bonus  {
-    public String text;
+    public long serialVersionUID = 8;
+    public final String text;
     public int how_much;
     private boolean odd;
     private int thiscardid;
@@ -19,6 +20,7 @@ public class PlusForEachOdd extends Bonus  {
         } else{
             this.text = "+" + how_much + " for each card in your hand with even strength";
         }
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

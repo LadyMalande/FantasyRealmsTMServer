@@ -9,7 +9,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class PlusForEachTypeAndForEachCard extends Bonus  {
-    public String text;
+    public long serialVersionUID = 11;
+    public final String text;
     private int how_Much;
     public ArrayList<Type> types;
     public ArrayList<Integer> cards;
@@ -38,6 +39,7 @@ public class PlusForEachTypeAndForEachCard extends Bonus  {
         this.how_Much = hm;
         this.types = types;
         this.cards = cards;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

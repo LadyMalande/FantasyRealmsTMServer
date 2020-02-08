@@ -7,7 +7,8 @@ import server.Type;
 import java.util.ArrayList;
 
 public class PlusForEachType extends Bonus  {
-    public String text;
+    public long serialVersionUID = 10;
+    public final String text;
     public ArrayList<Type> types;
     public int how_much;
 
@@ -24,6 +25,7 @@ public class PlusForEachType extends Bonus  {
             first = false;
         }
         this.text = "+" + how_much + " for each card of type " + s;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

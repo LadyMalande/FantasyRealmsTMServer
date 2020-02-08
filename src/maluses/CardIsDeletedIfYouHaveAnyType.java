@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class CardIsDeletedIfYouHaveAnyType extends Malus {
     public int priority = 7;
-    public String text;
+    public final String text;
     private int thiscardid;
     public ArrayList<Type> types;
 

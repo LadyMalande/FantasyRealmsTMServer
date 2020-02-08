@@ -7,7 +7,8 @@ import server.Type;
 import java.util.ArrayList;
 
 public class PlusSumOfStrengthsType extends Bonus  {
-    public String text;
+    public long serialVersionUID = 25;
+    public final String text;
     public Type type;
 
     public PlusSumOfStrengthsType(Type type) {

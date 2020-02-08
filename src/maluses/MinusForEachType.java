@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class MinusForEachType extends Malus {
     public int priority = 8;
-    public String text;
+    public final String text;
     public int howMuch;
     public ArrayList<Type> types;
 

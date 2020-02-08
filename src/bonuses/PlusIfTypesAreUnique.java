@@ -6,7 +6,8 @@ import server.Type;
 import java.util.ArrayList;
 
 public class PlusIfTypesAreUnique extends Bonus  {
-    public String text;
+    public long serialVersionUID = 17;
+    public final String text;
     public int howMuch;
 
     public PlusIfTypesAreUnique(int howMuch) {

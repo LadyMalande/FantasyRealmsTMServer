@@ -8,15 +8,17 @@ import server.Type;
 import java.util.ArrayList;
 
 public class DeleteTypeFromAllMalusesOnType extends Bonus  {
+    public long serialVersionUID = 6;
     public int priority = 5;
     private Type deleteThisTypeFromMaluses;
     private Type onWhichType;
-    public String text;
+    public final String text;
 
     public DeleteTypeFromAllMalusesOnType(Type whichType, Type onWhichType){
         this.deleteThisTypeFromMaluses = whichType;
         this.onWhichType = onWhichType;
         text = "Remove word " + BigSwitches.switchTypeForName(whichType) + " on cards of type "+BigSwitches.switchTypeForName(onWhichType);
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

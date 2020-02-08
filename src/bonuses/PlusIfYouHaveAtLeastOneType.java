@@ -7,7 +7,8 @@ import server.Type;
 import java.util.ArrayList;
 
 public class PlusIfYouHaveAtLeastOneType extends Bonus  {
-    public String text;
+    public long serialVersionUID = 22;
+    public final String text;
     private int how_much;
     private ArrayList<Type> types;
 

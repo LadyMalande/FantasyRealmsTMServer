@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Card implements Serializable {
+    public long serialVersionUID = 11;
     public int id;
     public String name;
     public int strength;

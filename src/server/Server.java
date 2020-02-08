@@ -14,6 +14,7 @@ public class Server extends Thread
     Deck deck;
     ServerSocket ss;
     public Socket s;
+    Random randomGenerator;
     int maxClients = 10;
     // Vector to store active clients
     Vector<ClientHandler> players = new Vector<>();
@@ -67,7 +68,7 @@ public class Server extends Thread
                 // add this client to active clients list
                 players.add(mtch);
                 // Generate starting hand
-                Random randomGenerator = new Random();
+                randomGenerator = new Random();
                 for (int j = 0; j < 7; j++) {
                     int index = randomGenerator.nextInt(deck.getDeck().size());
                     mtch.getHand().add(deck.getDeck().get(index));
@@ -88,5 +89,19 @@ public class Server extends Thread
 
 
 
+    }
+
+    public void putCardOnTable(Card c){
+        // Tell all clients to put this card on tables
+        cardsOnTable.add(c);
+        players.forEach(p -> p.putCardOnTable(c));
+        System.out.println("Telling all clients to put this card on table: " + c.name);
+    }
+
+    public void takeCardFromTable(Card c){
+        // Tell all clients to erase this card from tables
+        cardsOnTable.remove(c);
+        players.forEach(p -> p.eraseCardFromTable(c));
+        System.out.println("Telling all clients to erase this card from table: " + c.name);
     }
 }

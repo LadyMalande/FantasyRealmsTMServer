@@ -7,7 +7,8 @@ import server.Type;
 import java.util.ArrayList;
 
 public class PlusForEachTypeOrSelfType extends Bonus  {
-    public String text;
+    public long serialVersionUID = 13;
+    public final String text;
     public int howMuch;
     public ArrayList<Type> types;
     public Type selftype;

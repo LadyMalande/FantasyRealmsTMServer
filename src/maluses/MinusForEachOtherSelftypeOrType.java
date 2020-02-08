@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class MinusForEachOtherSelftypeOrType extends Malus {
     public int priority = 8;
-    public String text;
+    public final String text;
     public int howMuch;
     public ArrayList<Type> types;
     public Type selftype;

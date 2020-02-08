@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
 
 public class TakeCardOfTypeAtTheEnd extends Interactive  {
     public int priority = 0;
-    public String text;
+    public final String text;
     public ArrayList<Type> types;
     private int thiscardid;
 

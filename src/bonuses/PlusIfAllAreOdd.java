@@ -5,7 +5,8 @@ import server.Card;
 import java.util.ArrayList;
 
 public class PlusIfAllAreOdd extends Bonus  {
-    public String text;
+    public long serialVersionUID = 16;
+    public final String text;
     public int how_much;
 
     public PlusIfAllAreOdd(int how_much, boolean odd) {

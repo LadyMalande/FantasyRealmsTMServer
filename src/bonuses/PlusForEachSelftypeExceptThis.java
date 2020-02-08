@@ -7,8 +7,9 @@ import server.Type;
 import java.util.ArrayList;
 
 public class PlusForEachSelftypeExceptThis extends Bonus  {
+    public long serialVersionUID = 9;
     public int how_much;
-    public String text;
+    public final String text;
     public Type type;
     private int thiscardid;
 
@@ -17,6 +18,7 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         this.type = type;
         this.thiscardid = thiscardid;
         this.text = "+" + how_much + " for each other card of type " + BigSwitches.switchTypeForName(type) + " in your hand";
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

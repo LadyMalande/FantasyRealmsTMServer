@@ -4,7 +4,6 @@ import bonuses.Bonus;
 import interactive.Interactive;
 import maluses.Malus;
 import server.Server;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public class ClientHandler implements Runnable
     }
 
     @Override
-    public void run() {
+    public void run(){
 
         String received;
         while (true)
@@ -59,6 +58,7 @@ public class ClientHandler implements Runnable
             {
                 System.out.println("Before receiving UTF");
                     // receive the string
+
                 received = dis.readUTF();
                 System.out.println(received);
 
@@ -72,58 +72,65 @@ public class ClientHandler implements Runnable
                     String bool = st.nextToken();
 
                     System.out.println("started giveStartingCards");
-                    try
-                    {
-                        // receive the string
-
-                        for(Card c: hand){
-                  /*  String allText = new String();
-                    if(c.bonuses != null){
-                        allText += "BONUS\n";
-                        for(Bonus b: c.bonuses){
-                            allText += b.text + "\n";
-                        }
-                    }
-                    if(c.maluses != null){
-                        allText += "MALUS\n";
-                        for(Malus m: c.maluses){
-                            allText += m.text + "\n";
-                        }
-                    }
-                    if(c.interactives != null){
-                        for(Interactive b: c.interactives){
-                            allText += b.text + "\n";
-                        }
-                    }
-                    String message = "CARD_TO_HAND" + "#" + c.id + "#" + c.name + "#" + BigSwitches.switchTypeForName(c.type) + "#" + c.strength +"#" + allText ;
-                    dos.writeUTF(message);
-                    System.out.println("Giving cards to player name: " + c.name);
-
-                    */
-                            dos.writeUTF("CARD_TO_HAND");
-                            dos.flush();
-                            dos.writeObject(c);
-                            dos.flush();
-                        }
-                        System.out.println("Gave 7 cards to player " + name);
-                        giveStartingCards = false;
-
-                    } catch (IOException e) {
-
-                        e.printStackTrace();
-                    }
+                    give_init_cards();
                 }
 
                 if(received.equals("logout")){
-                    this.isloggedin=false;
-                    this.s.close();
-                    break;
+                this.isloggedin=false;
+                this.s.close();
+                break;
                 }
 
-                // break the string into message and recipient part
+                if(received.startsWith("DROP_CARD")){
+                    StringTokenizer st = new StringTokenizer(received, "#");
+                    String jumpover = st.nextToken();
+                    int id = Integer.parseInt(st.nextToken());
+                    Card cardToRemove = hand.stream().filter(card -> card.id == id).findAny().get();
+                    if(cardToRemove == null){
+                        System.out.println("BAD ID of card to remove!!!");
+                    }else{
+                        hand.remove(cardToRemove);
+                        hostingServer.putCardOnTable(cardToRemove);
+                    }
 
 
-            } catch (IOException e) {
+                }
+
+                if(received.startsWith("GOT_CARD_FROM_TABLE")){
+                    StringTokenizer st = new StringTokenizer(received, "#");
+                    String jumpover = st.nextToken();
+                    int id = Integer.parseInt(st.nextToken());
+                    Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.id == id).findAny().get();
+                    if(cardToAdd == null){
+                        System.out.println("BAD ID of card to remove!!!");
+                    }else{
+                        hand.add(cardToAdd);
+                        hostingServer.takeCardFromTable(cardToAdd);
+                    }
+                }
+
+                if(received.startsWith("GIVE_CARD_FROM_DECK")){
+
+                    int index = hostingServer.randomGenerator.nextInt(hostingServer.deck.getDeck().size());
+                    hostingServer.deck.getDeck().remove(index);
+                    Card cardToGive = hostingServer.deck.getDeck().get(index);
+                    hand.add(cardToGive);
+
+                    if(cardToGive == null){
+                        System.out.println("NO CARD to give from DECK????!!!");
+                    }else{
+                        hand.add(cardToGive);
+                        giveCardToHand(cardToGive);
+                    }
+                }
+
+
+            } catch(EOFException eof) {
+                System.out.println("Player disconnected. Closing the game.");
+                // TODO: Tell clients that one of them disconnected and the game is over // or the game goes on
+                System.exit(2);
+
+            } catch (IOException e){
 
                 e.printStackTrace();
             }
@@ -140,4 +147,102 @@ public class ClientHandler implements Runnable
 
     }
 
-} 
+    private void giveCardToHand(Card c){
+        String message = "CARD_TO_HAND#" +
+                c.id + "#" +
+                c.name + "#" +
+                c.strength +"#" +
+                BigSwitches.switchTypeForName(c.type) + "#" +
+                getAllText(c) ;
+        try {
+            dos.writeUTF(message);
+            dos.flush();
+            System.out.println("Giving card to player (" + name + "), name of card: " + c.name);
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void give_init_cards(){
+        try
+        {
+            // receive the string
+
+            for(Card c: hand){
+
+                String message =    "INIT_CARD_TO_HAND" + "#" +
+                        c.id + "#" +
+                        c.name + "#" +
+                        c.strength +"#" +
+                        BigSwitches.switchTypeForName(c.type) + "#" +
+                        getAllText(c) ;
+
+                dos.writeUTF(message);
+                dos.flush();
+                System.out.println("Giving card to player ("+ name + "), name of card: " + c.name);
+
+            }
+            System.out.println("Gave 7 cards to player " + name);
+            giveStartingCards = false;
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    private String getAllText(Card c){
+        StringBuilder allText = new StringBuilder();
+        if(c.bonuses != null){
+            allText.append("BONUS\n");
+            for(Bonus b: c.bonuses){
+                allText.append(b.getText()).append("\n");
+                //System.out.println("Name: " + c.name + " TEXT: " + b.getText());
+            }
+        }
+        if(c.maluses != null){
+            allText.append("MALUS\n");
+            for(Malus m: c.maluses){
+                allText.append(m.getText()).append("\n");
+            }
+        }
+        if(c.interactives != null){
+            for(Interactive b: c.interactives){
+                allText.append(b.getText()).append("\n");
+            }
+        }
+        return allText.toString();
+    }
+
+    public void putCardOnTable(Card c){
+        String message =    "CARD_TO_TABLE" + "#" +
+                c.id + "#" +
+                c.name + "#" +
+                c.strength +"#" +
+                BigSwitches.switchTypeForName(c.type) + "#" +
+                getAllText(c) ;
+        try {
+            dos.writeUTF(message);
+            dos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Giving card to table for player ("+ name + "), name of card: " + c.name);
+    }
+
+
+    public void eraseCardFromTable(Card c){
+        String message = "REMOVE_CARD_FROM_TABLE#" + c.id;
+        try {
+            dos.writeUTF(message);
+            dos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Telling player ("+ name + ") to remove this card from table, name of card: " + c.name);
+    }
+
+}
+
+
+

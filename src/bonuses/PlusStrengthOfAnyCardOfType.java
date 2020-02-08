@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlusStrengthOfAnyCardOfType extends Bonus  {
-    public String text;
+    public long serialVersionUID = 24;
+    public final String text;
     public List<Type> types;
 
     public PlusStrengthOfAnyCardOfType(List<Type> types) {

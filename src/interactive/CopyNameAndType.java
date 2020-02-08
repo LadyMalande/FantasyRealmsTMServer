@@ -16,7 +16,7 @@ import java.util.StringTokenizer;
 
 public class CopyNameAndType extends Interactive {
     public int priority = 3;
-    public String text;
+    public final String text;
     public ArrayList<Type> types;
     private int thiscardid;
 

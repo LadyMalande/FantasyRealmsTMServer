@@ -15,7 +15,7 @@ import java.util.StringTokenizer;
 
 public class ChangeColor extends Interactive {
     public int priority = 2;
-    public String text;
+    public final String text;
     public int thiscardid;
 
     public ChangeColor(int id) {

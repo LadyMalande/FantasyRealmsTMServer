@@ -7,7 +7,8 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class PlusForStrengthsInRow extends Bonus  {
-    public String text;
+    public long serialVersionUID = 15;
+    public final String text;
 
     public PlusForStrengthsInRow() {
         this.text = "+10 for 3 strengths, +30 for 4 strengths, +60 for 5 strengths, +100 for 6 strengths or +150 for 7 strenghts in a row";

@@ -6,7 +6,7 @@ import server.Type;
 import java.util.ArrayList;
 
 public class DeletesAllTypeExceptCard extends Malus {
-    public String text;
+    public final String text;
     public int thiscardid;
     public ArrayList<Type> types;
     public ArrayList<Integer> cards;

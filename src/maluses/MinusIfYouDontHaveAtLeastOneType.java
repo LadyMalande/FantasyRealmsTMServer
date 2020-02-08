@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     public int priority = 8;
-    public String text;
+    public final String text;
     int howMuch;
     ArrayList<Type> types;
 

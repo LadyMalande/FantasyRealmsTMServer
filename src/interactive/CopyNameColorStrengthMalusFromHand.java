@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 
 public class CopyNameColorStrengthMalusFromHand extends Interactive  {
     public int priority = 4;
-    public String text = "Copy name, type, strength and malus of any card in your hand";
+    public final String text = "Copy name, type, strength and malus of any card in your hand";
     private int thiscardid;
 
 

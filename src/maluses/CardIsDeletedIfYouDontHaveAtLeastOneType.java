@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class CardIsDeletedIfYouDontHaveAtLeastOneType extends Malus {
     public int priority = 7;
-    public String text;
+    public final String text;
     int thiscardid;
     public ArrayList<Type> types;
 
