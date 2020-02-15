@@ -12,6 +12,7 @@ public class FantasyRealmsTMServer {
     public static void main(String[] args) throws IOException {
         try {
             Thread t = new Server(new ServerSocket(1234));
+
             t.start();
         } catch (IOException e) {
             e.printStackTrace();

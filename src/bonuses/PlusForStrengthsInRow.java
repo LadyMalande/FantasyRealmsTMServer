@@ -11,7 +11,7 @@ public class PlusForStrengthsInRow extends Bonus  {
     public final String text;
 
     public PlusForStrengthsInRow() {
-        this.text = "+10 for 3 strengths, +30 for 4 strengths, +60 for 5 strengths, +100 for 6 strengths or +150 for 7 strenghts in a row";
+        this.text = "+10 for 3 SIR, +30 for 4 SIR, +60 for 5 SIR, +100 for 6 SIR or +150 for 7 SIR\n*SIR = strengths in a row";
     }
 
     @Override

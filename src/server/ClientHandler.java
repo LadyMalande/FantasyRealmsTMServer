@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // server.ClientHandler class
 public class ClientHandler implements Runnable
@@ -22,7 +23,8 @@ public class ClientHandler implements Runnable
     boolean gameOver = false;
     boolean scoring = false;
     boolean scoreTable = false;
-    int maxPlayers;
+    boolean playing = false;
+    AtomicInteger maxPlayers;
     final ObjectInputStream dis;
     final ObjectOutputStream dos;
     Socket s;
@@ -44,16 +46,13 @@ public class ClientHandler implements Runnable
         this.hand = new ArrayList<>();
     }
 
-    public void setNextPlayer(ClientHandler ch){
-        this.nextPlayer = ch;
-    }
-
     @Override
     public void run(){
 
         String received;
         while (true)
         {
+
             try
             {
                 System.out.println("Before receiving UTF");
@@ -63,16 +62,20 @@ public class ClientHandler implements Runnable
                 System.out.println(received);
 
                 if(received.startsWith("INIT")){
-                    String rec = dis.readUTF();
-                    StringTokenizer st = new StringTokenizer(rec, "#");
-                    this.name = st.nextToken();
-                    String maxPlayers= st.nextToken();
-                    hostingServer.maxClients = Integer.parseInt(maxPlayers);
-                    System.out.println(this.name + " "+ hostingServer.maxClients);
-                    String bool = st.nextToken();
+                    synchronized (hostingServer.maxClients) {
+                        StringTokenizer st = new StringTokenizer(received, "#");
+                        String command = st.nextToken();
+                        this.name = st.nextToken();
+                        String maxPlayers = st.nextToken();
+                        hostingServer.maxClients.getAndSet(Integer.parseInt(maxPlayers));
+                        hostingServer.maxClients.notifyAll();
+                        System.out.println(this.name + " " + hostingServer.maxClients);
+                        String bool = st.nextToken();
 
-                    System.out.println("started giveStartingCards");
-                    give_init_cards();
+                        System.out.println("New player joined: " + name + " , max players: " + hostingServer.maxClients);
+                        give_init_cards();
+                        sendNamesInOrder(hostingServer.giveNamesInOrder(this));
+                    }
                 }
 
                 if(received.equals("logout")){
@@ -112,8 +115,9 @@ public class ClientHandler implements Runnable
                 if(received.startsWith("GIVE_CARD_FROM_DECK")){
 
                     int index = hostingServer.randomGenerator.nextInt(hostingServer.deck.getDeck().size());
-                    hostingServer.deck.getDeck().remove(index);
+
                     Card cardToGive = hostingServer.deck.getDeck().get(index);
+                    hostingServer.deck.getDeck().remove(index);
                     hand.add(cardToGive);
 
                     if(cardToGive == null){
@@ -220,13 +224,14 @@ public class ClientHandler implements Runnable
                 c.name + "#" +
                 c.strength +"#" +
                 BigSwitches.switchTypeForName(c.type) + "#" +
-                getAllText(c) ;
+                getAllText(c);
         try {
             dos.writeUTF(message);
             dos.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        hostingServer.setNextPlayer();
         System.out.println("Giving card to table for player ("+ name + "), name of card: " + c.name);
     }
 
@@ -240,6 +245,18 @@ public class ClientHandler implements Runnable
             e.printStackTrace();
         }
         System.out.println("Telling player ("+ name + ") to remove this card from table, name of card: " + c.name);
+    }
+
+    public void sendNamesInOrder(String names){
+        String message = "NAMES#" + names;
+        try {
+            dos.writeUTF(message);
+            dos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Telling player ("+ name + ") names of other players: " + names);
+
     }
 
 }

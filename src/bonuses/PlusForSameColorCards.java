@@ -11,7 +11,7 @@ public class PlusForSameColorCards extends Bonus  {
     public final String text;
 
     public PlusForSameColorCards() {
-        this.text = "+10 for 3, +40 for 4, +100 for 5 cards of the same type";
+        this.text = "+10 for 3,\n +40 for 4,\n +100 for 5 cards of the same type";
     }
 
     @Override
