@@ -29,37 +29,24 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
     }
     @Override
     public int getPriority(){ return this.priority; }
-    @Override
-    public void askPlayer() {
 
-        /*
-        boolean gotanswer = false;
-        while(!gotanswer) {
-            try {
-                DataInputStream dis = new DataInputStream(s.getInputStream());
-                // receive the string
+    private String getNamesOfTypeCardsOnTable(ClientHandler client){
+        StringBuilder str = new StringBuilder();
 
-                String received = dis.readUTF();
-
-                System.out.println(received);
-
-                // break the string into message and recipient part
-                StringTokenizer st = new StringTokenizer(received, "#");
-                final String result = st.nextToken();
-                if (result != null){
-                    if(ch.hostingServer.cardsOnTable.stream().anyMatch(card -> card.name.equals(result))) {
-                        Card tocopy = ch.hostingServer.cardsOnTable.stream().filter(card -> card.name.equals(result)).findAny().orElse(null);
-                        ch.getHand().add(tocopy);
-                        ch.hostingServer.cardsOnTable.remove(tocopy);
-                    }
-                    gotanswer = true;
+        for(Type t: types){
+            for(Card c: client.hostingServer.cardsOnTable){
+                if(c.type.equals(t)){
+                    str.append(c.name + ",");
                 }
-            } catch (IOException e) {
-
-                e.printStackTrace();
             }
         }
 
-*/
+        return str.toString();
+    }
+
+    @Override
+    public boolean askPlayer(ClientHandler client) {
+
+        return client.sendInteractive("TakeCardOfType#" + thiscardid + "#" + getNamesOfTypeCardsOnTable(client));
     }
 }

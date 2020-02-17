@@ -1,5 +1,7 @@
 package interactive;
 
+import maluses.Malus;
+import server.Card;
 import server.ClientHandler;
 import server.Type;
 
@@ -30,37 +32,32 @@ public class DeleteOneMalusOnType extends Interactive {
         return this.priority;
     }
 
-    @Override
-    public void askPlayer() {
+    private String getAllMalusesForTypesToString(ClientHandler client){
+        StringBuilder str = new StringBuilder();
+        boolean firstTime = true;
+        for(Type t: types){
+            for(Card c: client.getHand()){
+                if(c.type.equals(t)){
+                    if(c.maluses != null && !c.maluses.isEmpty()){
+                        if(!firstTime){
+                            str.append(",");
+                        }
 
-     /*
-        //Header CLientHandler ch, Socket s
-        boolean gotanswer = false;
-        while (!gotanswer) {
-            try {
-                DataInputStream dis = new DataInputStream(s.getInputStream());
-                // receive the string
-
-                String received = dis.readUTF();
-
-                System.out.println(received);
-
-                // break the string into message and recipient part
-                StringTokenizer st = new StringTokenizer(received, "#");
-                final String result1 = st.nextToken();
-                final String result2 = st.nextToken();
-                if (result2 != null) {
-                    ch.getHand().stream().filter(card -> card.name.equals(result1)).findAny().ifPresent(removeMalusHere -> removeMalusHere.maluses.removeIf(malus -> malus.getText().equals(result2)));
-                    gotanswer = true;
+                        for(Malus m: c.maluses){
+                            str.append(c.name + ": ");
+                            str.append(m.text);
+                        }
+                        firstTime = false;
+                    }
                 }
-            } catch (IOException e) {
-
-                e.printStackTrace();
             }
-
-
         }
+        return str.toString();
+    }
 
-      */
+    @Override
+    public boolean askPlayer(ClientHandler client) {
+        //            ch.getHand().stream().filter(card -> card.name.equals(result1)).findAny().ifPresent(removeMalusHere -> removeMalusHere.maluses.removeIf(malus -> malus.getText().equals(result2)));
+        return client.sendInteractive("DeleteOneMalusOnType#" + thiscardid + "#" + getAllMalusesForTypesToString(client));
     }
 }

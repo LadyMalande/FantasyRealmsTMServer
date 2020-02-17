@@ -19,8 +19,8 @@ public class Interactive implements InteractiveBonusInterface , Serializable {
         return this.priority;
     }
     @Override
-    public void askPlayer() {
-
+    public boolean askPlayer(ClientHandler client) {
+        return true;
     }
 
     public String giveListOfTypesWithSeparator(ArrayList<Type> types, String separator){
@@ -31,6 +31,19 @@ public class Interactive implements InteractiveBonusInterface , Serializable {
                 listtypes += separator;
             }
             listtypes += BigSwitches.switchTypeForName(type);
+            first = false;
+        }
+        return listtypes;
+    }
+
+    public String giveStringOfStringsWithSeparator(ArrayList<String> strings, String separator){
+        String listtypes = "";
+        boolean first = true;
+        for(String str: strings){
+            if(!first){
+                listtypes += separator;
+            }
+            listtypes += str;
             first = false;
         }
         return listtypes;

@@ -21,6 +21,7 @@ Server extends Thread
     public AtomicInteger maxClients = new AtomicInteger(6);
     // Vector to store active clients
     Vector<ClientHandler> players = new Vector<>();
+    public AtomicInteger numberOfCountedScores = new AtomicInteger(0);
 
     public Vector<ClientHandler> getPlayers(){
         return players;
@@ -114,10 +115,25 @@ Server extends Thread
 
     }
 
+    public void increaseCountedScoreNumber(){
+        int nowCounted = numberOfCountedScores.incrementAndGet();
+        if(maxClients.get() == nowCounted){
+            sendCountedScore();
+        }
+    }
+
+    private void sendCountedScore(){
+        players.forEach(p -> p.sendScore(gatherScores(p)));
+        System.out.println("Telling all clients about final score");
+    }
+
     public void putCardOnTable(Card c){
         // Tell all clients to put this card on tables
         cardsOnTable.add(c);
         players.forEach(p -> p.putCardOnTable(c));
+        if(cardsOnTable.size() == 10){
+            sendEndGame();
+        }
         System.out.println("Telling all clients to put this card on table: " + c.name);
     }
 
@@ -131,6 +147,12 @@ Server extends Thread
         cardsOnTable.remove(c);
         players.forEach(p -> p.eraseCardFromTable(c));
         System.out.println("Telling all clients to erase this card from table: " + c.name);
+    }
+
+    private void sendEndGame(){
+        //Tell all clients to disable all buttons, end of the game, start counting hand
+        players.forEach(p -> p.endGame());
+
     }
 
     public String giveNamesInOrder(ClientHandler client){
@@ -151,6 +173,57 @@ Server extends Thread
         }
         names.deleteCharAt(names.length()-1);
         return names.toString();
+    }
+
+    public String gatherScores(ClientHandler client){
+        StringBuilder text = new StringBuilder();
+        int indexOfClient = players.indexOf(client);
+        countRanks();
+
+        int gotScores = 0;
+        while(gotScores != maxClients.get()){
+
+            if(players.size() <= indexOfClient){
+                indexOfClient = 0;
+            }
+
+            text.append(players.elementAt(indexOfClient).rank).append(") ").append(players.elementAt(indexOfClient).score).append("#");
+            gotScores++;
+            indexOfClient++;
+        }
+        text.deleteCharAt(text.length()-1);
+        return text.toString();
+    }
+
+    private void countRanks(){
+        ClientHandler[] playerScore = new ClientHandler[maxClients.get()];
+        for(int i = 0; i < players.size();i++){
+            for(int j = 0; j <= i; j++ ) {
+                if(playerScore[j] == null) {
+                    playerScore[j] = players.elementAt(i);
+                }else {
+                    System.out.println("Player name: " + players.elementAt(i).name + " Score: " + players.elementAt(i).score + " <? " + playerScore[j].score + " j = " + j);
+                    if (players.elementAt(i).score > playerScore[j].score) {
+                        for (int k = players.size() - 1; k > j; k--) {
+                            playerScore[k] = playerScore[k - 1];
+                        }
+                        playerScore[j] = players.elementAt(i);
+                    }
+                }
+            }
+        }
+        int rank = 1;
+        for(int i = 0; i < players.size();i++){
+            playerScore[i].rank = rank;
+            if(i < players.size()-1){
+                if(playerScore[i].score == playerScore[i+1].score){
+
+                } else{
+                    rank++;
+                }
+            }
+        }
+
     }
 
     public void setNextPlayer(){

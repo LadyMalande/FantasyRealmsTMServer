@@ -31,36 +31,8 @@ public class ChangeColor extends Interactive {
     // All dialogs made with the help of example on https://code.makery.ch/blog/javafx-dialogs-official/
 
     @Override
-    public void askPlayer() {
-/*
-        boolean gotanswer = false;
-        while(!gotanswer) {
-            try {
-                DataInputStream dis = new DataInputStream(s.getInputStream());
-                // receive the string
-
-                String received = dis.readUTF();
-
-                System.out.println(received);
-
-                // break the string into message and recipient part
-                StringTokenizer st = new StringTokenizer(received, "#");
-                final String result1 = st.nextToken();
-                final String result2 = st.nextToken();
-                if (result1 != null && result2 != null) {gotanswer = true;
-
-                    ch.getHand().stream().filter(x -> x.name.equals(result1)).findFirst().get().type = BigSwitches.switchNameForType(result2);
-                }
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            }
-        }
-
-
-// Traditional way to get the response value.
-
-*/
+    public boolean askPlayer(ClientHandler client) {
+        return client.sendInteractive( "ChangeColor");
 
     }
 }

@@ -22,43 +22,8 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
     }
 
     @Override
-    public void askPlayer() {
-
-        /*
-        boolean gotanswer = false;
-        while(!gotanswer) {
-            try {
-                DataInputStream dis = new DataInputStream(s.getInputStream());
-                // receive the string
-
-                String received = dis.readUTF();
-
-                System.out.println(received);
-
-                // break the string into message and recipient part
-                StringTokenizer st = new StringTokenizer(received, "#");
-                final String result1 = st.nextToken();
-
-                if (result1 != null){
-                    Card thiscard = ch.getHand().stream().filter(card -> card.id == thiscardid).findAny().get();
-                    Card tocopy = ch.getHand().stream().filter(card -> card.name.equals(result1)).findAny().get();
-                    thiscard.name = result1;
-                    thiscard.id = tocopy.id;
-                    thiscard.strength = tocopy.strength;
-                    thiscard.type = tocopy.type;
-                    thiscard.maluses = tocopy.maluses;
-                    gotanswer = true;
-                }
-
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            }
-        }
-
-
-*/
-
+    public boolean askPlayer(ClientHandler client) {
+        return client.sendInteractive("CopyCardFromHand#" + thiscardid);
 
     }
 }

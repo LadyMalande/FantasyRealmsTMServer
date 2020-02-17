@@ -4,6 +4,7 @@ package interactive;
 
 
 
+import server.ArrayListCreator;
 import server.ClientHandler;
 import server.DeckInitializer;
 import server.Type;
@@ -11,6 +12,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 
@@ -32,33 +34,10 @@ public class CopyNameAndType extends Interactive {
     }
 
     @Override
-    public void askPlayer() {
-
-        /*
-        boolean gotanswer = false;
-        while(!gotanswer) {
-            try {
-                DataInputStream dis = new DataInputStream(s.getInputStream());
-                // receive the string
-
-                String received = dis.readUTF();
-
-                System.out.println(received);
-
-                // break the string into message and recipient part
-                StringTokenizer st = new StringTokenizer(received, "#");
-                final String result1 = st.nextToken();
-                if (result1 != null){
-
-                    ch.getHand().stream().filter(card -> card.id == thiscardid).findAny().get().id = DeckInitializer.loadDeckFromFile().stream().filter(card -> card.name.equals(result1)).findAny().get().id;
-
-                }
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            }
-        }
-
-*/
+    public boolean askPlayer(ClientHandler client) {
+        ArrayList<String> choices = new ArrayList<>();
+        choices = ArrayListCreator.createListOfNamesFromTypes(types);
+        String toSend = giveStringOfStringsWithSeparator(choices, ",");
+        return client.sendInteractive("CopyNameAndType#" + thiscardid + "#" + toSend);
     }
 }

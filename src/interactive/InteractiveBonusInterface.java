@@ -5,5 +5,5 @@ import server.ClientHandler;
 import java.net.Socket;
 
 public interface InteractiveBonusInterface {
-    public void askPlayer();
+    public boolean askPlayer(ClientHandler client);
 }

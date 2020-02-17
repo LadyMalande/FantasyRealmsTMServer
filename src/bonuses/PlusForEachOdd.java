@@ -16,9 +16,9 @@ public class PlusForEachOdd extends Bonus  {
         this.thiscardid = thiscardid;
         this.how_much = how_much;
         if(odd) {
-            this.text = "+" + how_much + " for each card in your hand with odd strength";
+            this.text = "+" + how_much + " for each OTHER card in your hand with odd strength";
         } else{
-            this.text = "+" + how_much + " for each card in your hand with even strength";
+            this.text = "+" + how_much + " for each OTHER card in your hand with even strength";
         }
         System.out.println("Card INIT: Text: " + getText());
     }
@@ -33,12 +33,12 @@ public class PlusForEachOdd extends Bonus  {
         int sum = 0;
         for(Card c: hand){
             if(odd){
-                if(((c.strength % 2) != 0) && c.id != thiscardid){
+                if(((c.strength % 2) != 0) && (c.id != thiscardid)){
                     sum += how_much;
                 }
             }
             else{
-                if(((c.strength % 2) == 0) && c.id != thiscardid){
+                if(((c.strength % 2) == 0) && (c.id != thiscardid)){
                     sum += how_much;
                 }
             }
