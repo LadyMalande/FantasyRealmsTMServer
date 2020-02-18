@@ -11,11 +11,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // server.ClientHandler class
 public class ClientHandler implements Runnable
 {
+    public final static Object obj = new Object();
     ArrayList<Card> hand;
     Scanner scn = new Scanner(System.in);
     public String name;
@@ -25,15 +28,19 @@ public class ClientHandler implements Runnable
     boolean gameOver = false;
     boolean scoring = false;
     boolean scoreTable = false;
+    public FutureTask<Integer> futureTask;
     boolean playing = false;
     AtomicInteger maxPlayers;
     final ObjectInputStream dis;
     final ObjectOutputStream dos;
     Socket s;
-    int score;
+    int score = -1;
     int rank;
     boolean isloggedin;
     public Server hostingServer;
+    public AtomicInteger interactivesResolved;
+    public int interactivesCount;
+    public AtomicBoolean interactivesResolvedAtomicBoolean;
 
     public ArrayList<Card> getHand(){
         return this.hand;
@@ -141,8 +148,14 @@ public class ClientHandler implements Runnable
                     if(cardToChange == null){
                         System.out.println("NO CARD to ChangeColor!");
                     }else{
+                        synchronized(interactivesResolvedAtomicBoolean) {
+
                         //Change the color
                         cardToChange.type = BigSwitches.switchNameForType(typeString);
+                        interactivesResolved.incrementAndGet();
+                        System.out.println("The interactiveResolved should have been increased...");
+                        interactivesResolvedAtomicBoolean.set(true);
+                        }
                     }
                 }
 
@@ -151,23 +164,27 @@ public class ClientHandler implements Runnable
                     String command = st.nextToken();
                     int idOfCardToChange = Integer.parseInt(st.nextToken());
                     String text = st.nextToken();
-                    String[] splitted = text.split(" ");
+                    String[] splitted = text.split("( \\()");
                     String name = splitted[0];
                     Card cardToChange = hand.stream().filter(card -> card.id == idOfCardToChange).findAny().get();
                     if(cardToChange == null){
                         System.out.println("NO CARD to Change!");
                     }else{
-
-                        //Find the card we want to change to by name
-                        ArrayList<Card> deck = DeckInitializer.loadDeckFromFile();
-                        Card howToChange = deck.stream().filter(card -> card.name.equals(name)).findAny().get();
-                        //Change the Name and Type
-                        if(howToChange != null){
-                            cardToChange.id = howToChange.id;
-                            cardToChange.name = howToChange.name;
-                            cardToChange.type = howToChange.type;
+                        synchronized(interactivesResolvedAtomicBoolean) {
+                            //Find the card we want to change to by name
+                            ArrayList<Card> deck = DeckInitializer.loadDeckFromFile();
+                            Card howToChange = deck.stream().filter(card -> card.name.equals(name)).findAny().get();
+                            //Change the Name and Type
+                            if (howToChange != null) {
+                                cardToChange.id = howToChange.id;
+                                cardToChange.name = howToChange.name;
+                                cardToChange.type = howToChange.type;
+                            }
+                            interactivesResolved.incrementAndGet();
+                            System.out.println("The interactiveResolved should have been increased...");
+                            interactivesResolvedAtomicBoolean.set(true);
+                            interactivesResolvedAtomicBoolean.notifyAll();
                         }
-
                     }
                 }
                 if(received.startsWith("CopyCardFromHand")){
@@ -179,12 +196,19 @@ public class ClientHandler implements Runnable
                     if(howToChange == null || cardToChange == null){
                         System.out.println("NO card how to change or what to change!");
                     }else{
+                        synchronized(interactivesResolvedAtomicBoolean) {
+
                         //Change what is needed
                         cardToChange.id = howToChange.id;
                         cardToChange.name = howToChange.name;
                         cardToChange.type = howToChange.type;
                         cardToChange.strength = howToChange.strength;
                         cardToChange.maluses = howToChange.maluses;
+                        interactivesResolved.incrementAndGet();
+                        System.out.println("The interactiveResolved should have been increased...");
+                        interactivesResolvedAtomicBoolean.set(true);
+                        interactivesResolvedAtomicBoolean.notifyAll();
+                        }
                     }
                 }
 
@@ -200,8 +224,14 @@ public class ClientHandler implements Runnable
                     if(cardToChange == null){
                         System.out.println("NO card how to change or what to change!");
                     }else{
-                        // Delete malus
-                        cardToChange.maluses.removeIf(malus -> malus.text.equals(malusToDelete));
+                        synchronized(interactivesResolvedAtomicBoolean) {
+                            // Delete malus
+                            cardToChange.maluses.removeIf(malus -> malus.text.equals(malusToDelete));
+                            interactivesResolved.incrementAndGet();
+                            System.out.println("The interactiveResolved should have been increased...");
+                            interactivesResolvedAtomicBoolean.set(true);
+                            interactivesResolvedAtomicBoolean.notifyAll();
+                        }
                     }
                 }
 
@@ -211,10 +241,19 @@ public class ClientHandler implements Runnable
                     String name = st.nextToken();
                     Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.name.equals(name)).findAny().get();
                     if(cardToAdd == null){
-                        System.out.println("NO CARD to ChangeColor!");
+                        System.out.println("NO CARD to take from table!");
                     }else{
-                        //Change the color
-                        hand.add(cardToAdd);
+                        synchronized(interactivesResolvedAtomicBoolean) {
+                            //Put the card to hand
+                            hand.add(cardToAdd);
+                            if (cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty()) {
+                                interactivesCount += cardToAdd.interactives.size();
+                            }
+                            interactivesResolved.incrementAndGet();
+                            System.out.println("The interactiveResolved should have been increased...");
+                            interactivesResolvedAtomicBoolean.set(true);
+                            interactivesResolvedAtomicBoolean.notifyAll();
+                        }
                     }
                 }
 
@@ -238,6 +277,17 @@ public class ClientHandler implements Runnable
 
 
 
+    }
+
+    public void setWaitingCounterForInteractives(){
+        interactivesResolved = new AtomicInteger(0);
+        interactivesCount = 0;
+        for(Card c: hand){
+            if(c.interactives != null && !c.interactives.isEmpty()){
+                interactivesCount += c.interactives.size();
+            }
+        }
+        System.out.println("Player " + name + " has now " + interactivesCount + " interactive cards on hand.");
     }
 
     private void giveCardToHand(Card c){
@@ -357,8 +407,14 @@ public class ClientHandler implements Runnable
             e.printStackTrace();
         }
         System.out.println("Telling player ("+ name + ") to end game, disable buttons.");
-        score = countScore();
-        hostingServer.increaseCountedScoreNumber();
+
+        ScoreCounter scoreCounter = new ScoreCounter(this);
+        scoreCounter.start();
+
+
+
+
+
     }
 
     public void sendScore(String text){
@@ -369,7 +425,7 @@ public class ClientHandler implements Runnable
     } catch (IOException e) {
         e.printStackTrace();
     }
-    System.out.println("Telling player ("+ name + ") score");
+    System.out.println("Telling player ("+ name + ") score : " + message);
 
     }
 
@@ -394,7 +450,15 @@ public class ClientHandler implements Runnable
         ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(hand);
         int MAX_PRIORITY = 8;
         int MIN_PRIORITY = 0;
+        setWaitingCounterForInteractives();
         for(int i = MIN_PRIORITY; i <= MAX_PRIORITY; i++ ){
+
+            if(i == 5){
+                while(interactivesResolved.get() < interactivesCount){
+                    // wait
+                    System.out.println("MaxCount: " + interactivesCount + " and we have: " + interactivesResolved.get());
+                }
+            }
             for(Card c: copyDeckToMakeChanges){
                 //System.out.println("Counting card: " + c.name);
                 if(hand.contains(c)){
@@ -435,8 +499,6 @@ public class ClientHandler implements Runnable
                                 System.out.println("SumForMalusOfCard: "  + c.name + " : " + sumForCardMalus);
                             }
                         }
-
-
                 }
             }
             if(i == 6){
@@ -448,7 +510,6 @@ public class ClientHandler implements Runnable
         for(Card c: hand){
             sum += c.strength;
         }
-
 
         return sum;
     }

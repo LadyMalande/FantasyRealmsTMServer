@@ -45,7 +45,7 @@ public class DeleteOneMalusOnType extends Interactive {
 
                         for(Malus m: c.maluses){
                             str.append(c.name + ": ");
-                            str.append(m.text);
+                            str.append(m.getText());
                         }
                         firstTime = false;
                     }
@@ -58,6 +58,15 @@ public class DeleteOneMalusOnType extends Interactive {
     @Override
     public boolean askPlayer(ClientHandler client) {
         //            ch.getHand().stream().filter(card -> card.name.equals(result1)).findAny().ifPresent(removeMalusHere -> removeMalusHere.maluses.removeIf(malus -> malus.getText().equals(result2)));
-        return client.sendInteractive("DeleteOneMalusOnType#" + thiscardid + "#" + getAllMalusesForTypesToString(client));
+       String s = getAllMalusesForTypesToString(client);
+        if(s.isEmpty()){
+            client.interactivesResolved.incrementAndGet();
+            client.futureTask.notify();
+            return true;
+        }
+        else{
+            return client.sendInteractive("DeleteOneMalusOnType#" + thiscardid + "#" + getAllMalusesForTypesToString(client));
+
+        }
     }
 }

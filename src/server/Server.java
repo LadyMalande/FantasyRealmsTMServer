@@ -90,7 +90,7 @@ Server extends Thread
                     e.printStackTrace();
                 }
                 System.out.println(maxClients);
-                System.out.println(maxClients);
+
                 try {
                     maxClients.wait();
                 } catch (InterruptedException e) {
