@@ -33,7 +33,7 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
             if(c.type.equals(onWhichType)) {
                 if (c.maluses!=null && !c.maluses.isEmpty()) {
                     for (Malus m : c.maluses) {
-                        if(m.types.contains(deleteThisTypeFromMaluses)) {
+                        if((m.types != null) && !(m.types.isEmpty()) && (m.types.contains(deleteThisTypeFromMaluses))) {
                             m.types.remove(deleteThisTypeFromMaluses);
                         }
                     }

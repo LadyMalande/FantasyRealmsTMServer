@@ -45,6 +45,7 @@ Server extends Thread
         {
             synchronized (maxClients) {
                 if (maxClients.get() == i) {
+                    System.out.println("Max Clients == i, so we break from while(true) in Server.run()");
                     break;
                 }
                 System.out.println(maxClients);
@@ -89,10 +90,12 @@ Server extends Thread
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(maxClients);
+
 
                 try {
+                    System.out.println("Before maxClients.wait() in Server.run()");
                     maxClients.wait();
+                    System.out.println("After maxClients.wait() in Server.run()");
                 } catch (InterruptedException e) {
                     System.out.println("InterruptedException while waiting");
                     e.printStackTrace();
@@ -214,6 +217,7 @@ Server extends Thread
         }
         int rank = 1;
         for(int i = 0; i < players.size();i++){
+            System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + playerScore[i].name);
             playerScore[i].rank = rank;
             if(i < players.size()-1){
                 if(playerScore[i].score == playerScore[i+1].score){

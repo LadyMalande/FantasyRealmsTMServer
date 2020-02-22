@@ -40,7 +40,7 @@ public class DeleteOneMalusOnType extends Interactive {
                 if(c.type.equals(t)){
                     if(c.maluses != null && !c.maluses.isEmpty()){
                         if(!firstTime){
-                            str.append(",");
+                            str.append("%");
                         }
 
                         for(Malus m: c.maluses){

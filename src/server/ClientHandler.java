@@ -226,7 +226,7 @@ public class ClientHandler implements Runnable
                     }else{
                         synchronized(interactivesResolvedAtomicBoolean) {
                             // Delete malus
-                            cardToChange.maluses.removeIf(malus -> malus.text.equals(malusToDelete));
+                            cardToChange.maluses.removeIf(malus -> malus.getText().equals(malusToDelete));
                             interactivesResolved.incrementAndGet();
                             System.out.println("The interactiveResolved should have been increased...");
                             interactivesResolvedAtomicBoolean.set(true);

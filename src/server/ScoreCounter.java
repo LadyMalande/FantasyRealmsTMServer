@@ -28,7 +28,7 @@ public class ScoreCounter extends Thread {
 
     private int countScore() {
 
-        FutureTask<Integer> futureTask = new FutureTask<>(new Callable<Integer>() {
+        client.futureTask = new FutureTask<>(new Callable<Integer>() {
             @Override
             public Integer call() {
                 try {
@@ -125,10 +125,10 @@ public class ScoreCounter extends Thread {
         );
 
         ExecutorService es = Executors.newSingleThreadExecutor();
-        es.execute(futureTask);
+        es.execute(client.futureTask);
         Integer score = 0;
         try {
-            score = futureTask.get();
+            score = client.futureTask.get();
             System.out.println("Score got from FutureTask: " + score.toString());
         } catch (InterruptedException e) {
             e.printStackTrace();

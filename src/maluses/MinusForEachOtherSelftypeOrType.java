@@ -36,13 +36,8 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
     public int count(ArrayList<Card> hand) {
         int total = 0;
         for(Card c: hand){
-            if(types == null) {
-                if (((selftype.equals(c.type) && c.id != thiscardid))) {
-                    total += howMuch;
-                }
-            }
-            else{
-                if (types.contains(c.type) || (selftype.equals(c.type) && c.id != thiscardid)) {
+            if(types != null && !types.isEmpty()){
+                if (types.contains(c.type) && (c.id != thiscardid)) {
                     total += howMuch;
                 }
             }

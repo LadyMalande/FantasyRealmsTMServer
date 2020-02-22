@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FantasyRealmsTMServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/FantasyRealmsTMServer_jar</output-path>
+    <root id="archive" name="FantasyRealmsTMServer.jar">
+      <element id="module-output" name="FantasyRealmsTMServer" />
+    </root>
+  </artifact>
+</component>
