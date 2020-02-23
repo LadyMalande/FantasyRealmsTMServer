@@ -10,11 +10,11 @@ public class DeckInitializer implements Serializable{
     void storeDecktoFile() {
         ArrayList<Card> tempDeck = new ArrayList<>();
         tempDeck.add(new Card(1, "Unicorn", 9, Type.CREATURE, new ArrayList<>() {{add(new BonusOrBonus(new PlusIfYouHaveAll(30, new ArrayList<>(){{add(17);}}), new PlusIfYouHaveAtLeastOneCard(15, new ArrayList<>(){{add(15);add(19); add(21);}})));}}, null, null));
-        tempDeck.add( new Card(2,"Magic Staff", 1, Type.WEAPON, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneType(25, new ArrayList<>(){{add(Type.WIZARD);}}));}}, null, null));
-        tempDeck.add(new Card(3,"Hydra",12 , Type.CREATURE, new ArrayList<>(){{add(new PlusIfYouHaveAll(28, new ArrayList<>(){{add(35);}}));}}, null, null));
-        tempDeck.add(new Card(4,"Basilisk",35 , Type.CREATURE, null, new ArrayList<>() {{add(new DeletesAllTypeOrOtherSelftype(new ArrayList<>(){{add(Type.ARMY); add(Type.LEADER);}}, Type.CREATURE, 4));}}, null));
-        tempDeck.add(new Card(5,"Warhorse",6 , Type.CREATURE, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneType(14, new ArrayList<>(){{add(Type.LEADER); add(Type.WIZARD);}}));}}, null, null));
-        tempDeck.add(new Card(6,"Dragon", 30, Type.CREATURE, null, new ArrayList<>() {{add(new MinusIfYouDontHaveAtLeastOneType(-40, new ArrayList<>(){{add(Type.WIZARD);}}));}}, null));
+        tempDeck.add(new Card(2,"Hydra",12 , Type.CREATURE, new ArrayList<>(){{add(new PlusIfYouHaveAll(28, new ArrayList<>(){{add(35);}}));}}, null, null));
+        tempDeck.add(new Card(3,"Basilisk",35 , Type.CREATURE, null, new ArrayList<>() {{add(new DeletesAllTypeOrOtherSelftype(new ArrayList<>(){{add(Type.ARMY); add(Type.LEADER);}}, Type.CREATURE, 3));}}, null));
+        tempDeck.add(new Card(4,"Warhorse",6 , Type.CREATURE, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneType(14, new ArrayList<>(){{add(Type.LEADER); add(Type.WIZARD);}}));}}, null, null));
+        tempDeck.add(new Card(5,"Dragon", 30, Type.CREATURE, null, new ArrayList<>() {{add(new MinusIfYouDontHaveAtLeastOneType(-40, new ArrayList<>(){{add(Type.WIZARD);}}));}}, null));
+        tempDeck.add( new Card(6,"Magic Staff", 1, Type.WEAPON, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneType(25, new ArrayList<>(){{add(Type.WIZARD);}}));}}, null, null));
         tempDeck.add(new Card(7,"Zeppelin",35 , Type.WEAPON, null, new ArrayList<>() {{add(new CardIsDeletedIfYouDontHaveAtLeastOneType(7, new ArrayList<>(){{add(Type.ARMY);}})); add(new CardIsDeletedIfYouHaveAnyType(7, new ArrayList<>(){{add(Type.WEATHER);}}));}}, null));
         tempDeck.add(new Card(8,"Warship", 23, Type.WEAPON, new ArrayList<>() {{add(new DeleteTypeFromAllMalusesOnType(Type.ARMY, Type.FLOOD));}}, new ArrayList<>() {{add(new CardIsDeletedIfYouDontHaveAtLeastOneType(8, new ArrayList<>(){{add(Type.FLOOD);}}));}}, null));
         tempDeck.add(new Card(9,"Bow", 3, Type.WEAPON, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneCard(30, new ArrayList<>() {{add(11);add(18);add(25);}}));}}, null, null));
@@ -24,7 +24,7 @@ public class DeckInitializer implements Serializable{
         tempDeck.add(new Card(13,"Necromant",3, Type.WIZARD, null, null, new ArrayList<>() {{add(new TakeCardOfTypeAtTheEnd(13,new ArrayList<>() {{add(Type.ARMY); add(Type.LEADER);  add(Type.WIZARD); add(Type.CREATURE);}}));}}));
         tempDeck.add( new Card(14,"Jester",3, Type.WIZARD, new ArrayList<>() {{add(new BonusOrBonus(new PlusForEachOdd(3, true,14), new PlusIfAllAreOdd(50, true)));}}, null, null));
         tempDeck.add(new Card(15,"Witch",5, Type.WIZARD, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.EARTH); add(Type.WEATHER); add(Type.FLOOD); add(Type.FIRE);}},5));}}, null, null));
-        tempDeck.add(new Card(16,"Archmage",25, Type.WIZARD, null, new ArrayList<>() {{add(new MinusForEachOtherSelftypeOrType(-10,new ArrayList<>() {{add(Type.LEADER);}}, Type.WIZARD, 17));}}, null));
+        tempDeck.add(new Card(16,"Archmage",25, Type.WIZARD, null, new ArrayList<>() {{add(new MinusForEachOtherSelftypeOrType(-10,new ArrayList<>() {{add(Type.LEADER);}}, Type.WIZARD, 16));}}, null));
         tempDeck.add(new Card(17,"Princess",2, Type.LEADER, new ArrayList<>() {{add(new PlusForEachTypeOrSelfType(8, 17, new ArrayList<>(){{add(Type.ARMY);add(Type.WIZARD);}}, Type.LEADER));}}, null, null));
         tempDeck.add(new Card(18,"Commander",4, Type.LEADER, new ArrayList<>() {{add(new PlusSumOfStrengthsType(Type.ARMY));}}, null, null));
         tempDeck.add(new Card(19,"Queen",6, Type.LEADER, new ArrayList<>() {{add(new BonusOrBonus(new PlusForEachType(new ArrayList<>() {{add(Type.ARMY);}},5), new PlusForEachTypeIfYouHaveCard(20,new ArrayList<>() {{add(Type.ARMY);}},20)));}}, null, null));
@@ -49,7 +49,7 @@ public class DeckInitializer implements Serializable{
         tempDeck.add(new Card(38,"Lightning",11, Type.FIRE, new ArrayList<>() {{add(new PlusIfYouHaveAll(30,new ArrayList<>() {{add(50);}}));}}, null, null));
         tempDeck.add(new Card(39,"Candle",2, Type.FIRE, new ArrayList<>() {{add(new PlusIfYouHaveAllCardsAndAtLeastOneType(100, new ArrayList<>() {{add(31);add(42);}},new ArrayList<>() {{add(Type.WIZARD);}}));}}, null, null));
         tempDeck.add(new Card(40,"Forge",9, Type.FIRE, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.WEAPON);add(Type.ARTIFACT);}},9));}}, null, null));
-        tempDeck.add(new Card(41,"Conflagration",40, Type.FIRE, null, new ArrayList<>() {{add(new DeletesAllExceptTypeOrCard(new ArrayList<>() {{add(Type.FIRE);add(Type.WIZARD);add(Type.WEATHER);add(Type.WEAPON);add(Type.ARTIFACT);}},new ArrayList<>() {{add(45);add(33);add(1);add(36);add(6);}},41));}}, null));
+        tempDeck.add(new Card(41,"Conflagration",40, Type.FIRE, null, new ArrayList<>() {{add(new DeletesAllExceptTypeOrCard(new ArrayList<>() {{add(Type.FIRE);add(Type.WIZARD);add(Type.WEATHER);add(Type.WEAPON);add(Type.ARTIFACT);}},new ArrayList<>() {{add(45);add(33);add(1);add(36);add(5);}},41));}}, null));
         tempDeck.add(new Card(42,"Belfry",8, Type.EARTH, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneType(15, new ArrayList<>(){{add(Type.WIZARD);}}));}}, null, null));
         tempDeck.add(new Card(43,"Elemental of Earth",4, Type.EARTH, new ArrayList<>() {{add(new PlusForEachSelftypeExceptThis(15,43,Type.EARTH));}}, null, null));
         tempDeck.add(new Card(44,"Cave",6, Type.EARTH, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneCard(25,new ArrayList<>() {{add(6);add(24);}}));add(new DeleteAllMalusesOnType(Type.WEATHER));}}, null, null));
@@ -61,9 +61,8 @@ public class DeckInitializer implements Serializable{
         tempDeck.add(new Card(50,"Storm",8, Type.WEATHER, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.FLOOD);}},10));}}, new ArrayList<>() {{add(new DeletesAllTypeExceptCard(50,new ArrayList<>() {{add(Type.FIRE);}},new ArrayList<>() {{add(38);}}));}}, null));
         tempDeck.add(new Card(51,"Smoke",27, Type.WEATHER, null, new ArrayList<>() {{add(new CardIsDeletedIfYouDontHaveAtLeastOneType(51,new ArrayList<>(){{add(Type.FIRE);}}));}}, null));
         tempDeck.add(new Card(52,"Skinchanger",0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(52,new ArrayList<>() {{add(Type.ARTIFACT); add(Type.LEADER); add(Type.WIZARD); add(Type.WEAPON); add(Type.CREATURE);}}));}}));
-        tempDeck.add(new Card(53,"Doppleganger",0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameColorStrengthMalusFromHand(53));}}));
-        tempDeck.add(new Card(54,"Mirage",0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(54,new ArrayList<>() {{add(Type.WEATHER); add(Type.ARMY); add(Type.EARTH); add(Type.FLOOD); add(Type.FIRE);}}));}}));
-
+        tempDeck.add(new Card(53,"Mirage",0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(53,new ArrayList<>() {{add(Type.WEATHER); add(Type.ARMY); add(Type.EARTH); add(Type.FLOOD); add(Type.FIRE);}}));}}));
+        tempDeck.add(new Card(54,"Doppleganger",0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameColorStrengthMalusFromHand(54));}}));
 
         try {
             FileOutputStream f = new FileOutputStream(new File("DefaultGameDeckCardsObjects.txt"));
@@ -72,6 +71,7 @@ public class DeckInitializer implements Serializable{
             // Write objects to file
             for(Card c: tempDeck){
                 o.writeObject(c);
+                System.out.println("ID: " + c.id + " Name: " + c.name);
             }
 
             o.close();

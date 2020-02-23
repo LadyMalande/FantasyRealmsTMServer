@@ -192,14 +192,15 @@ public class ClientHandler implements Runnable
                     String command = st.nextToken();
                     String name = st.nextToken();
                     Card howToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
-                    Card cardToChange = hand.stream().filter(card -> card.id == 53).findAny().get();
+                    System.out.println("How to change card:" + howToChange.name);
+                    Card cardToChange = hand.stream().filter(card -> card.id == 54).findAny().get();
                     if(howToChange == null || cardToChange == null){
                         System.out.println("NO card how to change or what to change!");
                     }else{
                         synchronized(interactivesResolvedAtomicBoolean) {
 
                         //Change what is needed
-                        cardToChange.id = howToChange.id;
+
                         cardToChange.name = howToChange.name;
                         cardToChange.type = howToChange.type;
                         cardToChange.strength = howToChange.strength;

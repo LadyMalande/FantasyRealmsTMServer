@@ -66,11 +66,11 @@ public class BigSwitches {
     public static String switchIdForName(int id){
         switch(id){
             case 1: return "Unicorn";
-            case 2: return "Magic Staff";
-            case 3: return "Hydra";
-            case 4: return "Basilisk";
-            case 5: return "Warhorse";
-            case 6: return "Dragon";
+            case 2: return "Hydra";
+            case 3: return "Basilisk";
+            case 4: return "Warhorse";
+            case 5: return "Dragon";
+            case 6: return "Magic Staff";
             case 7: return "Zeppelin";
             case 8: return "Warship";
             case 9: return "Bow";
@@ -117,8 +117,9 @@ public class BigSwitches {
             case 50: return "Storm";
             case 51: return "Smoke";
             case 52: return "Skinchanger";
-            case 53: return "Doppleganger";
-            case 54: return "Mirage";
+            case 53: return "Mirage";
+            case 54: return "Doppleganger";
+
             default: return "FAIL";
         }
     }

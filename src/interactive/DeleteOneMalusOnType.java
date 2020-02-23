@@ -60,9 +60,12 @@ public class DeleteOneMalusOnType extends Interactive {
         //            ch.getHand().stream().filter(card -> card.name.equals(result1)).findAny().ifPresent(removeMalusHere -> removeMalusHere.maluses.removeIf(malus -> malus.getText().equals(result2)));
        String s = getAllMalusesForTypesToString(client);
         if(s.isEmpty()){
-            client.interactivesResolved.incrementAndGet();
-            client.futureTask.notify();
-            return true;
+            synchronized(client.interactivesResolvedAtomicBoolean) {
+                client.interactivesResolved.incrementAndGet();
+                //client.futureTask.notify();
+                client.interactivesResolvedAtomicBoolean.set(true);
+                return true;
+            }
         }
         else{
             return client.sendInteractive("DeleteOneMalusOnType#" + thiscardid + "#" + getAllMalusesForTypesToString(client));

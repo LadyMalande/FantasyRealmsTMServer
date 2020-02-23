@@ -89,7 +89,7 @@ public class ScoreCounter extends Thread {
                                     }
                                 if (c.maluses != null)
                                     for (Malus m : c.maluses) {
-                                        if (m.getPriority() == 6) {
+                                        if (m.getPriority() == 6 && i == 6) {
                                             types_maluses.put(c.type, m);
                                         } else if (m.getPriority() == i) {
 
@@ -102,6 +102,7 @@ public class ScoreCounter extends Thread {
                         }
                         if (i == 6) {
                             for (Malus m : Sorts.topologicalSort(client, types_maluses)) {
+                                System.out.println("Topologically sorted malus: " + m.getText());
                                 sum += m.count(client.getHand());
                             }
                         }

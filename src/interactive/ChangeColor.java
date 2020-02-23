@@ -32,7 +32,7 @@ public class ChangeColor extends Interactive {
 
     @Override
     public boolean askPlayer(ClientHandler client) {
-        return client.sendInteractive( "ChangeColor");
+        return client.sendInteractive( "ChangeColor#"+thiscardid);
 
     }
 }

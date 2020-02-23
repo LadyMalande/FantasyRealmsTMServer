@@ -209,15 +209,21 @@ Server extends Thread
                     if (players.elementAt(i).score > playerScore[j].score) {
                         for (int k = players.size() - 1; k > j; k--) {
                             playerScore[k] = playerScore[k - 1];
+                            if(playerScore[k]!=null)
+                            System.out.println("playerScore[" + k + "]=" + playerScore[k].name);
                         }
                         playerScore[j] = players.elementAt(i);
+                        System.out.println("playerScore[" + j + "]=" + playerScore[j].name);
+                        break;
                     }
                 }
             }
+            System.out.println("i = " + i + " a playerScore[i] = " + playerScore[i].name);
         }
         int rank = 1;
         for(int i = 0; i < players.size();i++){
-            System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + playerScore[i].name);
+            String name = playerScore[i].name;
+            System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + name + "i=" + i);
             playerScore[i].rank = rank;
             if(i < players.size()-1){
                 if(playerScore[i].score == playerScore[i+1].score){
