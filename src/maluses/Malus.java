@@ -27,6 +27,7 @@ public class Malus implements ScoringInterface , Serializable {
     public int count(ArrayList<Card> hand){
         return 0;
     }
+    public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove){return 0;}
 
     String giveListOfCardsWithSeparator(ArrayList<Integer> cards, String separator) {
         StringBuilder listcards = new StringBuilder();

@@ -24,6 +24,7 @@ public class PlusStrengthOfAnyCardOfType extends Bonus  {
         }
         this.text = "Plus the strength of any card of type " + listtypes + " in your hand";
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

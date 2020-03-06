@@ -12,6 +12,7 @@ public class PlusForStrengthsInRow extends Bonus  {
 
     public PlusForStrengthsInRow() {
         this.text = "+10 for 3 SIR, +30 for 4 SIR, +60 for 5 SIR, +100 for 6 SIR or +150 for 7 SIR\n*SIR = strengths in a row";
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

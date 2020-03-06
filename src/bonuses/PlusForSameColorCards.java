@@ -12,6 +12,7 @@ public class PlusForSameColorCards extends Bonus  {
 
     public PlusForSameColorCards() {
         this.text = "+10 for 3,\n +40 for 4,\n +100 for 5 cards of the same type";
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -23,11 +24,22 @@ public class PlusForSameColorCards extends Bonus  {
     public int count(ArrayList<Card> hand) {
         int total = 0;
         HashMap<Type, Integer> table = new HashMap<>();
+        ArrayList<String> alreadyInList = new ArrayList<>();
         for(Card c: hand){
             if(table.containsKey(c.type)){
-                table.put(c.type, table.get(c.type) + 1);
+                if(!alreadyInList.isEmpty()){
+                    if(!alreadyInList.contains(c.name)){
+                        table.put(c.type, table.get(c.type) + 1);
+                        alreadyInList.add(c.name);
+                    }
+                } else{
+                    table.put(c.type, table.get(c.type) + 1);
+                    alreadyInList.add(c.name);
+                }
+
             } else{
                 table.put(c.type, 1);
+                alreadyInList.add(c.name);
             }
         }
         for (Integer value : table.values()) {

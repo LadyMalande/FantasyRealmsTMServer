@@ -29,6 +29,7 @@ public class PlusForEachTypeOrSelfType extends Bonus  {
             first = false;
         }
         text = "+" + howMuch + " for each " + listtypes + " or any other " + BigSwitches.switchTypeForName(selftype) + " you have";
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

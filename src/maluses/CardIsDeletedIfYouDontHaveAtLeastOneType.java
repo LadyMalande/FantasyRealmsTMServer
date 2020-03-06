@@ -12,9 +12,10 @@ public class CardIsDeletedIfYouDontHaveAtLeastOneType extends Malus {
     public ArrayList<Type> types;
 
     public CardIsDeletedIfYouDontHaveAtLeastOneType( int thiscardid, ArrayList<Type> types) {
-        this.text = "This card is deleted if you don't have at least one " + giveListOfTypesWithSeparator(types, " or ");
+        this.text = "Blanked unless with at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.thiscardid = thiscardid;
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

@@ -12,13 +12,32 @@ public class DeletesAllType extends Malus{
 
     public DeletesAllType( int id, ArrayList<Type> types) {
         this.thiscardid = id;
-        this.text = "Deletes all "+ giveListOfTypesWithSeparator(types, ", ");
+        this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ");
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove) {
+        if(!hand.stream().filter(card -> card.id == this.thiscardid).findAny().isEmpty()) {
+            ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
+            copyDeckToMakeChanges.addAll(hand);
+            for (Card c : copyDeckToMakeChanges) {
+                if (types.contains(c.type)) {
+                    if(!whatToRemove.contains(c)){
+                        whatToRemove.add(c);
+                    }
+                }
+            }
+            return 0;
+        } else{
+            return 0;
+        }
     }
 
     @Override

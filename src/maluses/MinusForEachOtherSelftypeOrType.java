@@ -16,14 +16,15 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
 
     public MinusForEachOtherSelftypeOrType(int howMuch, ArrayList<Type> types, Type selftype, int thiscardid) {
         if(types == null){
-            this.text =  howMuch + " for any other " + BigSwitches.switchTypeForName(selftype);
+            this.text =  howMuch + " for other " + BigSwitches.switchTypeForName(selftype);
         }else {
-            this.text = howMuch + " for each " + giveListOfTypesWithSeparator(types, ", ") + " or any other " + BigSwitches.switchTypeForName(selftype);
+            this.text = howMuch + " for each " + giveListOfTypesWithSeparator(types, ", ") + " or other " + BigSwitches.switchTypeForName(selftype);
         }
         this.howMuch = howMuch;
         this.types = types;
         this.selftype = selftype;
         this.thiscardid = thiscardid;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

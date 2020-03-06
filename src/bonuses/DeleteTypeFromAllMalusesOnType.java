@@ -17,7 +17,7 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
     public DeleteTypeFromAllMalusesOnType(Type whichType, Type onWhichType){
         this.deleteThisTypeFromMaluses = whichType;
         this.onWhichType = onWhichType;
-        text = "Remove word " + BigSwitches.switchTypeForName(whichType) + " on cards of type "+BigSwitches.switchTypeForName(onWhichType);
+        text = "Remove word " + BigSwitches.switchTypeForName(whichType) + " on types "+BigSwitches.switchTypeForName(onWhichType);
         System.out.println("Card INIT: Text: " + getText());
     }
 

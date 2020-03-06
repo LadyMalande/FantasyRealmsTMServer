@@ -11,8 +11,9 @@ public class PlusIfTypesAreUnique extends Bonus  {
     public int howMuch;
 
     public PlusIfTypesAreUnique(int howMuch) {
-        this.text = "+" + howMuch +" if all types in your hand are unique";
+        this.text = "+" + howMuch +" if every non-BLANKED card is a different type ";
         this.howMuch = howMuch;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

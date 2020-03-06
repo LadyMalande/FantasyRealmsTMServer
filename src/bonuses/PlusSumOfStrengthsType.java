@@ -14,6 +14,7 @@ public class PlusSumOfStrengthsType extends Bonus  {
     public PlusSumOfStrengthsType(Type type) {
         this.text = "Plus the sum of all cards of type " + BigSwitches.switchTypeForName(type) + " you have";
         this.type = type;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

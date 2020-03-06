@@ -19,6 +19,7 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
     }
     public CopyNameColorStrengthMalusFromHand(int id){
         this.thiscardid = id;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

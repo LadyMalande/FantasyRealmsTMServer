@@ -17,6 +17,7 @@ public class PlusIfAllAreOdd extends Bonus  {
             oddoreven = "even";
         }
         this.text = "+" + how_much + " if all cards in your hand have " + oddoreven + " strength";
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     public boolean odd;

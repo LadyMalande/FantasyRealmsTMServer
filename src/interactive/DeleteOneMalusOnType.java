@@ -11,15 +11,16 @@ import java.net.Socket;
 import java.util.*;
 
 public class DeleteOneMalusOnType extends Interactive {
-    public int priority = 1;
+    public int priority = 0;
     public final String text;
     public ArrayList<Type> types;
     private int thiscardid;
 
     public DeleteOneMalusOnType(int id, ArrayList<Type> types) {
-        this.text = "Delete one malus on card of type " + giveListOfTypesWithSeparator(types, " or ");
+        this.text = "Delete one malus on type " + giveListOfTypesWithSeparator(types, " or ");
         this.types = types;
         this.thiscardid = id;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -43,9 +44,14 @@ public class DeleteOneMalusOnType extends Interactive {
                             str.append("%");
                         }
 
+                        boolean firstTimeInMaluses = true;
                         for(Malus m: c.maluses){
+                            if(!firstTimeInMaluses){
+                                str.append("%");
+                            }
                             str.append(c.name + ": ");
                             str.append(m.getText());
+                            firstTimeInMaluses = false;
                         }
                         firstTime = false;
                     }

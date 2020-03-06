@@ -13,9 +13,10 @@ public class DeletesAllTypeExceptCard extends Malus {
 
     public DeletesAllTypeExceptCard( int thiscardid, ArrayList<Type> types, ArrayList<Integer> cards) {
         this.thiscardid = thiscardid;
-        this.text = "Deletes all "+ giveListOfTypesWithSeparator(types, ", ")+" except " + giveListOfCardsWithSeparator(cards, ", ");
+        this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ")+" except " + giveListOfCardsWithSeparator(cards, ", ");
         this.types = types;
         this.cards = cards;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -24,18 +25,30 @@ public class DeletesAllTypeExceptCard extends Malus {
     }
 
     @Override
+    public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove) {
+        if(hand.stream().anyMatch(card -> card.id == this.thiscardid)) {
+            ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(hand);
+            for (Card c : copyDeckToMakeChanges) {
+                if (types.contains(c.type) && !cards.contains(c.id)) {
+                    if(!whatToRemove.contains(c)){
+                        whatToRemove.add(c);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public int count(ArrayList<Card> hand) {
-        if(!hand.stream().filter(card -> card.id == this.thiscardid).findAny().isEmpty()) {
-            ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
-            copyDeckToMakeChanges.addAll(hand);
+        if(hand.stream().anyMatch(card -> card.id == this.thiscardid)) {
+            ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(hand);
             for (Card c : copyDeckToMakeChanges) {
                 if (types.contains(c.type) && !cards.contains(c.id)) {
                     hand.remove(c);
                 }
             }
-            return 0;
-        } else{
-            return 0;
         }
+        return 0;
     }
 }

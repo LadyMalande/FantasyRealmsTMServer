@@ -24,7 +24,7 @@ public class PlusForEachCard extends Bonus {
             s.append(BigSwitches.switchIdForName(i));
             first = false;
         }
-        this.text = "+" + how_much + " for each of these cards: " + s;
+        this.text = "+" + how_much + " for each of these: " + s;
         System.out.println("Card INIT: Text: " + getText());
 
     }
@@ -39,7 +39,7 @@ public class PlusForEachCard extends Bonus {
         int sum = 0;
         for(Card c: hand){
             for(int id: idsOfCardsNeeded) {
-                if (c.id == (id)) {
+                if (BigSwitches.switchIdForName(id).equals(c.name)) {
                     sum += how_much;
                 }
             }

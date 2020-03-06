@@ -25,7 +25,8 @@ public class PlusIfYouHaveAtLeastOneCard extends Bonus {
             listcards += BigSwitches.switchIdForName(c);
             first = false;
         }
-        this.text = "+" + how_much + " if you have any of these: " + listcards;
+        this.text = "+" + how_much + " if with any of these: " + listcards;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -35,8 +36,12 @@ public class PlusIfYouHaveAtLeastOneCard extends Bonus {
 
     @Override
     public int count(ArrayList<Card> hand) {
+        ArrayList<String> names = new ArrayList<>();
+        for(Integer i : idsOfCardsNeeded){
+            names.add(BigSwitches.switchIdForName(i));
+        }
         for(Card c: hand){
-            if(idsOfCardsNeeded.contains(c.id)){
+            if(names.contains(c.name)){
                 return how_much;
             }
         }

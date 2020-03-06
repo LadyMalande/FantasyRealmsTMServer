@@ -13,10 +13,11 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
     private int thiscardid;
 
     public DeletesAllTypeOrOtherSelftype(ArrayList<Type> types, Type type, int thiscardid) {
-        this.text = "Deletes all " + giveListOfTypesWithSeparator(types, ", ") + " or other " + BigSwitches.switchTypeForName(type);
+        this.text = "Blanks all " + giveListOfTypesWithSeparator(types, ", ") + " or other " + BigSwitches.switchTypeForName(type);
         this.types = types;
         this.selftype = type;
         this.thiscardid = thiscardid;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -25,12 +26,27 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
     }
 
     @Override
+    public int count(ArrayList<Card> hand, ArrayList<Card> whatToDelete) {
+        ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
+        copyDeckToMakeChanges.addAll(hand);
+        for(Card c: copyDeckToMakeChanges){
+            if(types.contains(c.type) || (selftype.equals(c.type) && thiscardid != c.id)){
+
+                if(!whatToDelete.contains(c)) {
+                    whatToDelete.add(c);
+                }
+            }
+        }
+        return 0;
+    }
+    @Override
     public int count(ArrayList<Card> hand) {
         ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
         copyDeckToMakeChanges.addAll(hand);
         for(Card c: copyDeckToMakeChanges){
             if(types.contains(c.type) || (selftype.equals(c.type) && thiscardid != c.id)){
                 hand.remove(c);
+
             }
         }
         return 0;

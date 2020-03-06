@@ -13,9 +13,10 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
     public ArrayList<Type> types;
 
     public CardIsDeletedIfYouHaveAnyType(int thiscardid,  ArrayList<Type> types) {
-        this.text = "This card is deleted if you have any " + giveListOfTypesWithSeparator(types, " or " );
+        this.text = "Blanked with any " + giveListOfTypesWithSeparator(types, " or " );
         this.thiscardid = thiscardid;
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

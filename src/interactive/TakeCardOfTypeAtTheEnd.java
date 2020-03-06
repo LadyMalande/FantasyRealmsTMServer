@@ -5,14 +5,10 @@ package interactive;
 import server.Card;
 import server.ClientHandler;
 import server.Type;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
 
 public class TakeCardOfTypeAtTheEnd extends Interactive  {
-    public int priority = 0;
+    public int priority = 2;
     public final String text;
     public ArrayList<Type> types;
     private int thiscardid;
@@ -21,6 +17,7 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         this.thiscardid = id;
         this.text = "At the end of the game, you can take one card from the table which is of type " + giveListOfTypesWithSeparator(types, " or ") + " as your eighth card";
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -36,7 +33,7 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         for(Type t: types){
             for(Card c: client.hostingServer.cardsOnTable){
                 if(c.type.equals(t)){
-                    str.append(c.name + ",");
+                    str.append(c.name).append(",");
                 }
             }
         }

@@ -26,7 +26,8 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
             listtypes += BigSwitches.switchTypeForName(t);
             first = false;
         }
-        this.text = "+" + how_much + " if you have any card of type " + listtypes;
+        this.text = "+" + how_much + " if you have any type " + listtypes;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

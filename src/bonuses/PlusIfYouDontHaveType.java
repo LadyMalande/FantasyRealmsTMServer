@@ -13,9 +13,10 @@ public class PlusIfYouDontHaveType extends Bonus  {
     public Type type;
 
     public PlusIfYouDontHaveType( int howMuch, Type type) {
-        this.text = "+" + howMuch + " if you don't have any " + BigSwitches.switchTypeForName(type);
+        this.text = "+" + howMuch + " if no " + BigSwitches.switchTypeForName(type);
         this.howMuch = howMuch;
         this.type = type;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

@@ -17,7 +17,7 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         this.how_much = how_much;
         this.type = type;
         this.thiscardid = thiscardid;
-        this.text = "+" + how_much + " for each other card of type " + BigSwitches.switchTypeForName(type) + " in your hand";
+        this.text = "+" + how_much + " for each other type " + BigSwitches.switchTypeForName(type) + " in your hand";
         System.out.println("Card INIT: Text: " + getText());
     }
 

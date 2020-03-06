@@ -14,13 +14,14 @@ import java.util.Optional;
 import java.util.StringTokenizer;
 
 public class ChangeColor extends Interactive {
-    public int priority = 2;
+    public int priority = 3;
     public final String text;
     public int thiscardid;
 
     public ChangeColor(int id) {
         this.text = "Change type of one card in your hand";
         this.thiscardid = id;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

@@ -12,9 +12,10 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     ArrayList<Type> types;
 
     public MinusIfYouDontHaveAtLeastOneType( int howMuch, ArrayList<Type> types) {
-        this.text = howMuch + " if you don't have at least one " + giveListOfTypesWithSeparator(types, " or ");
+        this.text = howMuch + " unless with at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package bonuses;
 
+import server.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -13,10 +14,11 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
     public ArrayList<Type> types;
 
     public PlusIfYouHaveAllCardsAndAtLeastOneType( int howMuch, ArrayList<Integer> idCardsNeeded, ArrayList<Type> types) {
-        this.text = "+" + howMuch + " if you have " + giveListOfCardsWithSeparator(idCardsNeeded, " and ") + " and at least one " + giveListOfTypesWithSeparator(types, " or ");
+        this.text = "+" + howMuch + " if with " + giveListOfCardsWithSeparator(idCardsNeeded, " and ") + " and at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.idCardsNeeded = idCardsNeeded;
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -26,11 +28,14 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
 
     @Override
     public int count(ArrayList<Card> hand) {
-
+        ArrayList<String> names = new ArrayList<>();
+        for(Integer i: idCardsNeeded){
+            names.add(BigSwitches.switchIdForName(i));
+        }
         int hascards = 0;
         boolean hasoneofthese = false;
         for(Card c: hand){
-            if(idCardsNeeded.contains(c.id)){
+            if(names.contains(c.name)){
                 hascards++;
             }
             else if(types.contains(c.type)){

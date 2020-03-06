@@ -15,6 +15,7 @@ public class MinusForEachType extends Malus {
         this.text = howMuch + " for each " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.types = types;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override

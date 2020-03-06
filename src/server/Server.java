@@ -36,6 +36,8 @@ Server extends Thread
     public void run()
     {
         deck = new Deck();
+        deck.initializeOriginal();
+        deck.initializeRandom();
         cardsOnTable = new ArrayList<>();
         int i = 0;
         System.out.println("Waiting for clients...");
@@ -75,12 +77,7 @@ Server extends Thread
                     // add this client to active clients list
                     players.add(mtch);
                     // Generate starting hand
-                    randomGenerator = new Random();
-                    for (int j = 0; j < 7; j++) {
-                        int index = randomGenerator.nextInt(deck.getDeck().size());
-                        mtch.getHand().add(deck.getDeck().get(index));
-                        deck.getDeck().remove(index);
-                    }
+
 
                     // start the thread.
                     t.start();
@@ -182,17 +179,20 @@ Server extends Thread
         StringBuilder text = new StringBuilder();
         int indexOfClient = players.indexOf(client);
         countRanks();
-
+        boolean putTable = true;
         int gotScores = 0;
         while(gotScores != maxClients.get()){
 
             if(players.size() <= indexOfClient){
                 indexOfClient = 0;
             }
-
+            if(putTable){
+                text.append(players.elementAt(indexOfClient).scoreTable).append("#");
+            }
             text.append(players.elementAt(indexOfClient).rank).append(") ").append(players.elementAt(indexOfClient).score).append("#");
             gotScores++;
             indexOfClient++;
+            putTable = false;
         }
         text.deleteCharAt(text.length()-1);
         return text.toString();

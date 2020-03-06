@@ -7,20 +7,36 @@ import java.util.ArrayList;
 
 public class Deck implements Serializable {
     ArrayList<Card> deck;
+    ArrayList<Card> deckOriginal;
+    ArrayList<Card> deckRandom;
     public int maxStrength;
 
     ArrayList<Card> getDeck(){
         return deck;
     }
-    Deck(){
+
+    public void initializeOriginal(){
         DeckInitializer di = new DeckInitializer();
         di.storeDecktoFile();
-        deck = di.loadDeckFromFile();
+        deckOriginal = DeckInitializer.loadDeckFromFile();
         maxStrength = 0;
-        for(Card c: deck){
+        for(Card c: deckOriginal){
             if(c.strength > maxStrength){
                 maxStrength = c.strength;
             }
+        }
+    }
+
+    public void initializeRandom(){
+        DeckGenerator dg = new DeckGenerator();
+        deckRandom = dg.generateDeck();
+    }
+
+    public void setDeck(boolean random){
+        if(random){
+            deck = deckRandom;
+        } else{
+            deck = deckOriginal;
         }
     }
 }

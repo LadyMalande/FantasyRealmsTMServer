@@ -15,9 +15,10 @@ public class DeletesAllExceptTypeOrCard extends Malus {
     public DeletesAllExceptTypeOrCard( ArrayList<Type> except, ArrayList<Integer> cards, int thiscardid) {
         this.except = except;
         this.types = getComplementOfTypes(except);
-        this.text = "Deletes all cards except " + giveListOfTypesWithSeparator(except, ", ") + " and " + giveListOfCardsWithSeparator(cards, ", ");
+        this.text = "Blanks all except " + giveListOfTypesWithSeparator(except, ", ") + " and " + giveListOfCardsWithSeparator(cards, ", ");
         this.cards = cards;
         this.thiscardid = thiscardid;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     private ArrayList<Type> getComplementOfTypes(ArrayList<Type> except) {
@@ -33,6 +34,25 @@ public class DeletesAllExceptTypeOrCard extends Malus {
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove) {
+        if(!hand.stream().filter(card -> card.id == this.thiscardid).findAny().isEmpty()) {
+            ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
+            copyDeckToMakeChanges.addAll(hand);
+            for (Card c : copyDeckToMakeChanges) {
+                if (!cards.contains(c.id) && !except.contains(c.type) && c.id != thiscardid) {
+                    if(!whatToRemove.contains(c)){
+                        whatToRemove.add(c);
+                    }
+                }
+            }
+            return 0;
+        }
+        else{
+            return 0;
+        }
     }
 
     @Override

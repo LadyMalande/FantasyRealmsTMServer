@@ -27,10 +27,11 @@ public class PlusForEachTypeIfYouHaveCard extends Bonus  {
             first = false;
         }
 
-        this.text = "+" + howMuch + " for each " + types + " if you have " + cardname;
+        this.text = "+" + howMuch + " for each " + listtypes + " if with " + cardname;
         this.howMuch = howMuch;
         this.types = types;
         this.cardid = cardid;
+        System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -43,7 +44,7 @@ public class PlusForEachTypeIfYouHaveCard extends Bonus  {
         int total = 0;
         boolean countit = false;
         for(Card c: hand){
-            if(c.id == cardid){
+            if(c.name.equals(BigSwitches.switchIdForName(cardid))){
                 countit = true;
             }
                 if (types.contains(c.type)) {

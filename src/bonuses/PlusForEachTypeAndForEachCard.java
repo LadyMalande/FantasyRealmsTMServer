@@ -35,7 +35,7 @@ public class PlusForEachTypeAndForEachCard extends Bonus  {
             listtypes += BigSwitches.switchTypeForName(type);
             first = false;
         }
-        this. text = "+" + hm + " for each card of type " + listtypes + " you have and for each of theese you have: " + listcards;
+        this. text = "+" + hm + " for each " + listtypes + " and each " + listcards;
         this.how_Much = hm;
         this.types = types;
         this.cards = cards;
@@ -50,11 +50,15 @@ public class PlusForEachTypeAndForEachCard extends Bonus  {
     @Override
     public int count(ArrayList<Card> hand) {
         int total = 0;
+        ArrayList<String> names = new ArrayList<>();
+        for(Integer i: cards){
+            names.add(BigSwitches.switchIdForName(i));
+        }
         for(Card c: hand){
                 if (types.contains(c.type)) {
                     total += how_Much;
                 }
-                if (cards.contains(c.id)) {
+                if (names.contains(c.name)) {
                     total += how_Much;
                 }
         }

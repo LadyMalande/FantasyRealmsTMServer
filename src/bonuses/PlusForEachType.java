@@ -24,7 +24,7 @@ public class PlusForEachType extends Bonus  {
             s.append(BigSwitches.switchTypeForName(t));
             first = false;
         }
-        this.text = "+" + how_much + " for each card of type " + s;
+        this.text = "+" + how_much + " for each type " + s;
         System.out.println("Card INIT: Text: " + getText());
     }
 
