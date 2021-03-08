@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class BonusOrBonus extends Bonus {
     public long serialVersionUID = 2;
-    private final String text;
+    private String text;
     private Bonus b1;
     private Bonus b2;
 
@@ -27,5 +27,16 @@ public class BonusOrBonus extends Bonus {
     @Override
     public String getText() {
         return this.text;
+    }
+
+    @Override
+    public Bonus clone() throws CloneNotSupportedException{
+        BonusOrBonus newb = (BonusOrBonus)super.clone();
+        newb.text = this.text;
+        newb.priority = this.priority;
+        newb.serialVersionUID = this.serialVersionUID;
+        newb.b1 = this.b1.clone();
+        newb.b2 = this.b1.clone();
+        return newb;
     }
 }

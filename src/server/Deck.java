@@ -11,7 +11,7 @@ public class Deck implements Serializable {
     ArrayList<Card> deckRandom;
     public int maxStrength;
 
-    ArrayList<Card> getDeck(){
+    public ArrayList<Card> getDeck(){
         return deck;
     }
 

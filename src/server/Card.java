@@ -7,8 +7,9 @@ import maluses.Malus;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 
-public class Card implements Serializable {
+public class Card implements Serializable, Cloneable, Comparable<Card>{
     public long serialVersionUID = 11;
     public int id;
     public String name;
@@ -18,7 +19,7 @@ public class Card implements Serializable {
     public ArrayList<Malus> maluses;
     public ArrayList<Interactive> interactives;
 
-    Card(int id,String name, int strength, Type type, ArrayList<Bonus> bonuses, ArrayList<Malus> maluses, ArrayList<Interactive> in){
+    public Card(int id,String name, int strength, Type type, ArrayList<Bonus> bonuses, ArrayList<Malus> maluses, ArrayList<Interactive> in){
         this.id = id;
         this.name = name;
         this.strength = strength;
@@ -26,5 +27,48 @@ public class Card implements Serializable {
         this.bonuses = bonuses;
         this.maluses = maluses;
         this.interactives = in;
+    }
+
+    public Card clone() throws CloneNotSupportedException{
+        Card card = (Card) super.clone();
+        card.serialVersionUID = this.serialVersionUID;
+        card.id = this.id;
+        card.name = new String(this.name);
+        card.strength = this.strength;
+        card.type = this.type;
+        ArrayList<Bonus> newb = new ArrayList<Bonus>();
+        for(Bonus b: bonuses){
+            newb.add((Bonus)b.clone());
+        }
+        ArrayList<Malus> newm = new ArrayList<Malus>();
+        for(Malus m: maluses){
+            newm.add((Malus)m.clone());
+
+        }
+        ArrayList<Interactive> newi = new ArrayList<Interactive>();
+        for(Interactive i: interactives){
+            newi.add((Interactive)i.clone());
+        }
+        return card;
+    }
+
+    public Type getType(){
+        return this.type;
+    }
+
+    public int getStrength(){
+        return this.strength;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    @Override
+    public int compareTo(Card card){
+        return Comparator.comparing(Card::getType)
+                .thenComparingInt(Card::getStrength)
+                .thenComparing(Card::getName)
+                .compare(this, card);
     }
 }

@@ -1,6 +1,7 @@
 package maluses;
 
 import bonuses.ScoringInterface;
+import interactive.Interactive;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 
 
 
-public class Malus implements ScoringInterface , Serializable {
+public class Malus implements ScoringInterface , Serializable, Cloneable  {
 
     public int priority = 6;
     public ArrayList<Type> types;
@@ -53,5 +54,11 @@ public class Malus implements ScoringInterface , Serializable {
             first = false;
         }
         return listtypes.toString();
+    }
+
+    public Malus clone() throws CloneNotSupportedException{
+        Malus newm = (Malus)super.clone();
+        System.out.println("Clone malus in Malus class");
+        return newm;
     }
 }

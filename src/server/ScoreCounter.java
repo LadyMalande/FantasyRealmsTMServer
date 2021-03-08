@@ -13,18 +13,22 @@ public class ScoreCounter extends Thread {
     private ClientHandler client;
 
     public ScoreCounter(ClientHandler client){
+
         this.client = client;
     }
 
 
     @Override
     public void run() {
-        client.score = countScore();
-        while(client.score < 0){
-            // wait;
-        }
-        client.hostingServer.increaseCountedScoreNumber();
+            client.score = countScore();
+            while (client.score < 0) {
+                // wait;
+            }
+            client.hostingServer.increaseCountedScoreNumber();
+
     }
+
+
 
     private int countScore() {
 

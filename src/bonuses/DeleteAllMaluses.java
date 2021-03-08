@@ -22,6 +22,7 @@ public class DeleteAllMaluses extends Bonus implements Serializable {
         for(Card c: hand){
             if(c.maluses != null) {
                 c.maluses = null;
+                System.out.println("----------- Mazu vsechny postihy z karet, nyni z karty " + c.name);
             }
         }
         return 0;

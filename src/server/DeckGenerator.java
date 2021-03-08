@@ -28,7 +28,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
             ArrayList<Malus> maluses = generateMaluses(seed, i);
             ArrayList<Interactive> interactives = generateInteractives(seed, i);
             Card newCard = new Card(i,BigSwitches.switchIdForName(i), getStrengthByBonuses(seed), BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(i)), bonuses, maluses, interactives );
-            System.out.println("Name: " + newCard.name + " seed: " + seed + " Text: " + getAllText(newCard));
+            //System.out.println("Name: " + newCard.name + " seed: " + seed + " Text: " + getAllText(newCard));
             deck.add(newCard);
         }
 
@@ -77,7 +77,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
             }
         }
         if(c.interactives == null && c.bonuses == null && c.maluses==null){
-            System.out.println("All is null, card doesnt have any text");
+            //System.out.println("All is null, card doesnt have any text");
         }
         return allText.toString();
     }
@@ -353,7 +353,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
         for(int i = 1; i < 55; i++){
             // add only those that are of given types
             if(forTypes != null){
-                System.out.println("forTypes in generateCardIDs: " + forTypes.toString());
+                //System.out.println("forTypes in generateCardIDs: " + forTypes.toString());
                 Type typeOfCard = BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(i));
                 if(forTypes.contains(typeOfCard)){
                     all.add(i);

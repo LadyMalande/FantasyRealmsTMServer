@@ -6,7 +6,7 @@ import server.Type;
 import java.util.ArrayList;
 
 public class DeletesAllType extends Malus{
-    public final String text;
+    public String text;
     public ArrayList<Type> types;
     public int thiscardid;
 
@@ -14,7 +14,7 @@ public class DeletesAllType extends Malus{
         this.thiscardid = id;
         this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ");
         this.types = types;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -42,6 +42,7 @@ public class DeletesAllType extends Malus{
 
     @Override
     public int count(ArrayList<Card> hand) {
+        /*
         if(!hand.stream().filter(card -> card.id == this.thiscardid).findAny().isEmpty()) {
             ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
             copyDeckToMakeChanges.addAll(hand);
@@ -54,5 +55,19 @@ public class DeletesAllType extends Malus{
         } else{
             return 0;
         }
+
+         */
+        return 0;
+    }
+
+    @Override
+    public Malus clone() throws CloneNotSupportedException{
+        ArrayList<Type> newtypes = new ArrayList<Type>();
+        for(Type t: types){
+            newtypes.add(t);
+        }
+        DeletesAllType newm = new DeletesAllType(this.thiscardid,newtypes);
+        //System.out.println("In cloning DeletesAllType: The new types and old types are equal = " + (newm.types == this.types));
+        return newm;
     }
 }

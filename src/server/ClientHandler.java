@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // server.ClientHandler class
-public class ClientHandler implements Runnable
+public class ClientHandler extends PlayerOrAI implements Runnable
 {
     ArrayList<Card> hand;
     public String name;
@@ -30,7 +30,7 @@ public class ClientHandler implements Runnable
     public AtomicBoolean interactivesResolvedAtomicBoolean;
     public StringBuilder scoreTable;
 
-
+    @Override
     public ArrayList<Card> getHand(){
         return this.hand;
     }
@@ -211,23 +211,30 @@ public class ClientHandler implements Runnable
                 if(received.startsWith("TakeCardOfType")){
                     StringTokenizer st = new StringTokenizer(received, "#");
                     String command = st.nextToken();
-                    String name = st.nextToken();
-                    Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.name.equals(name)).findAny().get();
-                    synchronized(interactivesResolvedAtomicBoolean) {
-                        //Put the card to hand
-                        if(cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty() && cardToAdd.interactives.get(0).getPriority() < 2){
-                            cardToAdd.interactives.get(0).priority = 3;
-                        }
+                    if(st.hasMoreTokens()){
+                        String name = st.nextToken();
+                        Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.name.equals(name)).findAny().get();
+                        synchronized(interactivesResolvedAtomicBoolean) {
+                            //Put the card to hand
+                            if(cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty() && cardToAdd.interactives.get(0).getPriority() < 2){
+                                cardToAdd.interactives.get(0).priority = 3;
+                            }
                             hand.add(cardToAdd);
 
-                        if (cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty()) {
-                            interactivesCount += cardToAdd.interactives.size();
+                            if (cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty()) {
+                                interactivesCount += cardToAdd.interactives.size();
+                            }
+                            interactivesResolved.incrementAndGet();
+                            System.out.println("The interactiveResolved should have been increased...");
+                            interactivesResolvedAtomicBoolean.set(true);
+                            interactivesResolvedAtomicBoolean.notifyAll();
                         }
+                    } else{
                         interactivesResolved.incrementAndGet();
-                        System.out.println("The interactiveResolved should have been increased...");
-                        interactivesResolvedAtomicBoolean.set(true);
-                        interactivesResolvedAtomicBoolean.notifyAll();
+                        System.out.println("The interactiveResolved should have been increased...No card added to hand.");
+
                     }
+
                 }
 
             } catch(EOFException eof) {
@@ -343,7 +350,8 @@ public class ClientHandler implements Runnable
         return allText.toString();
     }
 
-    public void putCardOnTable(Card c){
+    @Override
+    public void putCardOnTable(Card c) throws CloneNotSupportedException {
         String message =    "CARD_TO_TABLE" + "#" +
                 c.id + "#" +
                 c.name + "#" +
@@ -360,7 +368,7 @@ public class ClientHandler implements Runnable
         System.out.println("Giving card to table for player ("+ name + "), name of card: " + c.name);
     }
 
-
+    @Override
     public void eraseCardFromTable(Card c){
         String message = "REMOVE_CARD_FROM_TABLE#" + c.id;
         try {
@@ -372,6 +380,7 @@ public class ClientHandler implements Runnable
         System.out.println("Telling player ("+ name + ") to remove this card from table, name of card: " + c.name);
     }
 
+    @Override
     public void sendNamesInOrder(String names){
         String message = "NAMES#" + names;
         try {
@@ -383,6 +392,7 @@ public class ClientHandler implements Runnable
         System.out.println("Telling player ("+ name + ") names of other players: " + names);
     }
 
+    @Override
     public void endGame(){
         String message = "END#";
         try {
@@ -397,6 +407,7 @@ public class ClientHandler implements Runnable
         scoreCounter.start();
     }
 
+    @Override
     public void sendScore(String text){
     String message = "SCORES#" + text;
     try {

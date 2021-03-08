@@ -12,28 +12,28 @@ public class BigSwitches {
             case 4: return "Warhorse";
             case 5: return "Dragon";
             case 6: return "Magic Wand";
-            case 7: return "Zeppelin";
+            case 7: return "War Dirigible";
             case 8: return "Warship";
-            case 9: return "Bow";
+            case 9: return "Elven Longbow";
             case 10: return "Sword";
             case 11: return "Beastmaster";
             case 12: return "Collector";
             case 13: return "Necromant";
             case 14: return "Jester";
-            case 15: return "Witch";
-            case 16: return "Archmage";
+            case 15: return "Enchantress";
+            case 16: return "Warlock Lord";
             case 17: return "Princess";
             case 18: return "Commander";
             case 19: return "Queen";
             case 20: return "King";
             case 21: return "Empress";
             case 22: return "Knights";
-            case 23: return "Striders";
+            case 23: return "Rangers";
             case 24: return "Dwarf Infantry";
             case 25: return "Archers";
             case 26: return "Cavalry";
             case 27: return "Shield";
-            case 28: return "Guard Rune";
+            case 28: return "Protection Rune";
             case 29: return "Gem of Order";
             case 30: return "World Tree";
             case 31: return "Spellbook";
@@ -117,7 +117,7 @@ public class BigSwitches {
         }
         switch(name){
             case "Knights":
-            case "Striders":
+            case "Rangers":
             case "Dwarf Infantry":
             case "Archers":
             case "Cavalry":
@@ -140,8 +140,8 @@ public class BigSwitches {
             case "Beastmaster":
             case "Collector":
             case "Jester":
-            case "Archmage":
-            case "Witch":
+            case "Warlock Lord":
+            case "Enchantress":
             case "Necromant":
                 return WIZARD;
 
@@ -167,14 +167,14 @@ public class BigSwitches {
                 return FIRE;
 
             case "Magic Wand":
-            case "Zeppelin":
+            case "War Dirigible":
             case "Warship":
-            case "Bow":
+            case "Elven Longbow":
             case "Sword":
                 return WEAPON;
 
             case "Shield":
-            case "Guard Rune":
+            case "Protection Rune":
             case "Gem of Order":
             case "World Tree":
             case "Spellbook":

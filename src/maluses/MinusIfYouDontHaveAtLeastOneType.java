@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     public int priority = 8;
-    public final String text;
+    public String text;
     int howMuch;
     ArrayList<Type> types;
 
@@ -15,7 +15,7 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
         this.text = howMuch + " unless with at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.types = types;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -33,5 +33,16 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
             }
         }
         return howMuch;
+    }
+
+    @Override
+    public Malus clone() throws CloneNotSupportedException{
+        ArrayList<Type> newtypes = new ArrayList<Type>();
+        for(Type t: types){
+            newtypes.add(t);
+        }
+        MinusIfYouDontHaveAtLeastOneType newm = new MinusIfYouDontHaveAtLeastOneType(this.howMuch, newtypes);
+        //System.out.println("In cloning CardIsDeletedIfYouDontHaveAtLeastOneType: The new types and old types are equal = " + (newm.types == this.types));
+        return newm;
     }
 }

@@ -30,6 +30,7 @@ public class DeleteAllMalusesOnType extends Bonus  {
             if(c.type.equals(deleteMalusesOnThisType)){
                 if(c.maluses != null){
                     c.maluses.clear();
+                    System.out.println("=========Mazu POSTIH NA karte " + c.name + " !!!//////////////---------" + this.getText());
                 }
 
             }

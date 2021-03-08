@@ -1,5 +1,6 @@
 package bonuses;
 
+import interactive.Interactive;
 import server.BigSwitches;
 import server.Type;
 import server.Card;
@@ -7,7 +8,7 @@ import server.Card;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Bonus implements ScoringInterface, Serializable {
+public class Bonus implements ScoringInterface, Serializable, Cloneable {
     public long serialVersionUID = 1;
     public int priority = 8;
     private String text;
@@ -46,5 +47,13 @@ public class Bonus implements ScoringInterface, Serializable {
             first = false;
         }
         return listtypes.toString();
+    }
+
+    public Bonus clone() throws CloneNotSupportedException{
+        Bonus newb = (Bonus)super.clone();
+        newb.text = this.text;
+        newb.priority = this.priority;
+        newb.serialVersionUID = this.serialVersionUID;
+        return newb;
     }
 }

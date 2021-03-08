@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class MinusForEachOtherSelftypeOrType extends Malus {
     public int priority = 8;
-    public final String text;
+    public String text;
     public int howMuch;
     public ArrayList<Type> types;
     public Type selftype;
@@ -24,7 +24,7 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
         this.types = types;
         this.selftype = selftype;
         this.thiscardid = thiscardid;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -46,6 +46,23 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
                 }
             }
         }
+        //System.out.println("The card with malus contributed with " +  total);
         return total;
+    }
+
+    @Override
+    public Malus clone() throws CloneNotSupportedException{
+
+        ArrayList<Type> newtypes = new ArrayList<Type>();
+        if(this.types != null)
+        for(Type t: this.types){
+            newtypes.add(t);
+        }
+        else{
+            newtypes = null;
+        }
+        MinusForEachOtherSelftypeOrType newm = new MinusForEachOtherSelftypeOrType(this.howMuch, newtypes, this.selftype, this.thiscardid);
+        //System.out.println("In cloning CardIsDeletedIfYouDontHaveAtLeastOneType: The new types and old types are equal = " + (newm.types == this.types));
+        return newm;
     }
 }

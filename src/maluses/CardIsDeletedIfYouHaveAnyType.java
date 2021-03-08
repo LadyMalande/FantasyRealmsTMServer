@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class CardIsDeletedIfYouHaveAnyType extends Malus {
     public int priority = 7;
-    public final String text;
+    public String text;
     private int thiscardid;
     public ArrayList<Type> types;
 
@@ -16,7 +16,7 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
         this.text = "Blanked with any " + giveListOfTypesWithSeparator(types, " or " );
         this.thiscardid = thiscardid;
         this.types = types;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -26,17 +26,40 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
     @Override
     public int getPriority(){ return this.priority; }
     @Override
-    public int count(ArrayList<Card> hand) {
+    public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove) {
         boolean delete = false;
+        //System.out.println("Resolving card "+ BigSwitches.switchIdForName(thiscardid));
         for(Card c: hand){
-            if(types.contains(c.type)){
-                delete = true;
-                break;
+            if (!whatToRemove.contains(c)) {
+                if(types.contains(c.type)){
+                    delete = true;
+                    //System.out.println("c.type==" + BigSwitches.switchTypeForName(c.type) + " je v seznamu types");
+                    break;
+                }
             }
         }
         if(delete){
+
+            //whatToRemove.add(hand.stream().filter(cardOnHand -> thiscardid == (cardOnHand.id)).findFirst().get());
             hand.removeIf(x -> x.id == thiscardid);
+            System.out.println("Card with id " + thiscardid + " was put to whatToremove, now cards in hand: " + hand.size());
         }
         return 0;
+    }
+
+    @Override
+    public int count(ArrayList<Card> hand) {
+        return 0;
+    }
+
+    @Override
+    public Malus clone() throws CloneNotSupportedException{
+        ArrayList<Type> newtypes = new ArrayList<Type>();
+        for(Type t: types){
+            newtypes.add(t);
+        }
+        CardIsDeletedIfYouHaveAnyType newm = new CardIsDeletedIfYouHaveAnyType(this.thiscardid, newtypes);
+        //System.out.println("In cloning CardIsDeletedIfYouHaveAnyType: The new types and old types are equal = " + (newm.types == this.types));
+        return newm;
     }
 }

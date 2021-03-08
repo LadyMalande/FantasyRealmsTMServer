@@ -42,7 +42,7 @@ public class PlusIfAllAreOdd extends Bonus  {
                 }
             }
         }
-        if(count == 7){
+        if(count == hand.size()){
             return how_much;
         }
         else{

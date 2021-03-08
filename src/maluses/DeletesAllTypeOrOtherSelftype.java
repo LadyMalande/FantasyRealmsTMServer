@@ -7,9 +7,9 @@ import server.Type;
 import java.util.ArrayList;
 
 public class DeletesAllTypeOrOtherSelftype  extends Malus{
-    public final String text;
+    public String text;
     public ArrayList<Type> types;
-    private Type selftype;
+    public Type selftype;
     private int thiscardid;
 
     public DeletesAllTypeOrOtherSelftype(ArrayList<Type> types, Type type, int thiscardid) {
@@ -17,7 +17,7 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
         this.types = types;
         this.selftype = type;
         this.thiscardid = thiscardid;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText());
     }
 
     @Override
@@ -41,6 +41,7 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
     }
     @Override
     public int count(ArrayList<Card> hand) {
+        /*
         ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
         copyDeckToMakeChanges.addAll(hand);
         for(Card c: copyDeckToMakeChanges){
@@ -49,6 +50,19 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
 
             }
         }
+
+         */
         return 0;
+    }
+
+    @Override
+    public Malus clone() throws CloneNotSupportedException{
+        ArrayList<Type> newtypes = new ArrayList<Type>();
+        for(Type t: types){
+            newtypes.add(t);
+        }
+        DeletesAllTypeOrOtherSelftype newm = new DeletesAllTypeOrOtherSelftype(newtypes,this.selftype,this.thiscardid);
+        //System.out.println("In cloning DeletesAllTypeOrOtherSelftype: The new types and old types are equal = " + (newm.types == this.types));
+        return newm;
     }
 }
