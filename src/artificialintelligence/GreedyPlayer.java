@@ -3,10 +3,7 @@ package artificialintelligence;
 import bonuses.Bonus;
 import interactive.Interactive;
 import maluses.Malus;
-import server.Card;
-import server.PlayerOrAI;
-import server.Server;
-import server.Type;
+import server.*;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -22,8 +19,11 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
     int gainThreshold;
     String name;
     private FutureTask<Integer> futureTask;
+    private int numberOfRoundsPlayed;
+    String beginningHandCards;
+    int beginningHandScore;
 
-    public GreedyPlayer(Server server){
+    public GreedyPlayer(Server server) throws CloneNotSupportedException {
         hand = new ArrayList<>();
         this.server = server;
         bestPossibleScore = 0;
@@ -33,16 +33,18 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         getInitCards();
     }
 
-    public GreedyPlayer(Server server, int gainThreshold, String name){
+    public GreedyPlayer(Server server, int gainThreshold, String name) throws CloneNotSupportedException {
         this.name = name;
+        System.out.println("Name of GreedyPlayer " + this.name);
         hand = new ArrayList<>();
         this.server = server;
         bestPossibleScore = 0;
         bestCardToTake = null;
         bestCardToDrop = null;
+        numberOfRoundsPlayed = 0;
         this.gainThreshold = gainThreshold;
         getInitCards();
-        System.out.println("Making Greedy player with gain threshold: " + gainThreshold);
+        //System.out.println("Making Greedy player with gain threshold: " + gainThreshold);
     }
 
     @Override
@@ -50,17 +52,74 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         return hand;
     }
 
-    public void getInitCards(){
+    @Override
+    public String getName(){
+        return this.name;
+    }
+
+    @Override
+    public int getNumberOfRoundsPlayed(){
+        return numberOfRoundsPlayed;
+    }
+
+    @Override
+    public String getBeginningHandCards(){
+        return beginningHandCards;
+    }
+
+    @Override
+    public int getBeginningHandScore(){
+        return beginningHandScore;
+    }
+
+    @Override
+    public void getInitCards() throws CloneNotSupportedException {
+        hand.clear();
+        numberOfRoundsPlayed = 0;
         Random randomGenerator = new Random();
+        StringBuilder sb = new StringBuilder();
         for (int j = 0; j < 7; j++) {
-            System.out.println("In getInitCards in GreedyPlayer constructor, number of loop is " + j);
+            //System.out.println("In getInitCards in GreedyPlayer constructor, number of loop is " + j);
             int index = randomGenerator.nextInt(server.deck.getDeck().size());
-            hand.add(server.deck.getDeck().get(index));
+            Card newCard = server.deck.getDeck().get(index);
+            hand.add(newCard);
+            sb.append(newCard.getName()  + ";");
             server.deck.getDeck().remove(index);
         }
+        beginningHandCards = sb.toString();
+        List<Card> newHandOldScore = new ArrayList<>();
+        for(Card copy : hand){
+            ArrayList<Malus> maluses = new ArrayList<>();
+            ArrayList<Interactive> interactives = new ArrayList<>();
+            // bonuses are never deleted, they can be the same objects
+            // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
+            if(copy.maluses != null){
+                //System.out.println("Klonuji kartu " + copy.name);
+                for(Malus m : copy.maluses){
+                    maluses.add(m.clone());
+                }
+            }
+            // The same rule apply to interactives = they can be deleted to signal it has been used
+            if(copy.interactives != null){
+                for(Interactive inter : copy.interactives){
+                    interactives.add(inter.clone());
+                }
+            }
+            newHandOldScore.add(new Card(copy.id,copy.name,copy.strength, copy.type, copy.bonuses, maluses, interactives));
+        }
+
+        // Count if there is gain from the table greater than the gainThreshold and keep the highest combination of them
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+        beginningHandScore = sc.countScore(newHandOldScore, new ArrayList<>());
     }
 
     public void performMove(ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        //We cant continue playing when 10 cards are on table
+        if(cardsOnTable.size() == 10){
+            return;
+
+        }
+        numberOfRoundsPlayed++;
         // resetting choice
         bestCardToTake = null;
         bestCardToDrop = null;
@@ -75,7 +134,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
             // bonuses are never deleted, they can be the same objects
             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
             if(copy.maluses != null){
-                System.out.println("Klonuji kartu " + copy.name);
+                //System.out.println("Klonuji kartu " + copy.name);
                 for(Malus m : copy.maluses){
                     maluses.add(m.clone());
                 }
@@ -93,13 +152,13 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         ScoreCounterForAI sc = new ScoreCounterForAI();
         int currentScore = sc.countScore(newHandOldScore, cardsOnTable);
         int currentMaxScore = currentScore;
-        System.out.print("Players cards on hand before deciding what to do [score: " + currentMaxScore + "]: ");
+        //System.out.print("Players cards on hand before deciding what to do [score: " + currentMaxScore + "]: ");
         for(Card c: hand){
-            System.out.print(c.name + ", ");
+            //System.out.print(c.name + ", ");
         }
-        System.out.println();
+        //System.out.println();
 
-        System.out.println("------------------------------NOVE ZKOUSENI NEJLEPSI RUKY-----------------------------");
+        //System.out.println("------------------------------NOVE ZKOUSENI NEJLEPSI RUKY-----------------------------");
 
         // Try to change all combination of cards in hand and place one card from table instead
         for(Card cardToChange : hand){
@@ -108,18 +167,12 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
             List<Card> newHand = new ArrayList<>();
             for(Card c : hand){
                 if(c != cardToChange){
-                    ArrayList<Bonus> bonuses = new ArrayList<>();
                     ArrayList<Malus> maluses = new ArrayList<>();
                     ArrayList<Interactive> interactives = new ArrayList<>();
                     // bonuses are never deleted, they can be the same objects
-                    if(c.bonuses != null){
-                        for(Bonus b : c.bonuses){
-                            bonuses.add(b);
-                        }
-                    }
                     // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
                     if(c.maluses != null){
-                        System.out.println("Klonuji kartu " + c.name);
+                        //System.out.println("Klonuji kartu " + c.name);
                         for(Malus m : c.maluses){
                             maluses.add(m.clone());
                         }
@@ -130,14 +183,14 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                             interactives.add(inter.clone());
                         }
                     }
-                    newHand.add(new Card(c.id,c.name,c.strength, c.type, bonuses, maluses, interactives));
+                    newHand.add(new Card(c.id,c.name,c.strength, c.type, c.bonuses, maluses, interactives));
                 }
             }
             for(Card cardOnTable : cardsOnTable){
                 ArrayList<Malus> malusesForTableCard = new ArrayList<>();
                 ArrayList<Interactive> interactivesForTableCard = new ArrayList<>();
                 if(cardOnTable.maluses != null){
-                    System.out.println("Klonuji kartu " + cardOnTable.name);
+                    //System.out.println("Klonuji kartu " + cardOnTable.name);
                     for(Malus m : cardOnTable.maluses){
                         malusesForTableCard.add(m.clone());
                     }
@@ -155,22 +208,22 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                 // TODO : Count the currentScore of the newHand array === IMPLEMENT PROPERLY sc.COUNTSCORE()
                 newTable.clear();
                 newTable = cardsOnTable.stream().filter(card -> !card.equals(cardOnTable)).collect(Collectors.toList());
-                System.out.println("Pocet karet na stole pred polozenim jedne karty z ruky: " + newTable.size() + " pocet karet na ruce " + hand.size() + " pocet karet na NOVE ruce: " + newHand.size());
+                //System.out.println("Pocet karet na stole pred polozenim jedne karty z ruky: " + newTable.size() + " pocet karet na ruce " + hand.size() + " pocet karet na NOVE ruce: " + newHand.size());
 
                 Card cardToChangeFromHand = new Card(cardToChange.id,cardToChange.name,cardToChange.strength, cardToChange.type,
                         cardToChange.bonuses, cardToChange.maluses, cardToChange.interactives);
                 newTable.add(cardToChangeFromHand);
-                System.out.println("Karty na novem stole po vybrani karty do ruky: ");
+                //System.out.println("Karty na novem stole po vybrani karty do ruky: ");
                 for(Card cardOnTableToList : newTable){
-                    System.out.print(cardOnTableToList.name + ", ");
+                   // System.out.print(cardOnTableToList.name + ", ");
                 }
-                System.out.println("----------------------------------------------------------------------");
-                System.out.print("Karty na nove ruce: ");
+                //System.out.println("----------------------------------------------------------------------");
+                //System.out.print("Karty na nove ruce: ");
                 for(Card c: newHand){
-                    System.out.print(c.name + ", ");
+                    //System.out.print(c.name + ", ");
                 }
-                System.out.println();
-                System.out.println("Pocet karet na stole: " + newTable.size() + " pocet karet na ruce " + hand.size() + " pocet karet na NOVE ruce: " + newHand.size());
+                //System.out.println();
+                //System.out.println("Pocet karet na stole: " + newTable.size() + " pocet karet na ruce " + hand.size() + " pocet karet na NOVE ruce: " + newHand.size());
 
                 // Count the score with the new cards on hand and on table
                 currentScore = sc.countScore(newHand, newTable);
@@ -196,7 +249,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         } else{
             // The AI draws the card in the moment when no card on the table offers increase of the score
             Card cardFromDeck = server.drawCardFromDeck();
-            System.out.println("AI drew card from the deck: " + cardFromDeck.name);
+            //System.out.println("AI drew card from the deck: " + cardFromDeck.name);
             // Now the AI must decide whether drop the card immediately or it gives better score
             for(Card cardToChange : hand){
                 ArrayList<Card> newHand = new ArrayList<>();
@@ -208,7 +261,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                         // bonuses are never deleted, they can be the same objects
                         // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
                         if(cardOnHand.maluses != null){
-                            System.out.println("Klonuji kartu " + cardOnHand.name);
+                            //System.out.println("Klonuji kartu " + cardOnHand.name);
                             for(Malus m : cardOnHand.maluses){
                                 maluses.add(m.clone());
                             }
@@ -226,7 +279,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                 ArrayList<Malus> malusesForTableCard = new ArrayList<>();
                 ArrayList<Interactive> interactivesForTableCard = new ArrayList<>();
                 if(cardFromDeck.maluses != null){
-                    System.out.println("Klonuji kartu " + cardFromDeck.name);
+                    //System.out.println("Klonuji kartu " + cardFromDeck.name);
                     for(Malus m : cardFromDeck.maluses){
                         malusesForTableCard.add(m.clone());
                     }
@@ -244,7 +297,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                     // TODO : Count the currentScore of the newHand array === IMPLEMENT PROPERLY sc.COUNTSCORE()
                     newTable = cardsOnTable;
                     newTable.add(cardToChange);
-                    System.out.println("Pocet karet na stole: " + newTable.size() + " pocet karet na ruce " + hand.size());
+                    //System.out.println("Pocet karet na stole: " + newTable.size() + " pocet karet na ruce " + hand.size());
                     currentScore = sc.countScore(newHand, newTable);
                     while (currentScore < 0) {
                         // wait;
@@ -266,11 +319,11 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
             bestCardToDrop = hand.get(0);
         }
         hand.remove(bestCardToDrop);
-        System.out.print("Players cards on hand [score: " + currentMaxScore + "]: ");
+        //System.out.print("Players cards on hand [score: " + currentMaxScore + "]: ");
         for(Card c: hand){
-            System.out.print(c.name + ", ");
+            //System.out.print(c.name + ", ");
         }
-        System.out.println();
+        //System.out.println();
         server.putCardOnTable(bestCardToDrop);
         server.setNextPlayer();
     }
@@ -278,7 +331,6 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
     @Override
     public void endGame(){
         countScore();
-
     }
 
     @Override
@@ -289,7 +341,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
             try {
                 performMove(server.cardsOnTable);
             } catch(CloneNotSupportedException notCloneableEx){
-                System.out.println("Not cloneable");
+                //System.out.println("Not cloneable");
             }
         }
     }

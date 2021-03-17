@@ -5,6 +5,8 @@ import server.Type;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class PlusForSameColorCards extends Bonus  {
     public long serialVersionUID = 14;
@@ -12,12 +14,22 @@ public class PlusForSameColorCards extends Bonus  {
 
     public PlusForSameColorCards() {
         this.text = "+10 for 3,\n +40 for 4,\n +100 for 5 cards of the same type";
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
+        sb.append(rb.getString("plusForSameColorCards"));
+        return sb.toString();
     }
 
     @Override

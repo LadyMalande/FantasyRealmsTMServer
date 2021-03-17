@@ -8,6 +8,9 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 import static server.Type.NONE;
 
@@ -21,12 +24,24 @@ public class DeleteSelftypeFromAllMaluses extends Bonus  {
 
         this.deleteThisTypeFromMaluses = t;
         this.text = "Remove word " + BigSwitches.switchTypeForName(deleteThisTypeFromMaluses) + " from all maluses";
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses", loc);
+        ResourceBundle types = ResourceBundle.getBundle("server.CardTypes", loc);
+        sb.append(bonuses.getString("deleteSelfTypeFromAllMaluses"));
+        sb.append(types.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(deleteThisTypeFromMaluses)).toLowerCase()));
+        sb.append(bonuses.getString("deleteSelfTypeFromAllMaluses2"));
+        return sb.toString();
     }
     @Override
     public int getPriority(){ return this.priority; }
@@ -38,7 +53,7 @@ public class DeleteSelftypeFromAllMaluses extends Bonus  {
 
                     if(m.types != null && m.types.contains(deleteThisTypeFromMaluses)) {
                         m.types.remove(deleteThisTypeFromMaluses);
-                        System.out.println("------------------Mazu typ "  + deleteThisTypeFromMaluses + "  z karty " + c.name);
+                        //System.out.println("------------------Mazu typ "  + deleteThisTypeFromMaluses + "  z karty " + c.name);
                     }
                     if(m instanceof DeletesAllTypeOrOtherSelftype){
                         if(deleteThisTypeFromMaluses == ((DeletesAllTypeOrOtherSelftype) m).selftype){

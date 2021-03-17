@@ -3,6 +3,8 @@ package bonuses;
 import server.Card;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class PlusForEachOdd extends Bonus  {
     public long serialVersionUID = 8;
@@ -20,12 +22,27 @@ public class PlusForEachOdd extends Bonus  {
         } else{
             this.text = "+" + how_much + " for each OTHER card in your hand with even strength";
         }
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
+        sb.append("+" + how_much);
+        if(!odd){
+            sb.append(rb.getString("plusForEachEven"));
+        } else{
+            sb.append(rb.getString("plusForEachOdd"));
+        }
+        return sb.toString();
     }
 
     @Override

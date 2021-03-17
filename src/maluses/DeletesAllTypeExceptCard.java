@@ -1,9 +1,12 @@
 package maluses;
 
+import server.BigSwitches;
 import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class DeletesAllTypeExceptCard extends Malus {
     public String text;
@@ -13,15 +16,35 @@ public class DeletesAllTypeExceptCard extends Malus {
 
     public DeletesAllTypeExceptCard( int thiscardid, ArrayList<Type> types, ArrayList<Integer> cards) {
         this.thiscardid = thiscardid;
-        this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ")+" except " + giveListOfCardsWithSeparator(cards, ", ");
+        this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ")+" except " + giveListOfCardsWithSeparator(cards, ", ","en",1,false);
         this.types = types;
         this.cards = cards;
-        //System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle maluses = ResourceBundle.getBundle("maluses.CardMaluses",loc);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(maluses.getString("blanks"));
+        sb.append(" ");
+        sb.append(maluses.getString("all"));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types, ", ",locale,4,true));
+        sb.append(" ");
+        sb.append(maluses.getString("except"));
+        sb.append(" ");
+        sb.append(giveListOfCardsWithSeparator(cards, ", ",locale,2, false));
+        sb.append(".");
+        return sb.toString();
     }
 
     @Override

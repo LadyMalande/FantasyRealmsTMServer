@@ -3,6 +3,8 @@ package bonuses;
 import server.Card;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class BonusOrBonus extends Bonus {
     public long serialVersionUID = 2;
@@ -14,10 +16,9 @@ public class BonusOrBonus extends Bonus {
         this.text = b1.getText() + "\n----- OR -----\n" + b2.getText();
         this.b1 = b1;
         this.b2 = b2;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
-
-
 
     @Override
     public int count(ArrayList<Card> hand) {
@@ -27,6 +28,19 @@ public class BonusOrBonus extends Bonus {
     @Override
     public String getText() {
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
+        sb.append(this.b1.getText(locale));
+        sb.append("\n----- ");
+        sb.append(bonuses.getString("or"));
+        sb.append(" -----\n");
+        sb.append(this.b2.getText(locale));
+        return sb.toString();
     }
 
     @Override

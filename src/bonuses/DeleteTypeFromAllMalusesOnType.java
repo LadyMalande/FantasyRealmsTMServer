@@ -6,6 +6,8 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class DeleteTypeFromAllMalusesOnType extends Bonus  {
     public long serialVersionUID = 6;
@@ -18,12 +20,29 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
         this.deleteThisTypeFromMaluses = whichType;
         this.onWhichType = onWhichType;
         text = "Remove word " + BigSwitches.switchTypeForName(whichType) + " on types "+BigSwitches.switchTypeForName(onWhichType);
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(bonuses.getString("deletesWord"));
+        sb.append(" ");
+        sb.append(rb.getString(BigSwitches.switchTypeForName(deleteThisTypeFromMaluses).toLowerCase()));
+        sb.append(" ");
+        sb.append(bonuses.getString("fromAllMalusesOnAll"));
+        sb.append(" ");
+        sb.append(rb.getString(BigSwitches.switchTypeForName(onWhichType).toLowerCase() + "6"));
+        sb.append(".");
+        return sb.toString();
     }
     @Override
     public int getPriority(){ return this.priority; }

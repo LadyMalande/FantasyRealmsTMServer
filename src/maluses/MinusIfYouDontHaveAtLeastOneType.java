@@ -1,9 +1,12 @@
 package maluses;
 
+import server.BigSwitches;
 import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     public int priority = 8;
@@ -15,13 +18,31 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
         this.text = howMuch + " unless with at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.types = types;
-        //System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
     }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle maluses = ResourceBundle.getBundle("maluses.CardMaluses",loc);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(howMuch);
+        sb.append(maluses.getString("unlessWith"));
+        sb.append(" ");
+        sb.append(rb.getString("one4" + BigSwitches.switchTypeForGender(types.get(0))));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types, "or",locale,4,false));
+        sb.append(".");
+        return sb.toString();
+    }
+
     @Override
     public int getPriority(){ return this.priority; }
     @Override

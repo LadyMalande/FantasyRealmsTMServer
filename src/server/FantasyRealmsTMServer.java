@@ -9,6 +9,7 @@ public class FantasyRealmsTMServer {
 
     public static void main(String[] args){
         try {
+
             Thread t = new Server(new ServerSocket(1234), args);
 
             t.start();

@@ -34,9 +34,9 @@ public class Deck implements Serializable {
 
     public void setDeck(boolean random){
         if(random){
-            deck = deckRandom;
+            deck = new ArrayList<>(deckRandom);
         } else{
-            deck = deckOriginal;
+            deck = new ArrayList<>(deckOriginal);
         }
     }
 }

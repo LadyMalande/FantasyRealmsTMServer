@@ -3,6 +3,7 @@ package interactive;
 import artificialintelligence.ScoreCounterForAI;
 import bonuses.Bonus;
 import maluses.Malus;
+import server.BigSwitches;
 import server.Card;
 import server.ClientHandler;
 import server.Type;
@@ -13,7 +14,7 @@ import java.net.Socket;
 import java.util.*;
 
 public class DeleteOneMalusOnType extends Interactive {
-    public int priority = 2;
+    public int priority = 4;
     public String text;
     public ArrayList<Type> types;
     private int thiscardid;
@@ -23,11 +24,27 @@ public class DeleteOneMalusOnType extends Interactive {
         this.types = types;
         this.thiscardid = id;
         //System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText() {
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("interactive.CardInteractives",loc);
+        ResourceBundle type = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(rb.getString("deleteOneMalusOnType"));
+        sb.append(type.getString("one2" + BigSwitches.switchTypeForGender(types.get(0))));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types, "or", locale, 2));
+        sb.append(".");
+        return sb.toString();
     }
 
     @Override
@@ -52,7 +69,7 @@ public class DeleteOneMalusOnType extends Interactive {
                                 str.append("%");
                             }
                             str.append(c.name + ": ");
-                            str.append(m.getText());
+                            str.append(m.getText(client.locale.getLanguage()));
                             firstTimeInMaluses = false;
                         }
                         firstTime = false;
@@ -94,6 +111,7 @@ public class DeleteOneMalusOnType extends Interactive {
             }
         }
 
+
         //Copy hand for computing the original score on Hand
         List<Card> newHandOldScore = new ArrayList<>();
         for(Card copy : originalHand){
@@ -102,7 +120,7 @@ public class DeleteOneMalusOnType extends Interactive {
             // bonuses are never deleted, they can be the same objects
             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
             if(copy.maluses != null){
-                System.out.println("Klonuji kartu " + copy.name);
+                //System.out.println("Klonuji kartu " + copy.name);
                 for(Malus m : copy.maluses){
                     maluses.add(m.clone());
                 }
@@ -119,6 +137,7 @@ public class DeleteOneMalusOnType extends Interactive {
         ScoreCounterForAI sc = new ScoreCounterForAI();
         int bestScore = sc.countScore(newHandOldScore, cardsOnTable);
 
+        //Try to delete every malus on hand and find out which one is the best to remove
         for(Card c : originalHand){
             if(this.types.contains(c.type)) {
                 if (c.maluses != null) {
@@ -134,7 +153,7 @@ public class DeleteOneMalusOnType extends Interactive {
                             // bonuses are never deleted, they can be the same objects
                             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
                             if(copy.maluses != null){
-                                System.out.println("Klonuji kartu " + copy.name);
+                                //System.out.println("Klonuji kartu " + copy.name);
                                 for(Malus m : copy.maluses){
                                     maluses.add(m.clone());
                                 }
@@ -154,17 +173,18 @@ public class DeleteOneMalusOnType extends Interactive {
                             bestScore = currentScore;
                             whichMalusToDelete = storeMalus;
                             onWhichDeleteMalus = c;
-                            System.out.println("Without Malus on card " + c.name + ": " + storeMalus.text + " the score is " + currentScore);
-                            System.out.println("Which is worse than the previous score: best score so far = " + bestScore);
+                            //System.out.println("Without Malus on card " + c.name + ": " + storeMalus.text + " the score is " + currentScore);
+                            //System.out.println("Which is better than the previous score: best score so far = " + bestScore);
                         }
                         c.maluses.add(i, storeMalus);
+                        //System.out.println("After trying out the score, it was " + currentScore + " number of maluses on card is " + c.maluses.size());
                     }
                 }
             }
         }
         if(onWhichDeleteMalus != null && whichMalusToDelete != null){
             onWhichDeleteMalus.maluses.remove(whichMalusToDelete);
-            System.out.println("Finally deleting Malus on card " + onWhichDeleteMalus.name + ": " + whichMalusToDelete.text);
+            //System.out.println("Finally deleting Malus on card " + onWhichDeleteMalus.name + ": " + whichMalusToDelete.text);
         }
 
     }

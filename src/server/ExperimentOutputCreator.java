@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 public class ExperimentOutputCreator {
@@ -33,16 +35,33 @@ public class ExperimentOutputCreator {
 
     private void writeToOutputFile(File file){
         try {
+            int totalNumberOfRounds = 0;
+            double averageNumberOfRounds = 0;
             FileWriter writer = new FileWriter(file, true);
-
+            for(PlayerOrAI player : players) {
+                totalNumberOfRounds += player.getNumberOfRoundsPlayed();
+            }
+            averageNumberOfRounds = totalNumberOfRounds / players.size();
+            writer.write(totalNumberOfRounds + ";" + averageNumberOfRounds + ";");
             for(PlayerOrAI player : players){
-                writer.write(player.name + ";" + player.score + ";" );
+                List<String> namesOld = Arrays.asList(player.getBeginningHandCards().split(";"));
+                StringBuilder sameCards = new StringBuilder();
+                for(Card c : player.getHand()){
+                    if(namesOld.contains(c.getName())){
+                        sameCards.append(c.getName());
+                    }
+                    sameCards.append(";");
+                }
+                writer.write(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";" + player.getBeginningHandScore() + ";" + player.getBeginningHandCards() + player.score + ";" );
                 for(Card c: player.getHand()){
                     writer.write(c.name + ";");
                 }
                 if(player.getHand().size() < 8){
                     writer.write("-;");
                 }
+                int differenceInScores = player.score - player.getBeginningHandScore();
+                writer.write(differenceInScores + ";");
+                writer.write(sameCards.toString());
             }
             // Writes the content to the file
             writer.write("\n");

@@ -4,6 +4,8 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class DeletesAllExceptTypeOrCard extends Malus {
     public String text;
@@ -15,14 +17,15 @@ public class DeletesAllExceptTypeOrCard extends Malus {
     public DeletesAllExceptTypeOrCard( ArrayList<Type> except, ArrayList<Integer> cards, int thiscardid) {
         this.except = except;
         this.types = getComplementOfTypes(except);
-        this.text = "Blanks all except " + giveListOfTypesWithSeparator(except, ", ") + " and " + giveListOfCardsWithSeparator(cards, ", ");
+        this.text = "Blanks all except " + giveListOfTypesWithSeparator(except, ", ") + " and " + giveListOfCardsWithSeparator(cards, ", ","en",1,false);
         this.cards = cards;
         this.thiscardid = thiscardid;
-        //System.out.println("Card INIT: Text: " + getText());
+       // System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     private ArrayList<Type> getComplementOfTypes(ArrayList<Type> except) {
-        ArrayList<Type> complement_types = new ArrayList<>(){{add(Type.ARMY);add(Type.ARTIFACT); add(Type.WEAPON);add(Type.WEATHER);add(Type.CREATURE);add(Type.FLOOD);add(Type.LEADER);add(Type.EARTH);add(Type.WIZARD);add(Type.FIRE);add(Type.WILD);}};
+        ArrayList<Type> complement_types = new ArrayList<>(){{add(Type.ARMY);add(Type.ARTIFACT); add(Type.WEAPON);add(Type.WEATHER);add(Type.BEAST);add(Type.FLOOD);add(Type.LEADER);add(Type.LAND);add(Type.WIZARD);add(Type.FLAME);add(Type.WILD);}};
        complement_types.add(Type.ARTIFACT);
        complement_types.add(Type.ARMY);
        for(Type t: except){
@@ -34,6 +37,25 @@ public class DeletesAllExceptTypeOrCard extends Malus {
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle maluses = ResourceBundle.getBundle("maluses.CardMaluses",loc);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(maluses.getString("deletesAllCards"));
+        sb.append(" ");
+        sb.append(maluses.getString("except"));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types, ", ",locale,2,true));
+        if(cards != null){
+            sb.append(", ");
+            sb.append(giveListOfCardsWithSeparator(cards, ", ",locale,2, false));
+        }
+        sb.append(".");
+        return sb.toString();
     }
 
     @Override

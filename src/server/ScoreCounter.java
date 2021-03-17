@@ -38,7 +38,7 @@ public class ScoreCounter extends Thread {
                 try {
                     ArrayList<Card> whatToRemove = new ArrayList<>();
                     int sum = 0;
-                    System.out.println("Pocet karet v ruce: " + client.getHand().size());
+                    //System.out.println("Pocet karet v ruce: " + client.getHand().size());
                     HashMap<Type, Malus> types_maluses = new HashMap<>();
                     ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(client.getHand());
                     int MAX_PRIORITY = 8;
@@ -52,7 +52,7 @@ public class ScoreCounter extends Thread {
                         if (i == 5) {
                             while (client.interactivesResolved.get() < client.interactivesCount) {
                                 // wait
-                                System.out.println("MaxCount: " + client.interactivesCount + " and we have: " + client.interactivesResolved.get());
+                                //System.out.println("MaxCount: " + client.interactivesCount + " and we have: " + client.interactivesResolved.get());
                                 try {
                                     Thread.sleep(1000);
 
@@ -76,7 +76,7 @@ public class ScoreCounter extends Thread {
                                                 int k = 0;
                                                 while(!client.interactivesResolvedAtomicBoolean.get()){
                                                     Thread.sleep(1000);
-                                                    System.out.println("Thread slept " + k + " times.");
+                                                    //System.out.println("Thread slept " + k + " times.");
                                                     k++;
                                                 }
                                             } catch (InterruptedException e) {
@@ -94,17 +94,17 @@ public class ScoreCounter extends Thread {
                                         if (b.getPriority() == 5 && i == 2) {
                                             int sumForCardBonus = b.count(client.getHand());
                                             sum += sumForCardBonus;
-                                            System.out.println("SumForBonusOfCard: " + c.name + " : " + sumForCardBonus);
+                                            //System.out.println("SumForBonusOfCard: " + c.name + " : " + sumForCardBonus);
                                         }
                                         if (b.getPriority() == 5 && i == 0) {
                                             int sumForCardBonus = b.count(client.getHand());
                                             sum += sumForCardBonus;
-                                            System.out.println("SumForBonusOfCard: " + c.name + " : " + sumForCardBonus);
+                                            //System.out.println("SumForBonusOfCard: " + c.name + " : " + sumForCardBonus);
                                         }
                                         if (b.getPriority() == i) {
                                             int sumForCardBonus = b.count(client.getHand());
                                             sum += sumForCardBonus;
-                                            System.out.println("SumForBonusOfCard: " + c.name + " : " + sumForCardBonus);
+                                            //System.out.println("SumForBonusOfCard: " + c.name + " : " + sumForCardBonus);
                                         }
                                     }
                                 if (c.maluses != null)
@@ -124,7 +124,7 @@ public class ScoreCounter extends Thread {
 
                                             int sumForCardMalus = m.count(client.getHand());
                                             sum += sumForCardMalus;
-                                            System.out.println("SumForMalusOfCard: " + c.name + " : " + sumForCardMalus + " priority is: " + i);
+                                            //System.out.println("SumForMalusOfCard: " + c.name + " : " + sumForCardMalus + " priority is: " + i);
                                         }
                                     }
                             }
@@ -187,19 +187,19 @@ public class ScoreCounter extends Thread {
                             }
                         }
                         client.scoreTable.append("\n");
-                        System.out.println("Strength of card " + c.name + " is " + c.strength);
+                        //System.out.println("Strength of card " + c.name + " is " + c.strength);
                     }
                     for(Card c: whatToRemove){
                         client.scoreTable.append("Card: " + c.name + " was BLANKED. \n");
                     }
-                    System.out.println("The sum of score is: " + sum);
+                    //System.out.println("The sum of score is: " + sum);
 
                     return sum;
 
 
                 } catch (NullPointerException ex) {
                     ex.printStackTrace();
-                    System.out.println("All count score");
+                    //System.out.println("All count score");
                 }
                 return -1;
             }

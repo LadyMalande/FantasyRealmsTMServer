@@ -293,7 +293,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
     }
 
     private ArrayList<Type> complementToAllTypes(ArrayList<Type> iDontWantThose){
-        ArrayList<Type> all = new ArrayList<>(){{add(ARMY); add(ARTIFACT); add(CREATURE); add(EARTH); add(FIRE); add(FLOOD); add(LEADER); add(WEAPON); add(WEATHER); add(WIZARD); add(WILD);}};
+        ArrayList<Type> all = new ArrayList<>(){{add(ARMY); add(ARTIFACT); add(BEAST); add(LAND); add(FLAME); add(FLOOD); add(LEADER); add(WEAPON); add(WEATHER); add(WIZARD); add(WILD);}};
         all.removeIf(iDontWantThose::contains);
         return all;
     }
@@ -334,7 +334,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
 
     private ArrayList<Type> generateTypes(int howMany, Type except){
         ArrayList<Type> types = new ArrayList<>();
-        ArrayList<Type> all = new ArrayList<>(){{add(ARMY); add(ARTIFACT); add(CREATURE); add(EARTH); add(FIRE); add(FLOOD); add(LEADER); add(WEAPON); add(WEATHER); add(WIZARD); add(WILD);}};
+        ArrayList<Type> all = new ArrayList<>(){{add(ARMY); add(ARTIFACT); add(BEAST); add(LAND); add(FLAME); add(FLOOD); add(LEADER); add(WEAPON); add(WEATHER); add(WIZARD); add(WILD);}};
         if(except != null){
             all.remove(except);
         }

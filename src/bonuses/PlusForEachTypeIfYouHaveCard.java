@@ -5,6 +5,8 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class PlusForEachTypeIfYouHaveCard extends Bonus  {
     public long serialVersionUID = 12;
@@ -31,12 +33,33 @@ public class PlusForEachTypeIfYouHaveCard extends Bonus  {
         this.howMuch = howMuch;
         this.types = types;
         this.cardid = cardid;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        ResourceBundle rbcards = ResourceBundle.getBundle("server.CardNames",loc);
+        sb.append("+" + howMuch);
+        sb.append(" ");
+        sb.append(rb.getString("for"));
+        sb.append(" ");
+        sb.append(rb.getString("each4" + BigSwitches.switchTypeForGender(types.get(0))));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types,", ",locale, 4,false));
+            sb.append(rb.getString("ifYouHave"));
+        sb.append(" ");
+            sb.append(rbcards.getString(BigSwitches.switchIdForSimplifiedName(cardid) + "4"));
+        sb.append(".");
+        return sb.toString();
     }
 
     @Override

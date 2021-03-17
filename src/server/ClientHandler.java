@@ -29,6 +29,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
     public int interactivesCount;
     public AtomicBoolean interactivesResolvedAtomicBoolean;
     public StringBuilder scoreTable;
+    public Locale locale;
 
     @Override
     public ArrayList<Card> getHand(){
@@ -82,6 +83,8 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                             hostingServer.deck.getDeck().remove(index);
                         }
                         System.out.println("New player joined: " + name + " , max players: " + hostingServer.maxClients);
+                        String loc = st.nextToken();
+                        locale = new Locale(loc);
                         give_init_cards();
                         //sendNamesInOrder(hostingServer.giveNamesInOrder(this));
                     }
@@ -132,9 +135,11 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                 if(received.startsWith("ChangeColor")){
                     StringTokenizer st = new StringTokenizer(received, "#");
                     String command = st.nextToken();
-                    String name = st.nextToken();
+                    Integer id = Integer.parseInt(st.nextToken());
+                    //String name = st.nextToken();
                     String typeString = st.nextToken();
-                    Card cardToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
+                    Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
+                    //Card cardToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
                     synchronized(interactivesResolvedAtomicBoolean) {
 
                     //Change the color
@@ -156,7 +161,8 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     synchronized(interactivesResolvedAtomicBoolean) {
                         //Find the card we want to change to by name
                         ArrayList<Card> deck = DeckInitializer.loadDeckFromFile();
-                        Card howToChange = deck.stream().filter(card -> card.name.equals(name)).findAny().get();
+                        String originalName = BigSwitches.switchNameForOriginalName(name, locale);
+                        Card howToChange = deck.stream().filter(card -> card.name.equals(originalName)).findAny().get();
 
                         //Change the Name and Type
                         cardToChange.name = howToChange.name;
@@ -171,9 +177,9 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                 if(received.startsWith("CopyCardFromHand")){
                     StringTokenizer st = new StringTokenizer(received, "#");
                     String command = st.nextToken();
-                    String name = st.nextToken();
+                    int idHowToChange = Integer.parseInt(st.nextToken());
                     int id = Integer.parseInt(st.nextToken());
-                    Card howToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
+                    Card howToChange = hand.stream().filter(card -> card.id == idHowToChange).findAny().get();
                     System.out.println("How to change card:" + howToChange.name);
                     Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
                     synchronized(interactivesResolvedAtomicBoolean) {
@@ -194,13 +200,13 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     String command = st.nextToken();
                     String text = st.nextToken();
                     String[] splitted = text.split(": ");
-                    String name = splitted[0];
+                    int id = Integer.parseInt(st.nextToken());
                     String malusToDelete = splitted[1];
-                    Card cardToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
+                    Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
 
                     synchronized(interactivesResolvedAtomicBoolean) {
                         // Delete malus
-                        cardToChange.maluses.removeIf(malus -> malus.getText().equals(malusToDelete));
+                        cardToChange.maluses.removeIf(malus -> malus.getText(locale.getLanguage()).equals(malusToDelete));
                         interactivesResolved.incrementAndGet();
                         System.out.println("The interactiveResolved should have been increased...");
                         interactivesResolvedAtomicBoolean.set(true);
@@ -212,8 +218,8 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     StringTokenizer st = new StringTokenizer(received, "#");
                     String command = st.nextToken();
                     if(st.hasMoreTokens()){
-                        String name = st.nextToken();
-                        Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.name.equals(name)).findAny().get();
+                        int id = Integer.parseInt(st.nextToken());
+                        Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.id == id).findAny().get();
                         synchronized(interactivesResolvedAtomicBoolean) {
                             //Put the card to hand
                             if(cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty() && cardToAdd.interactives.get(0).getPriority() < 2){
@@ -267,21 +273,21 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                 interactivesCount += c.interactives.size();
             }
         }
-        System.out.println("Player " + name + " has now " + interactivesCount + " interactive cards on hand.");
+        //System.out.println("Player " + name + " has now " + interactivesCount + " interactive cards on hand.");
     }
 
     private void giveCardToHand(Card c){
         String message = "CARD_TO_HAND#" +
                 c.id + "#" +
-                c.name + "#" +
+                c.getNameLoc(locale.getLanguage()) + "#" +
                 c.strength +"#" +
-                BigSwitches.switchTypeForName(c.type) + "#" +
+                BigSwitches.switchTypeForName(c.type, locale.getLanguage()) + "#" +
                 getAllText(c) ;
         try {
             dos.writeUTF(message);
             dos.flush();
-            System.out.println("Giving card to player (" + name + "), name of card: " + c.name);
-            System.out.println(message);
+            //System.out.println("Giving card to player (" + name + "), name of card: " + c.name);
+            //System.out.println(message);
         } catch(IOException e){
             e.printStackTrace();
         }
@@ -296,17 +302,17 @@ public class ClientHandler extends PlayerOrAI implements Runnable
 
                 String message =    "INIT_CARD_TO_HAND" + "#" +
                         c.id + "#" +
-                        c.name + "#" +
+                        c.getNameLoc(locale.getLanguage()) + "#" +
                         c.strength +"#" +
-                        BigSwitches.switchTypeForName(c.type) + "#" +
+                        BigSwitches.switchTypeForName(c.type, locale.getLanguage()) + "#" +
                         getAllText(c) ;
 
                 dos.writeUTF(message);
                 dos.flush();
-                System.out.println("Giving card to player ("+ name + "), name of card: " + c.name);
+                //System.out.println("Giving card to player ("+ name + "), name of card: " + c.name);
 
             }
-            System.out.println("Gave 7 cards to player " + name);
+            //System.out.println("Gave 7 cards to player " + name);
             giveStartingCards = false;
 
         } catch (IOException e) {
@@ -323,25 +329,25 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                 if(!first){
                     allText.append("\n");
                 }
-                allText.append(b.getText()).append("\n");
+                allText.append(b.getText(locale.getLanguage())).append("\n");
                 //System.out.println("Name: " + c.name + " TEXT: " + b.getText());
                 first = false;
             }
         }
-
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardMaluses",locale);
         if(c.maluses != null){
-            allText.append("MALUS\n");
+            allText.append(rb.getString("malus") + "\n");
             for(Malus m: c.maluses){
                 if(!first){
                     allText.append("\n");
                 }
-                allText.append(m.getText()).append("\n");
+                allText.append(m.getText(locale.getLanguage())).append("\n");
                 first = false;
             }
         }
         if(c.interactives != null){
             for(Interactive b: c.interactives){
-                allText.append(b.getText());
+                allText.append(b.getText(locale.getLanguage()));
             }
         }
         if(c.interactives == null && c.bonuses == null && c.maluses==null){
@@ -354,9 +360,9 @@ public class ClientHandler extends PlayerOrAI implements Runnable
     public void putCardOnTable(Card c) throws CloneNotSupportedException {
         String message =    "CARD_TO_TABLE" + "#" +
                 c.id + "#" +
-                c.name + "#" +
+                c.getNameLoc(locale.getLanguage()) + "#" +
                 c.strength +"#" +
-                BigSwitches.switchTypeForName(c.type) + "#" +
+                BigSwitches.switchTypeForName(c.type, locale.getLanguage()) + "#" +
                 getAllText(c);
         try {
             dos.writeUTF(message);
@@ -365,7 +371,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
             e.printStackTrace();
         }
         hostingServer.setNextPlayer();
-        System.out.println("Giving card to table for player ("+ name + "), name of card: " + c.name);
+        //System.out.println("Giving card to table for player ("+ name + "), name of card: " + c.name);
     }
 
     @Override
@@ -389,7 +395,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Telling player ("+ name + ") names of other players: " + names);
+        //System.out.println("Telling player ("+ name + ") names of other players: " + names);
     }
 
     @Override

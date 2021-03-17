@@ -8,6 +8,8 @@ import maluses.Malus;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class Card implements Serializable, Cloneable, Comparable<Card>{
     public long serialVersionUID = 11;
@@ -56,12 +58,22 @@ public class Card implements Serializable, Cloneable, Comparable<Card>{
         return this.type;
     }
 
+    public String getTypeName(String locale){
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        return rb.getString(BigSwitches.switchTypeForName(this.type, locale).toLowerCase());
+    }
+
     public int getStrength(){
         return this.strength;
     }
 
     public String getName(){
         return this.name;
+    }
+
+    public String getNameLoc(String locale){
+        return BigSwitches.switchIdForName(id, locale);
     }
 
     @Override

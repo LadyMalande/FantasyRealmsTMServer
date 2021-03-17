@@ -1,14 +1,7 @@
 package server;
 
-import bonuses.Bonus;
-import interactive.Interactive;
-import maluses.Malus;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class PlayerOrAI {
     boolean playing;
@@ -16,10 +9,29 @@ public class PlayerOrAI {
     public StringBuilder scoreTable;
     int rank;
     public int score;
+    private int numberOfRoundsPlayed;
+    String beginningHandCards;
+    int beginningHandScore;
 
 
     public void sendScore(String s){
 
+    }
+
+    public int getNumberOfRoundsPlayed(){
+        return numberOfRoundsPlayed;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+    public String getBeginningHandCards(){
+        return beginningHandCards;
+    }
+
+    public int getBeginningHandScore(){
+        return beginningHandScore;
     }
 
     public ArrayList<Card> getHand(){
@@ -49,5 +61,6 @@ public class PlayerOrAI {
     }
 
 
-
+    public void getInitCards() throws CloneNotSupportedException {
+    }
 }

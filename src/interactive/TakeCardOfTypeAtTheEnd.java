@@ -4,11 +4,14 @@ package interactive;
 
 import artificialintelligence.ScoreCounterForAI;
 import maluses.Malus;
+import server.BigSwitches;
 import server.Card;
 import server.ClientHandler;
 import server.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class TakeCardOfTypeAtTheEnd extends Interactive  {
@@ -22,12 +25,29 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         this.text = "At the end of the game, you can take one card from the table which is of type " + giveListOfTypesWithSeparator(types, " or ") + " as your eighth card";
         this.types = types;
         //System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
     }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("interactive.CardInteractives",loc);
+        ResourceBundle typ = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(rb.getString("takeCardOfTypeAtTheEnd"));
+        sb.append(typ.getString("any4" + BigSwitches.switchTypeForGender(types.get(0))));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types, "or",locale,4));
+        sb.append(rb.getString("takeCardOfTypeAtTheEnd2"));
+        return sb.toString();
+    }
+
     @Override
     public int getPriority(){ return this.priority; }
 
@@ -37,7 +57,7 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         for(Type t: types){
             for(Card c: client.hostingServer.cardsOnTable){
                 if(c.type.equals(t)){
-                    str.append(c.name).append(",");
+                    str.append(c.getNameLoc(client.locale.getLanguage())).append(",");
                 }
             }
         }
@@ -56,15 +76,42 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         int bestScore = 0;
         Card thisInteractivesCard = null;
         Card bestCardToTake = null;
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+
+        //Copy hand and count current score
+        List<Card> newHand = new ArrayList<>();
+        for(Card copy : originalHand){
+            ArrayList<Malus> maluses = new ArrayList<>();
+            ArrayList<Interactive> interactives = new ArrayList<>();
+            // bonuses are never deleted, they can be the same objects
+            // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
+            if(copy.maluses != null){
+                //System.out.println("Klonuji kartu " + copy.name);
+                for(Malus m : copy.maluses){
+                    maluses.add(m.clone());
+                }
+            }
+            // The same rule apply to interactives = they can be deleted to signal it has been used
+            if(copy.interactives != null){
+                for(Interactive inter : copy.interactives){
+                    if (inter instanceof TakeCardOfTypeAtTheEnd) {
+                        //newInteractives.add(new TakeCardOfTypeAtTheEnd(c.id, ((TakeCardOfTypeAtTheEnd) in).types));
+                    } else {
+                        interactives.add(inter.clone());
+                    }
+                }
+            }
+            newHand.add(new Card(copy.id,copy.name,copy.strength, copy.type, copy.bonuses, maluses, interactives));
+        }
+
+
+        bestScore = sc.countScore(newHand, cardsOnTable);
         for(Card cardOnTable : cardsOnTable) {
             //the card is of appropriate type, try to take it
             if (types.contains(cardOnTable.type)) {
                 // Make new hand and try to count the score
-                List<Card> newHand1 = new ArrayList<>();
                 List<Card> newHand2 = new ArrayList<>();
                 for (Card c : originalHand) {
-                    ArrayList<Interactive> newInteractives1 = new ArrayList<>();
-                    ArrayList<Malus> newMaluses1 = new ArrayList<Malus>();
                     ArrayList<Interactive> newInteractives2 = new ArrayList<>();
                     ArrayList<Malus> newMaluses2 = new ArrayList<Malus>();
                     if (c.interactives != null) {
@@ -72,19 +119,16 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
                             if (in instanceof TakeCardOfTypeAtTheEnd) {
                                 //newInteractives.add(new TakeCardOfTypeAtTheEnd(c.id, ((TakeCardOfTypeAtTheEnd) in).types));
                             } else {
-                                newInteractives1.add(in);
                                 newInteractives2.add(in);
                             }
                         }
                     }
                     if(c.maluses != null){
                         for(Malus m: c.maluses){
-                            newMaluses1.add(m.clone());
                             newMaluses2.add(m.clone());
                         }
                     }
-                    newHand1.add(new Card(c.id, c.name, c.strength, c.type, c.bonuses, newMaluses1, newInteractives2));
-                    newHand2.add(new Card(c.id, c.name, c.strength, c.type, c.bonuses, newMaluses1, newInteractives2));
+                    newHand2.add(new Card(c.id, c.name, c.strength, c.type, c.bonuses, newMaluses2, newInteractives2));
                 }
                 ArrayList<Malus> newMalusesForTableCard = new ArrayList<Malus>();
                 if(cardOnTable.maluses != null){
@@ -92,8 +136,7 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
                         newMalusesForTableCard.add(tableMalus.clone());
                     }
                 }
-                ScoreCounterForAI sc = new ScoreCounterForAI();
-                bestScore = sc.countScore(newHand1,cardsOnTable);
+
                     newHand2.add(new Card(cardOnTable.id, cardOnTable.name, cardOnTable.strength, cardOnTable.type, cardOnTable.bonuses, newMalusesForTableCard, cardOnTable.interactives));
                     ArrayList<Card> newCardsOnTable  = new ArrayList<>();
                     for(Card cardOnOldTable : cardsOnTable){
@@ -116,7 +159,7 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
             if(oldCards.id == thiscardid){
                 // remove this interactive from this card to not get stuck in loop
                 //oldCards.interactives.removeIf(x -> x == this);
-                System.out.println("Na teto karte je nyni po rozhodnuti, jakou si vezme kartu, " + oldCards.interactives.size() + " interactives.");
+               // System.out.println("Na teto karte je nyni po rozhodnuti, jakou si vezme kartu, " + oldCards.interactives.size() + " interactives.");
             }
         }
 
@@ -133,11 +176,11 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
                 }
             }
 
-            System.out.println("Out of all cards on table: ");
+            //System.out.println("Out of all cards on table: ");
             for(Card cardOnTable : cardsOnTable){
-                System.out.print(cardOnTable.name + ", ");
+                //System.out.print(cardOnTable.name + ", ");
             }
-            System.out.print(" the AI chose to take " + bestCardToTake.name);
+            //System.out.print(" the AI chose to take " + bestCardToTake.name);
         }
 
     }

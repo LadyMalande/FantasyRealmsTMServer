@@ -36,6 +36,8 @@ Server extends Thread
     public Vector<PlayerOrAI> getPlayers(){
         return players;
     }
+    int numberOfRounds = 0;
+    int numberOfGamesToPlay = 0;
 
 
     // counter for clients
@@ -49,7 +51,7 @@ Server extends Thread
     {
         deck = new Deck();
         deck.initializeOriginal();
-        deck.initializeRandom();
+        //deck.initializeRandom();
         cardsOnTable = new ArrayList<>();
 
         try {
@@ -119,20 +121,48 @@ Server extends Thread
                 }
             }
         }
-        //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
-        Random randomGeneratorForPlayers = new Random();
-        int index2 = randomGeneratorForPlayers.nextInt(players.size());
-        players.elementAt(index2).playing = true;
-        currentPlayer = players.elementAt(index2);
-        System.out.println("Starting player is player <" + players.elementAt(index2).name +">");
+        if(numberOfGamesToPlay != 0){
+            for(int i = 0; i < numberOfGamesToPlay; i++){
+                if(randomOrNot.equals("1")){
+                    deck.setDeck(true);
+                } else{
+                    deck.setDeck(false);
+                }
+                System.out.println("Number of cards in deck " + deck.getDeck().size());
+                for(PlayerOrAI ai : players){
+                    try {
+                        ai.getInitCards();
+                    } catch (CloneNotSupportedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                numberOfRounds = 0;
+                System.out.println("Number of cards in deck after init give cards" + deck.getDeck().size());
+                System.out.println("Starting game number " + i);
+                Random randomGeneratorForPlayers = new Random();
+                int index2 = randomGeneratorForPlayers.nextInt(players.size());
+                players.elementAt(index2).playing = true;
+                currentPlayer = players.elementAt(index2);
+                experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
+                numberOfCountedScores = new AtomicInteger(0);
+                startTheGame();
+                System.out.println("End of Server game number " + i);
+            }
+        } else {
+            //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
+            Random randomGeneratorForPlayers = new Random();
+            int index2 = randomGeneratorForPlayers.nextInt(players.size());
+            players.elementAt(index2).playing = true;
+            currentPlayer = players.elementAt(index2);
+            System.out.println("Starting player is player <" + players.elementAt(index2).name + ">");
 
-        experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
-        startTheGame();
+            experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
+            startTheGame();
 
-        System.out.println("Players size" + players.size());
-        System.out.println("End of Server");
+            System.out.println("Players size" + players.size());
+            System.out.println("End of Server");
 
-
+        }
 
     }
 
@@ -156,6 +186,7 @@ Server extends Thread
                     // read what deck should be used for the experiment
                     if ("RANDOM".equals(args[ar])) {
                         deck.setDeck(true);
+                        randomOrNot= "1";
                     } else {
                         deck.setDeck(false);
                         randomOrNot = "0";
@@ -165,7 +196,7 @@ Server extends Thread
 
                 }
 
-                if(ar > 1){
+                if(ar > 1 && ar < 1 + numberOfAI + 1){
                     if (Stream.of(AITypes).anyMatch(args[ar]::startsWith)){
                         if(args[ar].startsWith("GREEDY_")){
                             try {
@@ -173,7 +204,7 @@ Server extends Thread
                                 int parameterOfGreedy = Integer.parseInt(args[ar].substring(7));
                                 GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY");
                                 players.add(ai);
-                            } catch (NumberFormatException e) {
+                            } catch (NumberFormatException | CloneNotSupportedException e) {
                                 System.out.println("Invalid arguments format of GREEDY type of AI. Correct type is: GREEDY_0 or GREEDY_10 etc. Run the program again with proper arguments. Terminating the program.");
 
                             }
@@ -185,28 +216,33 @@ Server extends Thread
                 } else{
                     //TODO insert other types of AI to recognize on args input here
                 }
+                if(ar == 1+numberOfAI +1){
+                    numberOfGamesToPlay = Integer.parseInt(args[ar]);
+                }
             }
         }
     }
 
     public void increaseCountedScoreNumber(){
         int nowCounted = numberOfCountedScores.incrementAndGet();
-        System.out.println("nowCounted incremented in increaseCountedScoreNumber");
+        //System.out.println("nowCounted incremented in increaseCountedScoreNumber");
         if(maxClients.get() == nowCounted){
-            System.out.println("Sending counted score in increaseCountedScoreNumber");
+            //System.out.println("Sending counted score in increaseCountedScoreNumber");
             sendCountedScore();
         }
     }
 
     private void sendCountedScore(){
+        System.out.println("inside sendCOuntedScore");
         players.forEach(p -> p.sendScore(gatherScores(p)));
         ExperimentOutputCreator eoc = new ExperimentOutputCreator(players);
         eoc.createOutput(experimentOutputName);
-        System.out.println("Telling all clients about final score");
+        //System.out.println("Telling all clients about final score");
     }
 
     public void putCardOnTable(Card c){
         // Tell all clients to put this card on tables
+        numberOfRounds++;
         cardsOnTable.add(c);
         players.forEach(p -> {
             try {
@@ -220,12 +256,13 @@ Server extends Thread
             sendEndGame();
         }
         System.out.println("-----Telling all clients to put this card on table: " + c.name + " NOW cards on table: " + cardsOnTable.size());
-        System.out.println("????__________________________________________>>>><<<???");
-        System.out.println("????__________________________________________>>>><<<???");
-        System.out.println("????__________________________________________>>>><<<???");
+        //System.out.println("????__________________________________________>>>><<<???");
+        //System.out.println("????__________________________________________>>>><<<???");
+        //System.out.println("????__________________________________________>>>><<<???");
     }
 
     private void startTheGame(){
+        cardsOnTable.clear();
         // Tell all the clients who is the starting player and set the playing player, give all player names
         players.forEach(p -> p.sendNamesInOrder(giveNamesInOrder(p)));
     }
@@ -268,13 +305,14 @@ Server extends Thread
     }
 
     public String gatherScores(PlayerOrAI client){
+        System.out.println("Inside gatherScores at start");
         StringBuilder text = new StringBuilder();
         int indexOfClient = players.indexOf(client);
         countRanks();
         boolean putTable = true;
         int gotScores = 0;
         while(gotScores != maxClients.get()){
-
+            System.out.println("Inside gatherScores loop while");
             if(players.size() <= indexOfClient){
                 indexOfClient = 0;
             }
@@ -292,7 +330,9 @@ Server extends Thread
     }
 
     private void countRanks(){
+        System.out.println("maxClients.get() = " + maxClients.get());
         PlayerOrAI[] playerScore = new PlayerOrAI[maxClients.get()];
+        System.out.println("player.size() = " + players.size());
         for(int i = 0; i < players.size();i++){
             for(int j = 0; j <= i; j++ ) {
                 if(playerScore[j] == null) {

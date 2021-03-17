@@ -7,8 +7,7 @@ import server.Type;
 
 import java.io.Serializable;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Interactive implements InteractiveBonusInterface , Serializable, Cloneable  {
     public String text;
@@ -17,6 +16,8 @@ public class Interactive implements InteractiveBonusInterface , Serializable, Cl
     public String getText(){
         return this.text;
     }
+
+    public String getText(String locale){ return this.text; }
     public int getPriority(){
         return this.priority;
     }
@@ -36,6 +37,34 @@ public class Interactive implements InteractiveBonusInterface , Serializable, Cl
             first = false;
         }
         return listtypes;
+    }
+
+    String giveListOfTypesWithSeparator(ArrayList<Type> types, String separator,String locale, int grammar){
+        Locale loc = new Locale(locale);
+        ResourceBundle rs = ResourceBundle.getBundle("server.CardTypes",loc);
+        StringBuilder listtypes = new StringBuilder();
+        boolean first = true;
+        for(Type type: types){
+            if(!first){
+                if(separator.equals("or") || separator.equals("and")){
+                    listtypes.append(" ");
+                    listtypes.append(rs.getString(separator));
+                    listtypes.append(" ");
+                } else{
+                    listtypes.append(separator);
+                }
+
+            }
+            if(grammar == 1){
+                listtypes.append(rs.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(type)).toLowerCase()));
+
+            } else{
+                listtypes.append(rs.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(type)).toLowerCase() + grammar));
+
+            }
+            first = false;
+        }
+        return listtypes.toString();
     }
 
     public String giveStringOfStringsWithSeparator(ArrayList<String> strings, String separator){

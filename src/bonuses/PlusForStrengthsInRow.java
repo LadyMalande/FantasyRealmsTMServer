@@ -1,10 +1,9 @@
 package bonuses;
 
+import server.BigSwitches;
 import server.Card;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 
 public class PlusForStrengthsInRow extends Bonus  {
     public long serialVersionUID = 15;
@@ -12,12 +11,22 @@ public class PlusForStrengthsInRow extends Bonus  {
 
     public PlusForStrengthsInRow() {
         this.text = "+10 for 3 SIR, +30 for 4 SIR, +60 for 5 SIR, +100 for 6 SIR or +150 for 7 SIR\n*SIR = strengths in a row";
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
+        sb.append(rb.getString("plusForStrengthsInRow"));
+        return sb.toString();
     }
 
     @Override

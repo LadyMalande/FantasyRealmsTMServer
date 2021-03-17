@@ -1,9 +1,12 @@
 package maluses;
 
+import server.BigSwitches;
 import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class DeletesAllType extends Malus{
     public String text;
@@ -14,12 +17,26 @@ public class DeletesAllType extends Malus{
         this.thiscardid = id;
         this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ");
         this.types = types;
-        //System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle maluses = ResourceBundle.getBundle("maluses.CardMaluses",loc);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        sb.append(maluses.getString("deletesAll"));
+        sb.append(" ");
+        sb.append(giveListOfTypesWithSeparator(types, "and",locale,4,true));
+        sb.append(".");
+        return sb.toString();
     }
 
     @Override

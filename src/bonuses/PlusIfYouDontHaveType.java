@@ -5,6 +5,8 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class PlusIfYouDontHaveType extends Bonus  {
     public long serialVersionUID = 18;
@@ -16,12 +18,29 @@ public class PlusIfYouDontHaveType extends Bonus  {
         this.text = "+" + howMuch + " if no " + BigSwitches.switchTypeForName(type);
         this.howMuch = howMuch;
         this.type = type;
-        System.out.println("Card INIT: Text: " + getText());
+        //System.out.println("Card INIT: Text: " + getText("en"));
+        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public String getText(){
         return this.text;
+    }
+
+    @Override
+    public String getText(String locale){
+        StringBuilder sb = new StringBuilder();
+        Locale loc = new Locale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
+        ResourceBundle rbbonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
+        sb.append("+" + howMuch);
+        sb.append(rbbonuses.getString("ifYouDontHave"));
+        sb.append(" ");
+            sb.append(rb.getString("no4" + BigSwitches.switchTypeForGender(type)));
+            sb.append(" ");
+        sb.append(rb.getString(BigSwitches.switchTypeForName(type).toLowerCase() + "4"));
+        sb.append(".");
+        return sb.toString();
     }
 
     @Override

@@ -106,7 +106,7 @@ public class ScoreCounterForAI {
 
                 if(i == 6){
                     for(Card cardToRemove : whatToRemove){
-                        System.out.println("THis card is in whatToRemove and will be BLANKED: " + cardToRemove.name);
+                        //System.out.println("THis card is in whatToRemove and will be BLANKED: " + cardToRemove.name);
                     }
                     handOriginal.removeIf(whatToRemove::contains);
                     //System.out.println("Hand after removing whatToRemove has " + handOriginal.size() + " cards");
@@ -132,7 +132,7 @@ public class ScoreCounterForAI {
             for (Card c : cdeckToIterateThrough) {
                 //sum += c.strength;
                 int tabCount = 3 - (c.name.length() / 8);
-                scoreTable.append(c.name + " contributed with " + c.strength + " basic strength. ");
+                scoreTable.append(server.BigSwitches.switchIdForName(c.id, "en") + "->" + c.name + "[" + c.type + "] contributed with " + c.strength + " basic strength. ");
                 int bonus = 0;
                 if(c.bonuses != null && !c.bonuses.isEmpty()){
                     for(Bonus b: c.bonuses){
@@ -177,7 +177,7 @@ public class ScoreCounterForAI {
                 scoreTable.append("Card: " + c.name + " was BLANKED. \n");
             }
             //System.out.println("   The sum of score is: " + sum);
-            System.out.println(scoreTable);
+            //System.out.println(scoreTable);
             return sum;
 
         } catch (NullPointerException | CloneNotSupportedException ex) {
@@ -205,11 +205,11 @@ public class ScoreCounterForAI {
                 Integer score = 0;
                 try {
                 score = this.futureTask.get();
-                System.out.print("Score got from FutureTask for hand ^^^^: " + score.toString());
+                //System.out.print("Score got from FutureTask for hand ^^^^: " + score.toString());
                 for(Card c: handOriginal){
-                    System.out.print(", " + c.name );
+                    //System.out.print(", " + c.name );
                 }
-                System.out.println();
+                //System.out.println();
                 } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 }
@@ -229,7 +229,7 @@ public class ScoreCounterForAI {
             if(c.interactives != null){
                 //System.out.println("Interactives are not null, size is " + c.interactives.size());
                 for(Interactive in : c.interactives){
-                    System.out.println(in.text);
+                    //System.out.println(in.text);
                     if(in instanceof TakeCardOfTypeAtTheEnd){
                         //System.out.println("There is a Necromancer like card.");
                         in.changeHandWithInteractive(handOriginal, cardsOnTable);
