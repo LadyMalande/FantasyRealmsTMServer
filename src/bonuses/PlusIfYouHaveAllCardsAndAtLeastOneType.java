@@ -39,9 +39,13 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
         sb.append(rbbonuses.getString("ifYouHave"));
         sb.append(" ");
         sb.append(giveListOfCardsWithSeparator(idCardsNeeded, "and",locale,4,false));
+        sb.append(" ");
         sb.append(rb.getString("and"));
+        sb.append(" ");
         sb.append(rb.getString("atLeast"));
+        sb.append(" ");
         sb.append(rb.getString("one4" + BigSwitches.switchTypeForGender(types.get(0))));
+        sb.append(" ");
         sb.append(giveListOfTypesWithSeparator(types, "or",locale, 4,false));
         sb.append(".");
         return sb.toString();

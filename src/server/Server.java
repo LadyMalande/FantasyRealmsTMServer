@@ -70,7 +70,7 @@ Server extends Thread
             {
                 synchronized (maxClients) {
                     if (maxClients.get() == i) {
-                        System.out.println("Max Clients == i, so we break from while(true) in Server.run()");
+                        System.out.println("Max Clients == "+ i + " , so we break from while(true) in Server.run()");
                         break;
                     }
                     System.out.println(maxClients);
@@ -99,6 +99,8 @@ Server extends Thread
                         players.add(mtch);
                         // Generate starting hand
                         varietyOfPlayersAI.append("P");
+
+
 
                         // start the thread.
                         t.start();
@@ -141,8 +143,9 @@ Server extends Thread
                 System.out.println("Starting game number " + i);
                 Random randomGeneratorForPlayers = new Random();
                 int index2 = randomGeneratorForPlayers.nextInt(players.size());
-                players.elementAt(index2).playing = true;
+                players.elementAt(index2).setPlaying(true);
                 currentPlayer = players.elementAt(index2);
+
                 experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
                 numberOfCountedScores = new AtomicInteger(0);
                 startTheGame();
@@ -151,10 +154,14 @@ Server extends Thread
         } else {
             //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
             Random randomGeneratorForPlayers = new Random();
+            System.out.println("players.size() == " + players.size() );
             int index2 = randomGeneratorForPlayers.nextInt(players.size());
-            players.elementAt(index2).playing = true;
+            players.elementAt(index2).setPlaying(true);
             currentPlayer = players.elementAt(index2);
-            System.out.println("Starting player is player <" + players.elementAt(index2).name + ">");
+            for(PlayerOrAI p: players){
+                System.out.println("Player name in initialize " + p.getName() + " is playing " + p.getPlaying());
+            }
+            System.out.println("Starting player is player <" + players.elementAt(index2).getName() + ">");
 
             experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
             startTheGame();
@@ -226,7 +233,7 @@ Server extends Thread
     public void increaseCountedScoreNumber(){
         int nowCounted = numberOfCountedScores.incrementAndGet();
         //System.out.println("nowCounted incremented in increaseCountedScoreNumber");
-        if(maxClients.get() == nowCounted){
+        if(players.size() == nowCounted){
             //System.out.println("Sending counted score in increaseCountedScoreNumber");
             sendCountedScore();
         }
@@ -256,6 +263,12 @@ Server extends Thread
             sendEndGame();
         }
         System.out.println("-----Telling all clients to put this card on table: " + c.name + " NOW cards on table: " + cardsOnTable.size());
+        try{
+            setNextPlayer();
+        } catch(CloneNotSupportedException ex){
+            ex.printStackTrace();
+        }
+
         //System.out.println("????__________________________________________>>>><<<???");
         //System.out.println("????__________________________________________>>>><<<???");
         //System.out.println("????__________________________________________>>>><<<???");
@@ -288,15 +301,15 @@ Server extends Thread
         StringBuilder names = new StringBuilder();
         int indexOfClient = players.indexOf(client);
         int gotNames = 0;
-        while(gotNames != maxClients.get()){
+        while(gotNames != players.size()){
 
             if(players.size() <= indexOfClient){
                 indexOfClient = 0;
             }
-            if(players.elementAt(indexOfClient).playing){
+            if(players.elementAt(indexOfClient).getPlaying()){
                 names.append("$&$START$&$");
             }
-            names.append(players.elementAt(indexOfClient).name).append("#");
+            names.append(players.elementAt(indexOfClient).getName()).append("#");
             gotNames++;
             indexOfClient++;
         }
@@ -311,15 +324,15 @@ Server extends Thread
         countRanks();
         boolean putTable = true;
         int gotScores = 0;
-        while(gotScores != maxClients.get()){
+        while(gotScores != players.size()){
             System.out.println("Inside gatherScores loop while");
             if(players.size() <= indexOfClient){
                 indexOfClient = 0;
             }
             if(putTable){
-                text.append(players.elementAt(indexOfClient).scoreTable).append("#");
+                text.append(players.elementAt(indexOfClient).getScoreTable()).append("#");
             }
-            text.append(players.elementAt(indexOfClient).rank).append(") ").append(players.elementAt(indexOfClient).score).append("#");
+            text.append(players.elementAt(indexOfClient).getRank()).append(") ").append(players.elementAt(indexOfClient).getScore()).append("#");
             gotScores++;
             indexOfClient++;
             putTable = false;
@@ -331,7 +344,7 @@ Server extends Thread
 
     private void countRanks(){
         System.out.println("maxClients.get() = " + maxClients.get());
-        PlayerOrAI[] playerScore = new PlayerOrAI[maxClients.get()];
+        PlayerOrAI[] playerScore = new PlayerOrAI[players.size()];
         System.out.println("player.size() = " + players.size());
         for(int i = 0; i < players.size();i++){
             for(int j = 0; j <= i; j++ ) {
@@ -339,7 +352,7 @@ Server extends Thread
                     playerScore[j] = players.elementAt(i);
                 }else {
                     //System.out.println("Player name: " + players.elementAt(i).name + " Score: " + players.elementAt(i).score + " <? " + playerScore[j].score + " j = " + j);
-                    if (players.elementAt(i).score > playerScore[j].score) {
+                    if (players.elementAt(i).getScore() > playerScore[j].getScore()) {
                         for (int k = players.size() - 1; k > j; k--) {
                             playerScore[k] = playerScore[k - 1];
                             //if(playerScore[k]!=null)
@@ -355,11 +368,11 @@ Server extends Thread
         }
         int rank = 1;
         for(int i = 0; i < players.size();i++){
-            String name = playerScore[i].name;
-            System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + name + " i=" + i + " {" +  playerScore[i].score + "}");
-            playerScore[i].rank = rank;
+            String name = playerScore[i].getName();
+            System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + name + " i=" + i + " {" +  playerScore[i].getScore() + "}");
+            playerScore[i].setRank(rank);
             if(i < players.size()-1){
-                if(playerScore[i].score == playerScore[i+1].score){
+                if(playerScore[i].getScore() == playerScore[i+1].getScore()){
                     //TODO Set other conditions of victory other than total score
                 } else{
                     rank++;
@@ -378,12 +391,28 @@ Server extends Thread
                 currentIndex = 0;
             }
             currentPlayer = players.elementAt(currentIndex);
+            System.out.println("Current playing is " + currentPlayer.getName() + " at index in players " + currentIndex);
             currentPlayer.playing = true;
             // If the player is AI, tell it to perform its move. Player has its own way how to determine if they are playing or not.
-            if (currentPlayer instanceof ArtificialIntelligenceInterface){
+            if (currentPlayer instanceof GreedyPlayer){
                 ((ArtificialIntelligenceInterface) currentPlayer).performMove(cardsOnTable);
             }
         }
 
+    }
+
+    public void setAI(int number){
+        for(int i = 0; i < number; i++){
+            try {
+                varietyOfPlayersAI.append("G");
+                int parameterOfGreedy = 0;
+                GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, parameterOfGreedy + "_GREEDY_" + i);
+                players.add(ai);
+            } catch(CloneNotSupportedException ex){
+                ex.printStackTrace();
+            }
+        }
+        int newMaxPlayers = maxClients.get() - number;
+        maxClients.getAndSet(newMaxPlayers);
     }
 }

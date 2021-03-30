@@ -48,6 +48,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
         sb.append(bonuses.getString("ifYouHave"));
         sb.append(" ");
         sb.append(rb.getString("atLeast"));
+        sb.append(" ");
         sb.append(rb.getString("one4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
         sb.append(giveListOfTypesWithSeparator(types, "or",locale,4,false));

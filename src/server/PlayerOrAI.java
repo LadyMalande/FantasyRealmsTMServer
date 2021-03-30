@@ -26,6 +26,21 @@ public class PlayerOrAI {
         return name;
     }
 
+    public void setScoreTable(StringBuilder sb){
+        this.scoreTable = sb;}
+    public StringBuilder getScoreTable(){
+        return this.scoreTable;
+    }
+
+    public int getRank(){return this.rank;}
+    public int getScore(){return this.score;}
+    public void setRank(int r){this.rank = r;}
+    public void setScore(int s){this.score = s;}
+
+    public boolean getPlaying(){ return false;}
+
+    public void setPlaying(boolean playing){}
+
     public String getBeginningHandCards(){
         return beginningHandCards;
     }

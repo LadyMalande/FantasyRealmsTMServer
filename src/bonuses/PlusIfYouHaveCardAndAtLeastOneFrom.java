@@ -40,7 +40,9 @@ public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
         sb.append(rb.getString(BigSwitches.switchIdForSimplifiedName(cardNeeded) + "4"));
         sb.append(" ");
         sb.append(rbbonuses.getString("and"));
+        sb.append(" ");
         sb.append(rbbonuses.getString("atLeastOneOfTheseCards"));
+        sb.append(" ");
         sb.append(giveListOfCardsWithSeparator(idsOfCardsNeeded, "and",locale,4,false));
         sb.append(".");
         return sb.toString();

@@ -17,11 +17,13 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
     Server server;
     int bestPossibleScore;
     int gainThreshold;
+    int rank;
     String name;
     private FutureTask<Integer> futureTask;
     private int numberOfRoundsPlayed;
     String beginningHandCards;
     int beginningHandScore;
+    boolean playing = false;
 
     public GreedyPlayer(Server server) throws CloneNotSupportedException {
         hand = new ArrayList<>();
@@ -57,6 +59,15 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         return this.name;
     }
 
+
+    @Override
+    public void setPlaying(boolean playing){this.playing = playing;}
+
+    @Override
+    public boolean getPlaying(){
+        return this.playing;
+    }
+
     @Override
     public int getNumberOfRoundsPlayed(){
         return numberOfRoundsPlayed;
@@ -71,6 +82,15 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
     public int getBeginningHandScore(){
         return beginningHandScore;
     }
+
+    @Override
+    public int getRank(){return this.rank;}
+    @Override
+    public int getScore(){return this.score;}
+    @Override
+    public void setRank(int r){this.rank = r;}
+    @Override
+    public void setScore(int s){this.score = s;}
 
     @Override
     public void getInitCards() throws CloneNotSupportedException {
@@ -325,7 +345,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         }
         //System.out.println();
         server.putCardOnTable(bestCardToDrop);
-        server.setNextPlayer();
+        //server.setNextPlayer();
     }
 
     @Override
@@ -335,9 +355,10 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
 
     @Override
     public void sendNamesInOrder(String s) {
+        System.out.println(s);
         String[] message = s.split("#");
         // 0 place is NAMES, start from 1 - which is this players name
-        if (message[1].startsWith("$&$START$&$")) {
+        if (message[0].startsWith("$&$START$&$")) {
             try {
                 performMove(server.cardsOnTable);
             } catch(CloneNotSupportedException notCloneableEx){
@@ -351,9 +372,6 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         // Create different hands by interactives that AI has
         ScoreCounterForAI sc = new ScoreCounterForAI();
         score = sc.countScore(hand, server.cardsOnTable);
-
-
-
 
         while (score < 0) {
             // wait;

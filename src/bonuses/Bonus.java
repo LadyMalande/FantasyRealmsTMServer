@@ -51,7 +51,7 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
             pl = "pl";
         }
         for(Type type: types){
-            if(!first){
+            if(!first && types.get(types.size() - 1).equals(type)){
                 if(separator.equals("or") || separator.equals("and")){
                     listtypes.append(" ");
                     listtypes.append(rs.getString(separator));
@@ -60,6 +60,8 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
                     listtypes.append(separator);
                 }
 
+            } else if (!first){
+                listtypes.append(", ");
             }
             if(grammar == 1){
                 listtypes.append(rs.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(type)).toLowerCase() + pl));
@@ -84,7 +86,7 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
             pl = "pl";
         }
         for(Integer id: ids){
-            if(!first){
+            if(!first && ids.get(ids.size() - 1).equals(id)){
                 if(separator.equals("or") || separator.equals("and")){
                     listtypes.append(" ");
                     listtypes.append(types.getString(separator));
@@ -92,7 +94,8 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
                 } else{
                     listtypes.append(separator);
                 }
-
+            } else if (!first){
+                listtypes.append(", ");
             }
             if(grammar == 1){
                 listtypes.append(rs.getString(Objects.requireNonNull(BigSwitches.switchIdForSimplifiedName(id)).toLowerCase() + pl));

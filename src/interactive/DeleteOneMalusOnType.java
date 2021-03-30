@@ -68,7 +68,7 @@ public class DeleteOneMalusOnType extends Interactive {
                             if(!firstTimeInMaluses){
                                 str.append("%");
                             }
-                            str.append(c.name + ": ");
+                            str.append(c.getNameLoc(client.locale.getLanguage()) + ": ");
                             str.append(m.getText(client.locale.getLanguage()));
                             firstTimeInMaluses = false;
                         }

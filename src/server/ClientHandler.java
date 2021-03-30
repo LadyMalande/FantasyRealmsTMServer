@@ -30,6 +30,9 @@ public class ClientHandler extends PlayerOrAI implements Runnable
     public AtomicBoolean interactivesResolvedAtomicBoolean;
     public StringBuilder scoreTable;
     public Locale locale;
+    int beginningHandScore = 0;
+    String beginningHandCards;
+
 
     @Override
     public ArrayList<Card> getHand(){
@@ -76,15 +79,22 @@ public class ClientHandler extends PlayerOrAI implements Runnable
 
                             hostingServer.deck.setDeck(putRandomDeck);
 
+                            StringBuilder sb = new StringBuilder();
                         Random randomGenerator = new Random();
                         for (int j = 0; j < 7; j++) {
                             int index = randomGenerator.nextInt(hostingServer.deck.getDeck().size());
                             hand.add(hostingServer.deck.getDeck().get(index));
+                            sb.append(hostingServer.deck.getDeck().get(index).getName() + ";");
                             hostingServer.deck.getDeck().remove(index);
                         }
+                        beginningHandCards = sb.toString();
                         System.out.println("New player joined: " + name + " , max players: " + hostingServer.maxClients);
                         String loc = st.nextToken();
                         locale = new Locale(loc);
+                        int numberOfAI = Integer.parseInt(st.nextToken());
+                        if(numberOfAI != 0){
+                            hostingServer.setAI(numberOfAI);
+                        }
                         give_init_cards();
                         //sendNamesInOrder(hostingServer.giveNamesInOrder(this));
                     }
@@ -136,17 +146,18 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     StringTokenizer st = new StringTokenizer(received, "#");
                     String command = st.nextToken();
                     Integer id = Integer.parseInt(st.nextToken());
-                    //String name = st.nextToken();
-                    String typeString = st.nextToken();
-                    Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
-                    //Card cardToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
+                    if(id != -1){
+                        //String name = st.nextToken();
+                        String typeString = st.nextToken();
+                        Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
+                        //Card cardToChange = hand.stream().filter(card -> card.name.equals(name)).findAny().get();
+                        //Change the color
+                        cardToChange.type = BigSwitches.switchNameForType(typeString);
+                    }
                     synchronized(interactivesResolvedAtomicBoolean) {
-
-                    //Change the color
-                    cardToChange.type = BigSwitches.switchNameForType(typeString);
-                    interactivesResolved.incrementAndGet();
-                    System.out.println("The interactiveResolved should have been increased...");
-                    interactivesResolvedAtomicBoolean.set(true);
+                        interactivesResolved.incrementAndGet();
+                        System.out.println("The interactiveResolved should have been increased...");
+                        interactivesResolvedAtomicBoolean.set(true);
                     }
                 }
 
@@ -154,11 +165,12 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     StringTokenizer st = new StringTokenizer(received, "#");
                     String command = st.nextToken();
                     int idOfCardToChange = Integer.parseInt(st.nextToken());
-                    String text = st.nextToken();
-                    String[] splitted = text.split("( \\()");
-                    String name = splitted[0];
-                    Card cardToChange = hand.stream().filter(card -> card.id == idOfCardToChange).findAny().get();
-                    synchronized(interactivesResolvedAtomicBoolean) {
+                    if(idOfCardToChange != -1) {
+                        String text = st.nextToken();
+                        String[] splitted = text.split("( \\()");
+                        String name = splitted[0];
+                        Card cardToChange = hand.stream().filter(card -> card.id == idOfCardToChange).findAny().get();
+
                         //Find the card we want to change to by name
                         ArrayList<Card> deck = DeckInitializer.loadDeckFromFile();
                         String originalName = BigSwitches.switchNameForOriginalName(name, locale);
@@ -167,7 +179,8 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                         //Change the Name and Type
                         cardToChange.name = howToChange.name;
                         cardToChange.type = howToChange.type;
-
+                    }
+                    synchronized(interactivesResolvedAtomicBoolean) {
                         interactivesResolved.incrementAndGet();
                         System.out.println("The interactiveResolved should have been increased...");
                         interactivesResolvedAtomicBoolean.set(true);
@@ -179,15 +192,17 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     String command = st.nextToken();
                     int idHowToChange = Integer.parseInt(st.nextToken());
                     int id = Integer.parseInt(st.nextToken());
-                    Card howToChange = hand.stream().filter(card -> card.id == idHowToChange).findAny().get();
-                    System.out.println("How to change card:" + howToChange.name);
-                    Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
-                    synchronized(interactivesResolvedAtomicBoolean) {
-                    //Change what is needed
+                    if(id != -1) {
+                        Card howToChange = hand.stream().filter(card -> card.id == idHowToChange).findAny().get();
+                        System.out.println("How to change card:" + howToChange.name);
+                        Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
+                        //Change what is needed
                         cardToChange.name = howToChange.name;
                         cardToChange.type = howToChange.type;
                         cardToChange.strength = howToChange.strength;
                         cardToChange.maluses = howToChange.maluses;
+                    }
+                    synchronized(interactivesResolvedAtomicBoolean) {
                         interactivesResolved.incrementAndGet();
                         System.out.println("The interactiveResolved should have been increased...");
                         interactivesResolvedAtomicBoolean.set(true);
@@ -200,13 +215,14 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     String command = st.nextToken();
                     String text = st.nextToken();
                     String[] splitted = text.split(": ");
-                    int id = Integer.parseInt(st.nextToken());
-                    String malusToDelete = splitted[1];
-                    Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
-
+                    int id = Integer.parseInt(splitted[0]);
+                    if(id != -1){
+                        String malusToDelete = splitted[1];
+                        Card cardToChange = hand.stream().filter(card -> card.id == id).findAny().get();
+                        cardToChange.maluses.removeIf(malus -> malus.getText(locale.getLanguage()).equals(malusToDelete));
+                    }
                     synchronized(interactivesResolvedAtomicBoolean) {
                         // Delete malus
-                        cardToChange.maluses.removeIf(malus -> malus.getText(locale.getLanguage()).equals(malusToDelete));
                         interactivesResolved.incrementAndGet();
                         System.out.println("The interactiveResolved should have been increased...");
                         interactivesResolvedAtomicBoolean.set(true);
@@ -219,8 +235,8 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                     String command = st.nextToken();
                     if(st.hasMoreTokens()){
                         int id = Integer.parseInt(st.nextToken());
-                        Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.id == id).findAny().get();
-                        synchronized(interactivesResolvedAtomicBoolean) {
+                        if(id != -1){
+                            Card cardToAdd = hostingServer.cardsOnTable.stream().filter(card -> card.id == id).findAny().get();
                             //Put the card to hand
                             if(cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty() && cardToAdd.interactives.get(0).getPriority() < 2){
                                 cardToAdd.interactives.get(0).priority = 3;
@@ -230,6 +246,9 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                             if (cardToAdd.interactives != null && !cardToAdd.interactives.isEmpty()) {
                                 interactivesCount += cardToAdd.interactives.size();
                             }
+                        }
+                        synchronized(interactivesResolvedAtomicBoolean) {
+
                             interactivesResolved.incrementAndGet();
                             System.out.println("The interactiveResolved should have been increased...");
                             interactivesResolvedAtomicBoolean.set(true);
@@ -334,7 +353,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                 first = false;
             }
         }
-        ResourceBundle rb = ResourceBundle.getBundle("server.CardMaluses",locale);
+        ResourceBundle rb = ResourceBundle.getBundle("maluses.CardMaluses",locale);
         if(c.maluses != null){
             allText.append(rb.getString("malus") + "\n");
             for(Malus m: c.maluses){
@@ -357,6 +376,37 @@ public class ClientHandler extends PlayerOrAI implements Runnable
     }
 
     @Override
+    public String getName(){
+        return this.name;
+    }
+
+    @Override
+    public boolean getPlaying(){
+        return this.playing;
+    }
+
+    @Override
+    public void setPlaying(boolean playing){this.playing = playing;}
+
+    @Override
+    public void setScoreTable(StringBuilder sb){
+        this.scoreTable = sb;}
+
+    @Override
+    public StringBuilder getScoreTable(){
+        return this.scoreTable;
+    }
+
+    @Override
+    public int getRank(){return this.rank;}
+    @Override
+    public int getScore(){return this.score;}
+    @Override
+    public void setRank(int r){this.rank = r;}
+    @Override
+    public void setScore(int s){this.score = s;}
+
+    @Override
     public void putCardOnTable(Card c) throws CloneNotSupportedException {
         String message =    "CARD_TO_TABLE" + "#" +
                 c.id + "#" +
@@ -370,7 +420,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
         } catch (IOException e) {
             e.printStackTrace();
         }
-        hostingServer.setNextPlayer();
+        //hostingServer.setNextPlayer();
         //System.out.println("Giving card to table for player ("+ name + "), name of card: " + c.name);
     }
 
@@ -425,6 +475,14 @@ public class ClientHandler extends PlayerOrAI implements Runnable
     System.out.println("Telling player ("+ name + ") score : " + message);
 
     }
+
+    @Override
+    public String getBeginningHandCards(){
+        return this.beginningHandCards;
+    }
+
+    @Override
+    public int getBeginningHandScore(){ return this.beginningHandScore; }
 
     public boolean sendInteractive(String text){
         try {

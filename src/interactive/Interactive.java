@@ -45,7 +45,7 @@ public class Interactive implements InteractiveBonusInterface , Serializable, Cl
         StringBuilder listtypes = new StringBuilder();
         boolean first = true;
         for(Type type: types){
-            if(!first){
+            if(!first && types.get(types.size() - 1).equals(type)){
                 if(separator.equals("or") || separator.equals("and")){
                     listtypes.append(" ");
                     listtypes.append(rs.getString(separator));
@@ -54,6 +54,8 @@ public class Interactive implements InteractiveBonusInterface , Serializable, Cl
                     listtypes.append(separator);
                 }
 
+            } else if (!first){
+                listtypes.append(", ");
             }
             if(grammar == 1){
                 listtypes.append(rs.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(type)).toLowerCase()));

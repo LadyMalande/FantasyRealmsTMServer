@@ -153,11 +153,11 @@ public class ScoreCounter extends Thread {
 
                          */
                     }
-                    client.scoreTable = new StringBuilder();
+                    client.setScoreTable(new StringBuilder());
                     for (Card c : client.getHand()) {
                         sum += c.strength;
                         int tabCount = 3 - (c.name.length() / 8);
-                        client.scoreTable.append(c.name + " contributed with " + c.strength + " basic strength. ");
+                        client.getScoreTable().append(c.name + " contributed with " + c.strength + " basic strength. ");
                         int bonus = 0;
                         if(c.bonuses != null && !c.bonuses.isEmpty()){
                             for(Bonus b: c.bonuses){
@@ -165,9 +165,9 @@ public class ScoreCounter extends Thread {
                             }
                             if(bonus != 0) {
                                 for(int i=0; i< tabCount; i++) {
-                                    client.scoreTable.append("\t");
+                                    client.getScoreTable().append("\t");
                                 }
-                                client.scoreTable.append("BONUS: +" + bonus);
+                                client.getScoreTable().append("BONUS: +" + bonus);
                             }
                         }
                         int malus = 0;
@@ -177,20 +177,20 @@ public class ScoreCounter extends Thread {
                             }
                             if(malus != 0) {
                                 if(bonus != 0) {
-                                    client.scoreTable.append("\tMALUS: " + malus);
+                                    client.getScoreTable().append("\tMALUS: " + malus);
                                 } else{
                                     for(int i=0; i< tabCount; i++) {
-                                        client.scoreTable.append("\t");
+                                        client.getScoreTable().append("\t");
                                     }
-                                    client.scoreTable.append("MALUS: " + malus);
+                                    client.getScoreTable().append("MALUS: " + malus);
                                 }
                             }
                         }
-                        client.scoreTable.append("\n");
+                        client.getScoreTable().append("\n");
                         //System.out.println("Strength of card " + c.name + " is " + c.strength);
                     }
                     for(Card c: whatToRemove){
-                        client.scoreTable.append("Card: " + c.name + " was BLANKED. \n");
+                        client.getScoreTable().append("Card: " + c.name + " was BLANKED. \n");
                     }
                     //System.out.println("The sum of score is: " + sum);
 

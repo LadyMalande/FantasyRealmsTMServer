@@ -1,5 +1,6 @@
 package bonuses;
 
+import maluses.Malus;
 import server.BigSwitches;
 import server.Card;
 import server.Type;

@@ -38,7 +38,8 @@ public class DeletesAllExceptTypeOrCard extends Malus {
     public String getText(){
         return this.text;
     }
-
+    @Override
+    public  ArrayList<Type> getTypes(){ return this.types; }
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
@@ -49,7 +50,7 @@ public class DeletesAllExceptTypeOrCard extends Malus {
         sb.append(" ");
         sb.append(maluses.getString("except"));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, ", ",locale,2,true));
+        sb.append(giveListOfTypesWithSeparator(except, ", ",locale,2,true));
         if(cards != null){
             sb.append(", ");
             sb.append(giveListOfCardsWithSeparator(cards, ", ",locale,2, false));

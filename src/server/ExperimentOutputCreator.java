@@ -35,15 +35,16 @@ public class ExperimentOutputCreator {
 
     private void writeToOutputFile(File file){
         try {
-            int totalNumberOfRounds = 0;
-            double averageNumberOfRounds = 0;
+            double totalNumberOfRounds = 0;
+
             FileWriter writer = new FileWriter(file, true);
             for(PlayerOrAI player : players) {
                 totalNumberOfRounds += player.getNumberOfRoundsPlayed();
             }
-            averageNumberOfRounds = totalNumberOfRounds / players.size();
-            writer.write(totalNumberOfRounds + ";" + averageNumberOfRounds + ";");
+            double averageNumberOfRounds = totalNumberOfRounds / players.size();
+            writer.write(totalNumberOfRounds + ";");
             for(PlayerOrAI player : players){
+
                 List<String> namesOld = Arrays.asList(player.getBeginningHandCards().split(";"));
                 StringBuilder sameCards = new StringBuilder();
                 for(Card c : player.getHand()){

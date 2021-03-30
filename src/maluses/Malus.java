@@ -27,6 +27,9 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
     public int getPriority(){
         return this.priority;
     }
+    public  ArrayList<Type> getTypes(){
+        return this.types;
+    }
     @Override
     public int count(ArrayList<Card> hand){
         return 0;
@@ -57,7 +60,7 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
             pl = "pl";
         }
         for (Integer c : cards) {
-            if (!first) {
+            if(!first && cards.get(cards.size() - 1).equals(c)){
                 if(separator.equals("or") || separator.equals("and")){
                     listcards.append(" ");
                     listcards.append(maluses.getString(separator));
@@ -65,6 +68,9 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
                 } else{
                     listcards.append(separator);
                 }
+
+            } else if (!first){
+                listcards.append(", ");
             }
             if(grammar == 1){
                 listcards.append(rs.getString(Objects.requireNonNull(BigSwitches.switchIdForSimplifiedName(c)).toLowerCase() + pl));
@@ -89,7 +95,7 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
             pl = "pl";
         }
         for(Type type: types){
-            if(!first){
+            if(!first && types.get(types.size() - 1).equals(type)){
                 if(separator.equals("or") || separator.equals("and")){
                     listtypes.append(" ");
                     listtypes.append(maluses.getString(separator));
@@ -98,6 +104,8 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
                     listtypes.append(separator);
                 }
 
+            } else if (!first){
+                listtypes.append(", ");
             }
             if(grammar == 1){
                 listtypes.append(rs.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(type)).toLowerCase() + pl));

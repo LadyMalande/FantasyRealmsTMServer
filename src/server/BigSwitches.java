@@ -25,7 +25,7 @@ public class BigSwitches {
             case 10: return rb.getString("sword");
             case 11: return rb.getString("beastmaster");
             case 12: return rb.getString("collector");
-            case 13: return rb.getString("necromance");
+            case 13: return rb.getString("necromancer");
             case 14: return rb.getString("jester");
             case 15: return rb.getString("enchantress");
             case 16: return rb.getString("warlock");
@@ -160,7 +160,7 @@ public class BigSwitches {
             case 10: return "sword";
             case 11: return "beastmaster";
             case 12: return "collector";
-            case 13: return "necromant";
+            case 13: return "necromancer";
             case 14: return "jester";
             case 15: return "enchantress";
             case 16: return "warlock";

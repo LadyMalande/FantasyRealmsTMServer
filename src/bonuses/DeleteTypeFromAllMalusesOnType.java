@@ -8,6 +8,7 @@ import server.Type;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 public class DeleteTypeFromAllMalusesOnType extends Bonus  {
     public long serialVersionUID = 6;
@@ -52,8 +53,11 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
             if(c.type.equals(onWhichType)) {
                 if (c.maluses!=null && !c.maluses.isEmpty()) {
                     for (Malus m : c.maluses) {
-                        if((m.types != null) && !(m.types.isEmpty()) && (m.types.contains(deleteThisTypeFromMaluses))) {
+                        if((m.types != null) && (!m.types.isEmpty()) && (m.types.contains(deleteThisTypeFromMaluses))) {
                             m.types.remove(deleteThisTypeFromMaluses);
+                            Logger log = Logger.getLogger("Loger");
+                            String msg = "Removed text ";
+                            log.info(msg);
                         }
                     }
                 }

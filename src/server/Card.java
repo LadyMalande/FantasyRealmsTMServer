@@ -58,6 +58,8 @@ public class Card implements Serializable, Cloneable, Comparable<Card>{
         return this.type;
     }
 
+    public ArrayList<Malus> getMaluses(){ return this.maluses;}
+
     public String getTypeName(String locale){
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);

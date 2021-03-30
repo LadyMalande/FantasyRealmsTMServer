@@ -27,7 +27,8 @@ public class DeletesAllTypeExceptCard extends Malus {
     public String getText(){
         return this.text;
     }
-
+    @Override
+    public  ArrayList<Type> getTypes(){ return this.types; }
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
