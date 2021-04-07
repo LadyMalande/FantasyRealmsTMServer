@@ -55,6 +55,8 @@ public class CopyNameAndType extends Interactive {
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
 
+        //long startTime = System.nanoTime();
+        //System.out.println("Counting CopyNameAndType");
         Type bestTypeToChangeInto = null;
         String bestNameToChangeInto = null;
         Card thisCard = null;
@@ -141,6 +143,19 @@ public class CopyNameAndType extends Interactive {
             thisCard.name = bestNameToChangeInto;
             //System.out.println("Changed the card to be " + thisCard.name + " [" + thisCard.type + "]");
         }
+        /*
+        long elapsedTime = System.nanoTime() - startTime;
+        System.out.println("Total execution time spent in CopyNameAndType in millis: "
+                + elapsedTime/1000000);
+
+         */
+    }
+
+    private ArrayList<Integer> willBeWiped(ArrayList<Card> hand){
+        ArrayList<Integer> wiped = new ArrayList<>();
+
+
+        return wiped;
     }
 
     @Override

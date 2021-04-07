@@ -100,6 +100,9 @@ public class DeleteOneMalusOnType extends Interactive {
 
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        long startTime = System.nanoTime();
+        //System.out.println("Counting DeleteOneMalusOnType");
+
         ArrayList<Integer> malusesScore = new ArrayList<>();
         Card onWhichDeleteMalus = null;
         Malus whichMalusToDelete = null;
@@ -187,6 +190,9 @@ public class DeleteOneMalusOnType extends Interactive {
             //System.out.println("Finally deleting Malus on card " + onWhichDeleteMalus.name + ": " + whichMalusToDelete.text);
         }
 
+
+        long elapsedTime = System.nanoTime() - startTime;
+        //System.out.println("Total execution time spent in DeleteOneMalusOnType in millis: " + elapsedTime/1000000);
     }
 
     @Override

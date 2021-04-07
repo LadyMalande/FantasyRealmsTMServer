@@ -209,7 +209,7 @@ public class ScoreCounter extends Thread {
 
         ExecutorService es = Executors.newSingleThreadExecutor();
         es.execute(client.futureTask);
-        Integer score = 0;
+        Integer score = -1000;
         try {
             score = client.futureTask.get();
             System.out.println("Score got from FutureTask: " + score.toString());

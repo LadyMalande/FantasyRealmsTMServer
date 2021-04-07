@@ -73,6 +73,9 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
 
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        long startTime = System.nanoTime();
+        //System.out.println("Counting TakeCardOfType");
+
         int bestScore = 0;
         Card thisInteractivesCard = null;
         Card bestCardToTake = null;
@@ -159,7 +162,7 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
             if(oldCards.id == thiscardid){
                 // remove this interactive from this card to not get stuck in loop
                 //oldCards.interactives.removeIf(x -> x == this);
-               // System.out.println("Na teto karte je nyni po rozhodnuti, jakou si vezme kartu, " + oldCards.interactives.size() + " interactives.");
+               //System.out.println("Na teto karte je nyni po rozhodnuti, jakou si vezme kartu, " + oldCards.interactives.size() + " interactives.");
             }
         }
 
@@ -182,7 +185,8 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
             }
             //System.out.print(" the AI chose to take " + bestCardToTake.name);
         }
-
+        long elapsedTime = System.nanoTime() - startTime;
+        //System.out.println("Total execution time spent in TakeCardOfType in millis: " + elapsedTime/1000000);
     }
 
     @Override

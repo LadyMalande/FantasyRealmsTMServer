@@ -5,6 +5,7 @@ import maluses.*;
 import interactive.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -115,4 +116,6 @@ public class DeckInitializer implements Serializable{
 
         return deck;
     }
+
+
 }

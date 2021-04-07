@@ -10,20 +10,25 @@ import java.util.Vector;
 
 public class ExperimentOutputCreator {
     Vector<PlayerOrAI> players;
+    StringBuilder startingDeck;
 
     public ExperimentOutputCreator(Vector<PlayerOrAI> list){
         this.players = list;
+    }
+    public ExperimentOutputCreator(Vector<PlayerOrAI> list, StringBuilder deck){
+        this.players = list;
+        this.startingDeck = deck;
     }
 
 
     private File createOutputFile(String filename){
         try {
             File myFile = new File(filename + ".txt");
-            System.out.println("Creating file named: " + myFile.getName());
+            //System.out.println("Creating file named: " + myFile.getName());
             if (myFile.createNewFile()) {
                 System.out.println("File created: " + myFile.getName());
             } else {
-                System.out.println("File already exists.");
+                //System.out.println("File already exists.");
             }
             return myFile;
         } catch (IOException e) {
@@ -37,7 +42,12 @@ public class ExperimentOutputCreator {
         try {
             double totalNumberOfRounds = 0;
 
+
+
             FileWriter writer = new FileWriter(file, true);
+            if(startingDeck != null){
+                writer.write(startingDeck.toString());
+            }
             for(PlayerOrAI player : players) {
                 totalNumberOfRounds += player.getNumberOfRoundsPlayed();
             }

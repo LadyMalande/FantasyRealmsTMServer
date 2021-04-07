@@ -78,7 +78,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                         boolean putRandomDeck = Boolean.parseBoolean(randomDeck);
 
                             hostingServer.deck.setDeck(putRandomDeck);
-
+                            hostingServer.deck.shuffleDeck();
                             StringBuilder sb = new StringBuilder();
                         Random randomGenerator = new Random();
                         for (int j = 0; j < 7; j++) {

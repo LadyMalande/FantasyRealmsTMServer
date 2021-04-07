@@ -45,6 +45,8 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
 
+        long startTime = System.nanoTime();
+        //System.out.println("Counting CopyNameColorStrengthMalus From hand");
         //Count the hand without this to not get wrong combination
         int bestScore = 0;
 
@@ -142,7 +144,8 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
             //System.out.println("Skinchanger changed into: " + whichCardToCopy.name);
         }
 
-
+        long elapsedTime = System.nanoTime() - startTime;
+        //System.out.println("Total execution time spent in CopyNameColorStrengthMalus from hand in millis: "+ elapsedTime/1000000);
 
     }
 

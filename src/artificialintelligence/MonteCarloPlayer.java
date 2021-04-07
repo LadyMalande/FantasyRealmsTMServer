@@ -80,7 +80,7 @@ public class MonteCarloPlayer extends PlayerOrAI implements ArtificialIntelligen
         public void setScore(int s){this.score = s;}
 
     @Override
-    public void performMove(ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
-
+    public Card performMove(ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        return null;
     }
 }

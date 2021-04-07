@@ -54,6 +54,8 @@ public class Card implements Serializable, Cloneable, Comparable<Card>{
         return card;
     }
 
+    public int getId(){ return this.id;}
+
     public Type getType(){
         return this.type;
     }

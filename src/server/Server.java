@@ -20,6 +20,7 @@ Server extends Thread
     public ArrayList<Card> cardsOnTable;
     boolean gameOver = false;
     boolean allPlayersInitialized = false;
+    boolean needDelay;
     PlayerOrAI currentPlayer;
     public Deck deck;
     ServerSocket ss;
@@ -38,9 +39,27 @@ Server extends Thread
     }
     int numberOfRounds = 0;
     int numberOfGamesToPlay = 0;
-
+    StringBuilder startingDeck;
 
     // counter for clients
+
+    public boolean getNeedDelay(){
+        return needDelay;
+    }
+
+    private void decideNeedDelay() {
+        if (players.size() > 2) {
+            if (numberOfAI > 1 && (players.size() - numberOfAI) > 0) {
+                // There is at least 1 real player playing against more than 1 AI and needs to slow down their processing
+                // to see what is happening on the table
+                needDelay = true;
+            } else {
+                needDelay = false;
+            }
+        }else{
+                needDelay = false;
+            }
+    }
 
     public Server(ServerSocket ss, String[] args){
         this.ss = ss;
@@ -51,6 +70,8 @@ Server extends Thread
     {
         deck = new Deck();
         deck.initializeOriginal();
+    startingDeck = new StringBuilder();
+
         //deck.initializeRandom();
         cardsOnTable = new ArrayList<>();
 
@@ -79,13 +100,13 @@ Server extends Thread
 
                         s = ss.accept();
 
-                        System.out.println("New client request received : " + s);
+                        //System.out.println("New client request received : " + s);
 
                         // obtain input and output streams
                         ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
                         ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
 
-                        System.out.println("Creating a new handler for this client...");
+                        //System.out.println("Creating a new handler for this client...");
 
                         // Create a new handler object for handling this request.
                         ClientHandler mtch = new ClientHandler(s, "client " + i, dis, dos, this);
@@ -93,7 +114,7 @@ Server extends Thread
                         // Create a new Thread with this object.
                         Thread t = new Thread(mtch);
 
-                        System.out.println("Adding this client to active client list");
+                        //System.out.println("Adding this client to active client list");
 
                         // add this client to active clients list
                         players.add(mtch);
@@ -104,7 +125,7 @@ Server extends Thread
 
                         // start the thread.
                         t.start();
-                        System.out.println("Max clients can be: " + maxClients);
+                        //System.out.println("Max clients can be: " + maxClients);
                         i++;
                         //System.out.println("We just increased player number with i++, now its: " + i);
                     } catch (IOException e) {
@@ -113,9 +134,9 @@ Server extends Thread
 
 
                     try {
-                        System.out.println("Before maxClients.wait() in Server.run()");
+                        //System.out.println("Before maxClients.wait() in Server.run()");
                         maxClients.wait();
-                        System.out.println("After maxClients.wait() in Server.run()");
+                        //System.out.println("After maxClients.wait() in Server.run()");
                     } catch (InterruptedException e) {
                         System.out.println("InterruptedException while waiting");
                         e.printStackTrace();
@@ -124,13 +145,24 @@ Server extends Thread
             }
         }
         if(numberOfGamesToPlay != 0){
+            decideNeedDelay();
             for(int i = 0; i < numberOfGamesToPlay; i++){
+                System.out.println("Starting game number " + i + "---------------------------------------------------------");
+                long startTime = System.nanoTime();
+                deck = new Deck();
+                deck.initializeOriginal();
+                cardsOnTable.clear();
                 if(randomOrNot.equals("1")){
                     deck.setDeck(true);
                 } else{
                     deck.setDeck(false);
                 }
-                System.out.println("Number of cards in deck " + deck.getDeck().size());
+                startingDeck = new StringBuilder();
+                Collections.shuffle(deck.getDeck());
+                for(Card c : deck.getDeck()){
+                    startingDeck.append(c.getName() + ";");
+                }
+                //System.out.println("Number of cards in deck " + deck.getDeck().size());
                 for(PlayerOrAI ai : players){
                     try {
                         ai.getInitCards();
@@ -139,38 +171,64 @@ Server extends Thread
                     }
                 }
                 numberOfRounds = 0;
-                System.out.println("Number of cards in deck after init give cards" + deck.getDeck().size());
-                System.out.println("Starting game number " + i);
+                //System.out.println("Number of cards in deck after init give cards" + deck.getDeck().size());
+
                 Random randomGeneratorForPlayers = new Random();
                 int index2 = randomGeneratorForPlayers.nextInt(players.size());
                 players.elementAt(index2).setPlaying(true);
                 currentPlayer = players.elementAt(index2);
+                //for(PlayerOrAI pl:players){System.out.print(pl.getName());}
+                rotateRight(players, players.size() - index2);
+                //for(PlayerOrAI pl:players){System.out.print(">" + pl.getName());}
 
                 experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
                 numberOfCountedScores = new AtomicInteger(0);
-                startTheGame();
-                System.out.println("End of Server game number " + i);
+                while(cardsOnTable.size() < 10){
+                    for(PlayerOrAI player : players){
+                        try {
+                            putCardOnTable(((ArtificialIntelligenceInterface)player).performMove(cardsOnTable));
+                        } catch (CloneNotSupportedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                long elapsedTime = System.nanoTime() - startTime;
+                System.out.println("Execution time for this game: "
+                        + elapsedTime/1000000);
+                //startTheGame();
+               //System.out.println("End of Server game number " + i);
             }
         } else {
             //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
             Random randomGeneratorForPlayers = new Random();
-            System.out.println("players.size() == " + players.size() );
+            //System.out.println("players.size() == " + players.size() );
             int index2 = randomGeneratorForPlayers.nextInt(players.size());
             players.elementAt(index2).setPlaying(true);
             currentPlayer = players.elementAt(index2);
             for(PlayerOrAI p: players){
-                System.out.println("Player name in initialize " + p.getName() + " is playing " + p.getPlaying());
+                //System.out.println("Player name in initialize " + p.getName() + " is playing " + p.getPlaying());
             }
-            System.out.println("Starting player is player <" + players.elementAt(index2).getName() + ">");
+            //System.out.println("Starting player is player <" + players.elementAt(index2).getName() + ">");
 
             experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
+            decideNeedDelay();
             startTheGame();
 
-            System.out.println("Players size" + players.size());
-            System.out.println("End of Server");
+            //System.out.println("Players size" + players.size());
+            //System.out.println("End of Server");
 
         }
 
+    }
+
+    private void rotateRight(Vector<PlayerOrAI> tArrayList, int shift){
+        if(!tArrayList.isEmpty()){
+            PlayerOrAI item = null;
+            for(int i = 0; i < shift; i++){
+                item = tArrayList.remove(tArrayList.size()-1);
+                tArrayList.add(0, item);
+            }
+        }
     }
 
     private void readArgs(String[] args) throws NotAIType{
@@ -181,7 +239,7 @@ Server extends Thread
                 if(ar == 0) {
                     try {
                         numberOfAI = Integer.parseInt(args[ar]);
-                        System.out.println("Number of AI players: " + numberOfAI);
+                        //System.out.println("Number of AI players: " + numberOfAI);
                         maxClients.getAndSet(numberOfAI);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid arguments format. Run the program again with proper arguments in following format: numberOfPlayers, nameOfAI (times numberOfPlayers). Terminating the program.");
@@ -199,7 +257,7 @@ Server extends Thread
                         randomOrNot = "0";
 
                     }
-                    System.out.println(args[ar]);
+                    //System.out.println(args[ar]);
 
                 }
 
@@ -240,34 +298,42 @@ Server extends Thread
     }
 
     private void sendCountedScore(){
-        System.out.println("inside sendCOuntedScore");
+        //System.out.println("inside sendCOuntedScore");
         players.forEach(p -> p.sendScore(gatherScores(p)));
-        ExperimentOutputCreator eoc = new ExperimentOutputCreator(players);
+        ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
         eoc.createOutput(experimentOutputName);
         //System.out.println("Telling all clients about final score");
     }
 
     public void putCardOnTable(Card c){
         // Tell all clients to put this card on tables
+
         numberOfRounds++;
-        cardsOnTable.add(c);
-        players.forEach(p -> {
-            try {
-                p.putCardOnTable(c);
-            } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
-            }
-        });
+        if(c != null){
+            cardsOnTable.add(c);
+            players.forEach(p -> {
+                try {
+                    p.putCardOnTable(c);
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        //System.out.println("Cards on table: " + cardsOnTable.size());
         if(cardsOnTable.size() == 10){
-            System.out.println("Ending game, 10 cards on table");
+            //System.out.println("Ending game, 10 cards on table");
             sendEndGame();
         }
-        System.out.println("-----Telling all clients to put this card on table: " + c.name + " NOW cards on table: " + cardsOnTable.size());
-        try{
-            setNextPlayer();
-        } catch(CloneNotSupportedException ex){
-            ex.printStackTrace();
+        /*
+        else if(cardsOnTable.size() < 10){
+            //System.out.println("-----Telling all clients to put this card on table: " + c.name + " NOW cards on table: " + cardsOnTable.size());
+            try{
+                setNextPlayer();
+            } catch(CloneNotSupportedException ex){
+                ex.printStackTrace();
+            }
         }
+*/
 
         //System.out.println("????__________________________________________>>>><<<???");
         //System.out.println("????__________________________________________>>>><<<???");
@@ -288,7 +354,7 @@ Server extends Thread
         // Tell all clients to erase this card from tables
         cardsOnTable.remove(c);
         players.forEach(p -> p.eraseCardFromTable(c));
-        System.out.println("Telling all clients to erase this card from table: " + c.name);
+        //System.out.println("Telling all clients to erase this card from table: " + c.name);
     }
 
     private void sendEndGame(){
@@ -318,14 +384,14 @@ Server extends Thread
     }
 
     public String gatherScores(PlayerOrAI client){
-        System.out.println("Inside gatherScores at start");
+        //System.out.println("Inside gatherScores at start");
         StringBuilder text = new StringBuilder();
         int indexOfClient = players.indexOf(client);
         countRanks();
         boolean putTable = true;
         int gotScores = 0;
         while(gotScores != players.size()){
-            System.out.println("Inside gatherScores loop while");
+            //System.out.println("Inside gatherScores loop while");
             if(players.size() <= indexOfClient){
                 indexOfClient = 0;
             }
@@ -343,9 +409,9 @@ Server extends Thread
     }
 
     private void countRanks(){
-        System.out.println("maxClients.get() = " + maxClients.get());
+        //System.out.println("maxClients.get() = " + maxClients.get());
         PlayerOrAI[] playerScore = new PlayerOrAI[players.size()];
-        System.out.println("player.size() = " + players.size());
+        //System.out.println("player.size() = " + players.size());
         for(int i = 0; i < players.size();i++){
             for(int j = 0; j <= i; j++ ) {
                 if(playerScore[j] == null) {
@@ -369,7 +435,7 @@ Server extends Thread
         int rank = 1;
         for(int i = 0; i < players.size();i++){
             String name = playerScore[i].getName();
-            System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + name + " i=" + i + " {" +  playerScore[i].getScore() + "}");
+            //System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + name + " i=" + i + " {" +  playerScore[i].getScore() + "}");
             playerScore[i].setRank(rank);
             if(i < players.size()-1){
                 if(playerScore[i].getScore() == playerScore[i+1].getScore()){
@@ -391,11 +457,13 @@ Server extends Thread
                 currentIndex = 0;
             }
             currentPlayer = players.elementAt(currentIndex);
-            System.out.println("Current playing is " + currentPlayer.getName() + " at index in players " + currentIndex);
+            //System.out.println("Current playing is " + currentPlayer.getName() + " at index in players " + currentIndex);
             currentPlayer.playing = true;
             // If the player is AI, tell it to perform its move. Player has its own way how to determine if they are playing or not.
             if (currentPlayer instanceof GreedyPlayer){
-                ((ArtificialIntelligenceInterface) currentPlayer).performMove(cardsOnTable);
+                //System.out.println("Current player before putcardOnTable");
+                putCardOnTable(((ArtificialIntelligenceInterface) currentPlayer).performMove(cardsOnTable));
+
             }
         }
 

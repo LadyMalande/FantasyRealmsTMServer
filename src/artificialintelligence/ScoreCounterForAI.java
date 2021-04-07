@@ -202,7 +202,7 @@ public class ScoreCounterForAI {
             }});
                 ExecutorService es = Executors.newSingleThreadExecutor();
                 es.execute(this.futureTask);
-                Integer score = 0;
+                Integer score = -1000;
                 try {
                 score = this.futureTask.get();
                 //System.out.print("Score got from FutureTask for hand ^^^^: " + score.toString());

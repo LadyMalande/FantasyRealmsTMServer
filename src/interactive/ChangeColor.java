@@ -46,6 +46,8 @@ public class ChangeColor extends Interactive {
 
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        long startTime = System.nanoTime();
+        //System.out.println("Counting ChangeColor");
 
         Type bestTypeToChangeInto = null;
         Card bestCardToChange = null;
@@ -130,6 +132,8 @@ public class ChangeColor extends Interactive {
             bestCardToChange.type = bestTypeToChangeInto;
             //System.out.println("Changed the Color of " + bestCardToChange.name + " to be [" + bestCardToChange.type + "]");
         }
+        long elapsedTime = System.nanoTime() - startTime;
+       // System.out.println("Total execution time spent in ChangeColor in millis: " + elapsedTime/1000000);
 
     }
 

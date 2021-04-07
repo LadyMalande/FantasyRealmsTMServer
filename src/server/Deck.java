@@ -3,6 +3,7 @@ package server;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class Deck implements Serializable {
@@ -35,8 +36,17 @@ public class Deck implements Serializable {
     public void setDeck(boolean random){
         if(random){
             deck = new ArrayList<>(deckRandom);
+
         } else{
             deck = new ArrayList<>(deckOriginal);
         }
+    }
+
+    public void shuffleDeck(){
+        Collections.shuffle(deck);
+        for(Card c: deck){
+            System.out.print(c.getName()+ ", ");
+        }
+        System.out.println();
     }
 }
