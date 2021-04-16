@@ -3,7 +3,7 @@ package artificialintelligence;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
+/*
 public class Node {
     public Node(Node parent, ArrayList<Node> children, State state) {
         this.parent = parent;
@@ -52,4 +52,6 @@ public class Node {
         return this.children.get(selectRandom);
     }
 
-}
+
+
+} */

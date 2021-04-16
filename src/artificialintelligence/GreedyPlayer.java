@@ -3,11 +3,12 @@ package artificialintelligence;
 import bonuses.Bonus;
 import interactive.Interactive;
 import maluses.Malus;
-import server.*;
+import server.Card;
+import server.PlayerOrAI;
+import server.Server;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
 public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceInterface{
@@ -100,7 +101,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         numberOfRoundsPlayed = 0;
         //Random randomGenerator = new Random();
         StringBuilder sb = new StringBuilder();
-        for (int j = 0; j < 7; j++) {
+        for (int j = 0; j < server.CARDS_ON_HAND; j++) {
             //System.out.println("In getInitCards in GreedyPlayer constructor, number of loop is " + j);
             //int index = randomGenerator.nextInt(server.deck.getDeck().size());
             Card newCard = server.deck.getDeck().get(0);
@@ -133,6 +134,11 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         // Count if there is gain from the table greater than the gainThreshold and keep the highest combination of them
         ScoreCounterForAI sc = new ScoreCounterForAI();
         beginningHandScore = sc.countScore(newHandOldScore, new ArrayList<>());
+    }
+
+    @Override
+    public void learn() {
+        // Greedy player doesn't learn
     }
 
     private void manageCache(ArrayList<Card> cardsOnTable, Card toBePutOnTable){
@@ -177,7 +183,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         System.out.println();
          */
         //We cant continue playing when 10 cards are on table
-        if(cardsOnTable.size() == 10){
+        if(cardsOnTable.size() == server.END_GAME_NUMBER_OF_CARDS){
             return null;
 
         }

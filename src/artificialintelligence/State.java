@@ -1,40 +1,19 @@
 package artificialintelligence;
 
-import server.Card;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public class State {
-    private ArrayList<Card> board;
-    private int visitCount;
-    private double winScore;
+    int ID;
+    private int[] cardsIDs;
 
-    public int getVisitCount() {
-        return visitCount;
+    public State(int id, int[] arr){
+        this.ID = id;
+        this.cardsIDs = Arrays.copyOf(arr, arr.length);
     }
 
-    public void setVisitCount(int visitCount) {
-        this.visitCount = visitCount;
-    }
-
-    public List<State> getAllPossibleStates() {
-        List<State> possibleStates = new ArrayList<>();
-
-        return possibleStates;
-    }
-
-    void incrementVisit() {
-        this.visitCount++;
-    }
-
-    void addScore(double score) {
-        if (this.winScore != Integer.MIN_VALUE)
-            this.winScore += score;
-    }
-
-    void randomPlay() {
-
+    public boolean equals(int[] other){
+        Arrays.sort(other);
+        return Arrays.equals(cardsIDs, other);
     }
 
 }

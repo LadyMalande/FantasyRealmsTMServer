@@ -1,5 +1,6 @@
 package artificialintelligence;
 
+/*
 public class Tree {
     Node root;
 
@@ -19,3 +20,5 @@ public class Tree {
         parent.getChildren().add(child);
     }
 }
+
+ */

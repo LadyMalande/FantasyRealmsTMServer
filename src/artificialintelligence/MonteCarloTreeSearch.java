@@ -34,13 +34,13 @@ public class MonteCarloTreeSearch {
             }
             int playoutResult = simulateGame(toExplore);
             // Phase 4 = Update
-            backpropagate(toExplore, playoutResult);
+            backPropogation(toExplore, playoutResult);
         }
 
         Node winnerNode = root.getBestChild();
         tree.setRoot(winnerNode);
         // tell which card to choose and which to drop
-        return new PickCardDropCard(winnerNode.getState().getPickedCard(), winnerNode.getState().getDroppedCard());
+        return new PickCardDropCard(winnerNode.getAction().getPickedCard(), winnerNode.getState().getDroppedCard());
     }
 
     private Node selectCandiadate(Node root) {
@@ -88,5 +88,7 @@ public class MonteCarloTreeSearch {
         return boardStatus;
     }
 
+
  */
+
 }

@@ -81,7 +81,7 @@ public class ClientHandler extends PlayerOrAI implements Runnable
                             hostingServer.deck.shuffleDeck();
                             StringBuilder sb = new StringBuilder();
                         Random randomGenerator = new Random();
-                        for (int j = 0; j < 7; j++) {
+                        for (int j = 0; j < hostingServer.CARDS_ON_HAND; j++) {
                             int index = randomGenerator.nextInt(hostingServer.deck.getDeck().size());
                             hand.add(hostingServer.deck.getDeck().get(index));
                             sb.append(hostingServer.deck.getDeck().get(index).getName() + ";");

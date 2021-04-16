@@ -2,10 +2,18 @@ package server;
 
 import artificialintelligence.ArtificialIntelligenceInterface;
 import artificialintelligence.GreedyPlayer;
+import artificialintelligence.LearningPlayer;
+import artificialintelligence.TuplesMapCreator;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -15,6 +23,8 @@ public class
 Server extends Thread
 {
     private final String[] AITypes = {"GREEDY"};
+    public int END_GAME_NUMBER_OF_CARDS = 10;
+    public final int CARDS_ON_HAND = 7;
 
     private String[] args;
     public ArrayList<Card> cardsOnTable;
@@ -40,8 +50,11 @@ Server extends Thread
     int numberOfRounds = 0;
     int numberOfGamesToPlay = 0;
     StringBuilder startingDeck;
+    ArrayList<Card> mightBeInDeck = new ArrayList<>();
 
     // counter for clients
+
+
 
     public boolean getNeedDelay(){
         return needDelay;
@@ -157,6 +170,7 @@ Server extends Thread
                 } else{
                     deck.setDeck(false);
                 }
+                mightBeInDeck = deck.getDeck();
                 startingDeck = new StringBuilder();
                 Collections.shuffle(deck.getDeck());
                 for(Card c : deck.getDeck()){
@@ -183,7 +197,7 @@ Server extends Thread
 
                 experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
                 numberOfCountedScores = new AtomicInteger(0);
-                while(cardsOnTable.size() < 10){
+                while(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
                     for(PlayerOrAI player : players){
                         try {
                             putCardOnTable(((ArtificialIntelligenceInterface)player).performMove(cardsOnTable));
@@ -212,7 +226,13 @@ Server extends Thread
 
             experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
             decideNeedDelay();
-            startTheGame();
+
+            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
+            tmc.makeStateMap();
+            //StateMapCreator smc = new StateMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9},3,2);
+            //smc.makeStateMap();
+
+            //startTheGame();
 
             //System.out.println("Players size" + players.size());
             //System.out.println("End of Server");
@@ -258,7 +278,7 @@ Server extends Thread
 
                     }
                     //System.out.println(args[ar]);
-
+                    mightBeInDeck = deck.getDeck();
                 }
 
                 if(ar > 1 && ar < 1 + numberOfAI + 1){
@@ -274,6 +294,14 @@ Server extends Thread
 
                             }
 
+                        } else if(args[ar].startsWith("MC")){
+                            varietyOfPlayersAI.append("M");
+                            try {
+                                LearningPlayer ai = new LearningPlayer(this, ar + "_MonteCarlo", 0.5, 0.05);
+                                players.add(ai);
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } else{
                         throw new NotAIType("Argument of index " + ar + " is not a type of AI. Make right input and restart program.");
@@ -307,7 +335,7 @@ Server extends Thread
 
     public void putCardOnTable(Card c){
         // Tell all clients to put this card on tables
-
+        mightBeInDeck.remove(c);
         numberOfRounds++;
         if(c != null){
             cardsOnTable.add(c);
@@ -320,12 +348,12 @@ Server extends Thread
             });
         }
         //System.out.println("Cards on table: " + cardsOnTable.size());
-        if(cardsOnTable.size() == 10){
+        if(cardsOnTable.size() == END_GAME_NUMBER_OF_CARDS){
             //System.out.println("Ending game, 10 cards on table");
             sendEndGame();
         }
         /*
-        else if(cardsOnTable.size() < 10){
+        else if(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
             //System.out.println("-----Telling all clients to put this card on table: " + c.name + " NOW cards on table: " + cardsOnTable.size());
             try{
                 setNextPlayer();
@@ -449,7 +477,7 @@ Server extends Thread
     }
 
     public void setNextPlayer() throws CloneNotSupportedException {
-        if(cardsOnTable.size() < 10){
+        if(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
             int currentIndex = players.indexOf(currentPlayer);
             currentPlayer.playing = false;
             currentIndex++;
