@@ -3,7 +3,6 @@ package server;
 import artificialintelligence.ArtificialIntelligenceInterface;
 import artificialintelligence.GreedyPlayer;
 import artificialintelligence.LearningPlayer;
-import artificialintelligence.TuplesMapCreator;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,7 +21,7 @@ import java.util.stream.Stream;
 public class
 Server extends Thread
 {
-    private final String[] AITypes = {"GREEDY"};
+    private final String[] AITypes = {"GREEDY", "MC"};
     public int END_GAME_NUMBER_OF_CARDS = 10;
     public final int CARDS_ON_HAND = 7;
 
@@ -55,6 +54,9 @@ Server extends Thread
     // counter for clients
 
 
+    public ArrayList<Card> getMightBeInDeck(){
+        return this.mightBeInDeck;
+    }
 
     public boolean getNeedDelay(){
         return needDelay;
@@ -227,12 +229,12 @@ Server extends Thread
             experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
             decideNeedDelay();
 
-            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
-            tmc.makeStateMap();
+            //TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
+            //tmc.makeStateMap();
             //StateMapCreator smc = new StateMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9},3,2);
             //smc.makeStateMap();
 
-            //startTheGame();
+            startTheGame();
 
             //System.out.println("Players size" + players.size());
             //System.out.println("End of Server");

@@ -1,11 +1,12 @@
 package server;
 
+import artificialintelligence.Coefficients;
+import javafx.util.Pair;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 public class ExperimentOutputCreator {
@@ -21,7 +22,7 @@ public class ExperimentOutputCreator {
     }
 
 
-    private File createOutputFile(String filename){
+    public File createOutputFile(String filename){
         try {
             File myFile = new File(filename + ".txt");
             //System.out.println("Creating file named: " + myFile.getName());
@@ -38,6 +39,21 @@ public class ExperimentOutputCreator {
         return null;
     }
 
+    private void writeCoefficients(File file, Map<Pair<Integer,Integer>, Coefficients> map){
+        try {
+            //TODO
+            FileWriter writer = new FileWriter(file, true);
+
+            // Writes the content to the file
+            writer.write("\n");
+            writer.flush();
+            writer.close();
+        } catch(IOException ex){
+            ex.printStackTrace();
+            System.out.println("Unable to send experiment data to file.");
+        }
+    }
+
     private void writeToOutputFile(File file){
         try {
             double totalNumberOfRounds = 0;
@@ -45,9 +61,13 @@ public class ExperimentOutputCreator {
 
 
             FileWriter writer = new FileWriter(file, true);
+            /*
             if(startingDeck != null){
+
                 writer.write(startingDeck.toString());
             }
+
+             */
             for(PlayerOrAI player : players) {
                 totalNumberOfRounds += player.getNumberOfRoundsPlayed();
             }
@@ -55,7 +75,9 @@ public class ExperimentOutputCreator {
             writer.write(totalNumberOfRounds + ";");
             for(PlayerOrAI player : players){
 
+                /*
                 List<String> namesOld = Arrays.asList(player.getBeginningHandCards().split(";"));
+
                 StringBuilder sameCards = new StringBuilder();
                 for(Card c : player.getHand()){
                     if(namesOld.contains(c.getName())){
@@ -63,7 +85,11 @@ public class ExperimentOutputCreator {
                     }
                     sameCards.append(";");
                 }
-                writer.write(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";" + player.getBeginningHandScore() + ";" + player.getBeginningHandCards() + player.score + ";" );
+
+                 */
+               // writer.write(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";" + player.getBeginningHandScore() + ";" + player.getBeginningHandCards() + player.score + ";" );
+                writer.write(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";"+ player.score + ";" );
+
                 for(Card c: player.getHand()){
                     writer.write(c.name + ";");
                 }
@@ -71,8 +97,8 @@ public class ExperimentOutputCreator {
                     writer.write("-;");
                 }
                 int differenceInScores = player.score - player.getBeginningHandScore();
-                writer.write(differenceInScores + ";");
-                writer.write(sameCards.toString());
+                //writer.write(differenceInScores + ";");
+                //writer.write(sameCards.toString());
             }
             // Writes the content to the file
             writer.write("\n");

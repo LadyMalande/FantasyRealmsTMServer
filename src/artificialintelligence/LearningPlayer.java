@@ -1,10 +1,8 @@
 package artificialintelligence;
 
-import interactive.Interactive;
-import javafx.scene.control.skin.SeparatorSkin;
 import javafx.util.Pair;
-import maluses.Malus;
 import server.Card;
+import server.ExperimentOutputCreator;
 import server.PlayerOrAI;
 import server.Server;
 
@@ -14,8 +12,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
 import java.util.concurrent.FutureTask;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -38,6 +34,7 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         double epsilon; // choose random action with this probability
         Map<Pair<Integer,Integer>,Coefficients> coefficientsMap;
         int currentActualValue;
+        Map<int[], Integer> handValuesMap;
 
     public LearningPlayer(Server server, String name, double alpha, double epsilon) throws CloneNotSupportedException {
             this.name = name;
@@ -48,17 +45,23 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             bestCardToTake = null;
             bestCardToDrop = null;
             numberOfRoundsPlayed = 0;
-            getInitCards();
+            handValuesMap = new HashMap<>();
+
             stateRecognized = false;
-            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54};
+            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
             coefficientsMap = loadCoefficientsFromFile();
             if(coefficientsMap == null){
-                tmc.makeStateMap();
+                coefficientsMap = tmc.makeStateMap();
             }
-            rank = 0;
             this.alpha = alpha;
             this.epsilon = epsilon;
             currentActualValue = 0;
+            getInitCards();
+            rank = 0;
+
+            for(Map.Entry<Pair<Integer,Integer>, Coefficients> entry : coefficientsMap.entrySet()){
+                System.out.println(entry.getKey().toString() + " value: " + entry.getValue().getActualValue() + " coefficient: " + entry.getValue().getActalValueCoefficient());
+            }
             //System.out.println("Making Greedy player with gain threshold: " + gainThreshold);
 
         }
@@ -127,6 +130,7 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             hand.add(newCard);
             server.deck.getDeck().remove(newCard);
         }
+
             currentActualValue = countActualValue(collectIDs(hand));
         }
 
@@ -192,16 +196,15 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         int[] ids = collectIDs(hand);
 
         TuplesMapCreator tmc = new TuplesMapCreator(ids);
-        ArrayList<Integer> listIDs = tmc.makeList(ids);
-        List<Integer> idsInHand = new ArrayList<Integer>();
+        ArrayList<Integer> idsInHand = tmc.makeList(ids);
 
         for(Card cardInHand:hand){
-            idsInHand.remove(cardInHand.getId());
+            idsInHand.remove(new Integer(cardInHand.getId()));
             for(Card cardOnTable : server.cardsOnTable){
                 idsInHand.add(cardOnTable.getId());
                 ids = collectIDs(hand);
                 cummulativeValue = countActualValue(ids);
-                idsInHand.remove(cardOnTable.getId());
+                idsInHand.remove(new Integer(cardOnTable.getId()));
 
                 if(cummulativeValue > maxValue){
                     maxValue = cummulativeValue;
@@ -216,15 +219,72 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
     }
 
     private int checkForPossibleActualValuesFromDeck(){
+        // We want to get the average value we get if we take card from deck = average of possibilities
+        int cummulativeValue = 0;
+        int numberOfPossibilities = 0;
+        int maxValue = 0;
+        ArrayList<Card> canBeInDeck = server.getMightBeInDeck();
+        canBeInDeck.removeAll(hand);
+        ArrayList<Card> listForSearch = new ArrayList<>(hand);
+        for(Card table : canBeInDeck){
+            hand.add(table);
+            System.out.println("Pridavam do ruky z balicku : " + table.getId());
+            maxValue = 0;
+            for(Card c : listForSearch){
+                hand.remove(c);
+                for(Card c1: hand){
+                    System.out.println("V ruce: " + c1.getId());
+                }
+                int[] idsInHand = collectIDs(hand);
+                int valueInHand = countActualValue(idsInHand);
+                if(valueInHand > maxValue){
+                    maxValue = valueInHand;
+                    bestCardToDrop = c;
+                }
 
+                hand.add(c);
+
+            }
+            cummulativeValue += maxValue;
+            numberOfPossibilities++;
+            hand.remove(table);
+        }
+        return cummulativeValue / numberOfPossibilities;
     }
 
     private void checkForPossibleValuesInHand(){
-
+        // 8 cards in hand, one must go out
+        int maxValue = 0;
+        ArrayList<Card> toBeSearched = new ArrayList<>(hand);
+        for(Card c : toBeSearched){
+            hand.remove(c);
+            int[] idsInHand = collectIDs(hand);
+            int valueInHand = countActualValue(idsInHand);
+            if(valueInHand > maxValue){
+                maxValue = valueInHand;
+                bestCardToDrop = c;
+            }
+            hand.add(c);
+        }
     }
 
     private int countActualValue(int[] ids){
-        
+        if(handValuesMap.containsKey(ids)){
+            return handValuesMap.get(ids);
+        }
+        int cummulativeValue = 0;
+        TuplesMapCreator tmc = new TuplesMapCreator(ids);
+        for(int id : ids){
+            System.out.println("ids pro vytvoreni dvojic: "  + id);
+        }
+        ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(ids);
+        for(Pair<Integer,Integer> pair : pairs){
+            System.out.println(pair);
+            Coefficients co = coefficientsMap.get(pair);
+            cummulativeValue += co.getActualValue() * co.getActalValueCoefficient();
+        }
+        handValuesMap.put(ids, cummulativeValue);
+        return cummulativeValue;
     }
 
     @Override
@@ -243,6 +303,12 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             double newValue = oldValue + alpha*(reward-oldValue);
             c.setActalValueCoefficient(newValue);
         }
+        writeValuesToFile();
+    }
+
+    private void writeValuesToFile(){
+        ExperimentOutputCreator ex = new ExperimentOutputCreator(server.getPlayers());
+        ex.writeCoefficients(ex.createOutputFile("pair_values.txt"),coefficientsMap);
     }
 
     private Map<Pair<Integer,Integer>, Coefficients> loadCoefficientsFromFile(){
