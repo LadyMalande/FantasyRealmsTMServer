@@ -35,10 +35,13 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         Map<Pair<Integer,Integer>,Coefficients> coefficientsMap;
         int currentActualValue;
         Map<int[], Integer> handValuesMap;
+        Map<Integer, int[]> historyHandRound;
+        int round = 0;
+
 
     public LearningPlayer(Server server, String name, double alpha, double epsilon) throws CloneNotSupportedException {
             this.name = name;
-            System.out.println("Name of Learning " + this.name);
+            //System.out.println("Name of Learning " + this.name);
             hand = new ArrayList<>();
             this.server = server;
             bestPossibleScore = 0;
@@ -46,7 +49,7 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             bestCardToDrop = null;
             numberOfRoundsPlayed = 0;
             handValuesMap = new HashMap<>();
-
+            historyHandRound = new HashMap<>();
             stateRecognized = false;
             TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
             coefficientsMap = loadCoefficientsFromFile();
@@ -120,6 +123,9 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
 
     @Override
     public void getInitCards() throws CloneNotSupportedException {
+        round = 0;
+        handValuesMap.clear();
+        historyHandRound.clear();
         hand.clear();
         numberOfRoundsPlayed = 0;
         //Random randomGenerator = new Random();
@@ -132,6 +138,8 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         }
 
             currentActualValue = countActualValue(collectIDs(hand));
+        historyHandRound.put(round, collectIDs(hand));
+        //System.out.println("Pocet karet v ruce: " + hand.size());
         }
 
         private void recognizeState(ArrayList<Card> cardsOnTable){
@@ -148,26 +156,13 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             System.arraycopy(tableIDs,0,currentState,handSize,tableSize);
            // stateID = stateMap.entrySet().stream().filter(entry -> Arrays.equals(entry.getValue(),currentState)).map(Map.Entry::getKey).findFirst().get();
             stateRecognized = true;
-            System.out.println("Player is in state id :" + stateID);
+            //System.out.println("Player is in state id :" + stateID);
         }
 
     @Override
     public Card performMove(ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
-        int handActualValue = currentActualValue;
-
-        int maxFromTable = maxForPossibleActualValuesFromTable();
-
-        int avgFromDeck = checkForPossibleActualValuesFromDeck();
-        if(handActualValue < maxFromTable || handActualValue < avgFromDeck){
-        if(maxFromTable < avgFromDeck){
-            hand.add(server.drawCardFromDeck());
-            checkForPossibleValuesInHand();
-        } else{
-            hand.add(bestCardToTake);
-            server.cardsOnTable.remove(bestCardToTake);
-        }
-        }
         if (performRandomMove()) {
+            //System.out.println("random move Pocet karet v ruce: " + hand.size());
             Random randomMove = new Random();
             int move = randomMove.nextInt(server.cardsOnTable.size() + 1);
             if(move < server.cardsOnTable.size()){
@@ -178,16 +173,37 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             }
             move = randomMove.nextInt(hand.size());
             Card toDrop = hand.get(move);
-            server.putCardOnTable(toDrop);
+            //server.putCardOnTable(toDrop);
             hand.remove(toDrop);
+            return toDrop;
         } else{
 
+            int handActualValue = currentActualValue;
+            //System.out.println("zac perform move Pocet karet v ruce: " + hand.size());
+
+            int maxFromTable = maxForPossibleActualValuesFromTable();
+
+            int avgFromDeck = checkForPossibleActualValuesFromDeck();
+            if(handActualValue < maxFromTable || handActualValue < avgFromDeck){
+                if(maxFromTable < avgFromDeck){
+                    hand.add(server.drawCardFromDeck());
+                    checkForPossibleValuesInHand();
+                } else{
+                    hand.add(bestCardToTake);
+                    server.cardsOnTable.remove(bestCardToTake);
+                }
+            }
+
+
             hand.remove(bestCardToDrop);
-            server.putCardOnTable(bestCardToDrop);
+
+            round++;
+            historyHandRound.put(round, collectIDs(hand));
+           // server.putCardOnTable(bestCardToDrop);
         }
-
-
-        return null;
+        numberOfRoundsPlayed++;
+        //System.out.println("konec perform move Pocet karet v ruce: " + hand.size());
+        return bestCardToDrop;
     }
 
     private int maxForPossibleActualValuesFromTable(){
@@ -228,12 +244,12 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         ArrayList<Card> listForSearch = new ArrayList<>(hand);
         for(Card table : canBeInDeck){
             hand.add(table);
-            System.out.println("Pridavam do ruky z balicku : " + table.getId());
+            //System.out.println("Pridavam do ruky z balicku : " + table.getId());
             maxValue = 0;
             for(Card c : listForSearch){
                 hand.remove(c);
                 for(Card c1: hand){
-                    System.out.println("V ruce: " + c1.getId());
+                    //System.out.println("V ruce: " + c1.getId());
                 }
                 int[] idsInHand = collectIDs(hand);
                 int valueInHand = countActualValue(idsInHand);
@@ -275,11 +291,11 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         int cummulativeValue = 0;
         TuplesMapCreator tmc = new TuplesMapCreator(ids);
         for(int id : ids){
-            System.out.println("ids pro vytvoreni dvojic: "  + id);
+            //System.out.println("ids pro vytvoreni dvojic: "  + id);
         }
         ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(ids);
         for(Pair<Integer,Integer> pair : pairs){
-            System.out.println(pair);
+            //System.out.println(pair);
             Coefficients co = coefficientsMap.get(pair);
             cummulativeValue += co.getActualValue() * co.getActalValueCoefficient();
         }
@@ -289,39 +305,52 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
 
     @Override
     public void learn() {
+        ArrayList<Pair<Integer,Integer>> alreadyEvaluatedInThisRound = new ArrayList<>();
         int[] idsInHand = collectIDs(hand);
         TuplesMapCreator tmc = new TuplesMapCreator(idsInHand);
-        ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(idsInHand);
+        //ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(idsInHand);
         int reward = 0;
         if(rank == 1){
             reward = 1;
         }
 
-        for(Pair<Integer,Integer> pair : pairs){
-            Coefficients c = coefficientsMap.get(pair);
-            double oldValue = c.getActalValueCoefficient();
-            double newValue = oldValue + alpha*(reward-oldValue);
-            c.setActalValueCoefficient(newValue);
+        for(int i = round; i > round-5 || i > -1; i--){
+            // learn hands in history too
+            ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(idsInHand);
+            for(Pair<Integer,Integer> pair : pairs){
+                if(!alreadyEvaluatedInThisRound.contains(pair)) {
+                    Coefficients c = coefficientsMap.get(pair);
+                    double oldValue = c.getActalValueCoefficient();
+                    double newValue = oldValue + (alpha * (reward - oldValue))*(1-(round-i)*0.02);
+                    c.setActalValueCoefficient(newValue);
+                    alreadyEvaluatedInThisRound.add(pair);
+                    //System.out.println(pair + " value: " + c.actualValue + " oldc: " + oldValue + " newc: "+ newValue);
+                }
+            }
         }
+
         writeValuesToFile();
     }
 
     private void writeValuesToFile(){
         ExperimentOutputCreator ex = new ExperimentOutputCreator(server.getPlayers());
-        ex.writeCoefficients(ex.createOutputFile("pair_values.txt"),coefficientsMap);
+        ex.writeCoefficients(ex.createOutputFile("pair_values"),coefficientsMap);
     }
 
     private Map<Pair<Integer,Integer>, Coefficients> loadCoefficientsFromFile(){
         Map<Pair<Integer,Integer>, Coefficients> map = new HashMap<>();
 
         try{
-            FileInputStream fi = new FileInputStream(new File("pair_values.txt"));
+            FileInputStream fi = new FileInputStream(new File("map_coefficients.txt"));
             ObjectInputStream oi = new ObjectInputStream(fi);
 
             // Read objects
-            for(int i = 0; i < 1432; i++){
-                map.put(((Map.Entry<Pair<Integer,Integer>,Coefficients>) oi.readObject()).getKey(),
-                        ((Map.Entry<Pair<Integer,Integer>,Coefficients>) oi.readObject()).getValue());
+            for(int i = 0; i < 1431; i++){
+                map.put((Pair<Integer,Integer>)oi.readObject(),(Coefficients) oi.readObject());
+
+            }
+            for(Map.Entry entry: map.entrySet()){
+                //System.out.println(entry.getKey() + " value: " + ((Coefficients)entry.getValue()).getActualValue() + " newc: "+ ((Coefficients)entry.getValue()).getActalValueCoefficient());
             }
 
             oi.close();
@@ -358,5 +387,17 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         } else{
             return false;
         }
+    }
+
+    @Override
+    public void countScore() {
+        // Create different hands by interactives that AI has
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+        score = sc.countScore(hand, server.cardsOnTable);
+
+        while (score < -999) {
+            // wait;
+        }
+        server.increaseCountedScoreNumber();
     }
 }

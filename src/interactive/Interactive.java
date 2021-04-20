@@ -1,12 +1,12 @@
 package interactive;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.ClientHandler;
 import server.Type;
 
 import java.io.Serializable;
-import java.net.Socket;
 import java.util.*;
 
 public class Interactive implements InteractiveBonusInterface , Serializable, Cloneable  {
@@ -107,4 +107,11 @@ public class Interactive implements InteractiveBonusInterface , Serializable, Cl
         }
 
     }
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
+    }
+
 }

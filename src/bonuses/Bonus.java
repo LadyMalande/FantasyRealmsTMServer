@@ -1,9 +1,10 @@
 package bonuses;
 
-import interactive.Interactive;
+import artificialintelligence.State;
+import maluses.Malus;
 import server.BigSwitches;
-import server.Type;
 import server.Card;
+import server.Type;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -39,6 +40,11 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
             first = false;
         }
         return listcards.toString();
+    }
+
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        return potential;
     }
 
     String giveListOfTypesWithSeparator(ArrayList<Type> types, String separator,String locale, int grammar, boolean plural){
@@ -128,5 +134,19 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
         newb.priority = this.priority;
         newb.serialVersionUID = this.serialVersionUID;
         return newb;
+    }
+
+    public static double giveValue(ArrayList<Card> hand, ArrayList<Card> whatToRemove){
+        double sum = 0.0;
+        for(Card removed : whatToRemove){
+            sum += removed.getStrength();
+            for(Bonus b : removed.bonuses){
+                sum += b.count(hand);
+            }
+            for(Malus m : removed.maluses){
+                sum += m.count(hand);
+            }
+        }
+        return sum;
     }
 }

@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.Card;
 
 import java.util.ArrayList;
@@ -65,5 +66,22 @@ public class PlusIfAllAreOdd extends Bonus  {
         else{
             return 0;
         }
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        if(state.getNumOdd() == 7){
+            return how_much;
+        } else{
+            long oddsOnTable = table.stream().filter(c -> c.isOdd() == true).count();
+            double tableodd = Math.max((oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * (state.getNumOdd() + 1 )/7* how_much,0) ;
+
+            // check the deck
+            long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> c.isOdd() == true).count();
+            double deck = Math.max((deckSize / unknownCards) * oddsOnDeck/deckSize  * (state.getNumOdd() + 1 )/7*  how_much,0) ;
+            potential += Math.max(tableodd,deck);
+        }
+        return potential;
     }
 }

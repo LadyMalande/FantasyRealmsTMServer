@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 
@@ -56,5 +57,12 @@ public class PlusIfYouHaveAll extends Bonus{
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

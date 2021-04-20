@@ -206,9 +206,7 @@ public class ScoreCounterForAI {
                 try {
                 score = this.futureTask.get();
                 //System.out.print("Score got from FutureTask for hand ^^^^: " + score.toString());
-                for(Card c: handOriginal){
-                    //System.out.print(", " + c.name );
-                }
+
                 //System.out.println();
                 } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
@@ -223,23 +221,32 @@ public class ScoreCounterForAI {
     private static void checkIfThereIsNecromancerLikeCard(ArrayList<Card> handOriginal, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
         //System.out.println("Inside checkIfThereIsNecromancerLikeCard");
         ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(handOriginal);
+        int numTable = cardsOnTable.size();
+        Interactive interactiveToDelete = null;
+        ArrayList<Interactive> whereToDelete = null;
+        for (Card c : copyDeckToMakeChanges) {
 
-        for(Card c : copyDeckToMakeChanges){
-            Interactive interactiveToDelete = null;
-            if(c.interactives != null){
+            if (c.interactives != null) {
                 //System.out.println("Interactives are not null, size is " + c.interactives.size());
-                for(Interactive in : c.interactives){
+                for (Interactive in : c.interactives) {
                     //System.out.println(in.text);
-                    if(in instanceof TakeCardOfTypeAtTheEnd){
+                    if (in instanceof TakeCardOfTypeAtTheEnd) {
                         //System.out.println("There is a Necromancer like card.");
                         in.changeHandWithInteractive(handOriginal, cardsOnTable);
+                        whereToDelete = c.interactives;
                         interactiveToDelete = in;
                     }
                 }
             }
-            // Delete this interactive to not get stuck in endless loop
-            if(interactiveToDelete != null)
-            c.interactives.remove(interactiveToDelete);
+
+        }
+        if(numTable == 10 && handOriginal.size() > 7){
+            System.out.println("Player took card with necromancer");
+        }
+        // Delete this interactive to not get stuck in endless loop
+        if (interactiveToDelete != null){
+
+            whereToDelete.remove(interactiveToDelete);
         }
 
     }

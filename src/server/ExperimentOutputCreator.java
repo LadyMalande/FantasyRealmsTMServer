@@ -3,9 +3,7 @@ package server;
 import artificialintelligence.Coefficients;
 import javafx.util.Pair;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 import java.util.Vector;
 
@@ -39,10 +37,21 @@ public class ExperimentOutputCreator {
         return null;
     }
 
-    private void writeCoefficients(File file, Map<Pair<Integer,Integer>, Coefficients> map){
+    public void writeCoefficients(File file, Map<Pair<Integer, Integer>, Coefficients> map){
         try {
-            //TODO
             FileWriter writer = new FileWriter(file, true);
+            FileOutputStream f = new FileOutputStream(createOutputFile("map_coefficients"));
+            ObjectOutputStream o = new ObjectOutputStream(f);
+
+            // Write objects to file
+            for(Map.Entry entry : map.entrySet()){
+                o.writeObject(entry.getKey());
+                o.writeObject(entry.getValue());
+                //System.out.println("ID: " + c.id + " Name: " + c.name);
+            }
+
+            o.close();
+            f.close();
 
             // Writes the content to the file
             writer.write("\n");
@@ -73,6 +82,7 @@ public class ExperimentOutputCreator {
             }
             double averageNumberOfRounds = totalNumberOfRounds / players.size();
             writer.write(totalNumberOfRounds + ";");
+
             for(PlayerOrAI player : players){
 
                 /*
@@ -94,9 +104,10 @@ public class ExperimentOutputCreator {
                     writer.write(c.name + ";");
                 }
                 if(player.getHand().size() < 8){
-                    writer.write("-;");
+                    for(int i = player.getHand().size(); i < 8; i++){
+                        writer.write("-;");
+                    }
                 }
-                int differenceInScores = player.score - player.getBeginningHandScore();
                 //writer.write(differenceInScores + ";");
                 //writer.write(sameCards.toString());
             }

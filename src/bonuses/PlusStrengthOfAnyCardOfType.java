@@ -1,10 +1,12 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PlusStrengthOfAnyCardOfType extends Bonus  {
     public long serialVersionUID = 24;
@@ -59,5 +61,27 @@ public class PlusStrengthOfAnyCardOfType extends Bonus  {
         }
         return max_on_hand;
 
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+
+        double now = this.count(hand);
+        double potentialTableDeck = 0.0;
+       List<Card> potential = table.stream().filter(c -> types.contains(c.getType())).collect(Collectors.toList());
+       int max = 0;
+       for(Card c : potential){
+           if(c.getStrength() > max){
+               max = c.getStrength();
+           }
+       }
+        double tableStrength = Math.max((1 - state.getNumberOfEnemies()*1/table.size()) * max,0) ;
+        List<Card> potentialDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).collect(Collectors.toList());
+        double deckStrength = 0.0;
+        for(Card c : potentialDeck){
+            deckStrength += c.getStrength() * deckSize/unknownCards * (1/deckSize);
+        }
+        potentialTableDeck = Math.max(tableStrength, deckStrength);
+        return Math.max(now, potentialTableDeck);
     }
 }

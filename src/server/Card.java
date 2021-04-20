@@ -80,6 +80,8 @@ public class Card implements Serializable, Cloneable, Comparable<Card>{
         return BigSwitches.switchIdForName(id, locale);
     }
 
+    public boolean isOdd(){return strength % 2 != 0;}
+
     @Override
     public int compareTo(Card card){
         return Comparator.comparing(Card::getType)

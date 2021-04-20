@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.Card;
 
 import java.io.Serializable;
@@ -33,6 +34,11 @@ public class DeleteAllMaluses extends Bonus implements Serializable {
 
     @Override
     public int getPriority(){ return this.priority; }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        return state.getNumPointsLost();
+    }
 
     @Override
     public int count(ArrayList<Card> hand) {

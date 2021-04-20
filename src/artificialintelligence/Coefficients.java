@@ -1,6 +1,11 @@
 package artificialintelligence;
 
-public class Coefficients {
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+public class Coefficients implements Serializable {
     int actualValue;
     double actalValueCoefficient;
 
@@ -23,5 +28,15 @@ public class Coefficients {
 
     public int getActualValue() {
         return actualValue;
+    }
+
+    private void readObject(ObjectInputStream is) throws ClassNotFoundException, IOException {
+        actualValue = is.readInt();
+        actalValueCoefficient = is.readDouble();
+    }
+
+    private void writeObject(ObjectOutputStream os) throws IOException{
+        os.writeInt(actualValue);
+        os.writeDouble(actalValueCoefficient);
     }
 }

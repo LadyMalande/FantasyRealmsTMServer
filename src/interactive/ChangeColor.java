@@ -145,4 +145,11 @@ public class ChangeColor extends Interactive {
         newi.thiscardid = this.thiscardid;
         return newi;
     }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards){
+        double potential = 0.0;
+        // TODO
+        return potential;
+    }
 }

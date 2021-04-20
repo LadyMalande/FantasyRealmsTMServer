@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.Card;
 import server.Type;
 
@@ -64,5 +65,29 @@ public class PlusForSameColorCards extends Bonus  {
             }
         }
         return total;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        potential += getRewardForSame(state.getMostFromOneType());
+        if(potential < 100){
+            long oddsOnTable = table.stream().filter(c -> state.getWhichTypeIsMost().contains(c.getType())).count();
+            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * getRewardForSame(state.getMostFromOneType() + 1);
+            long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> state.getWhichTypeIsMost().contains(c.getType())).count();
+            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * getRewardForSame(state.getMostFromOneType() + 1);
+        }
+        return potential;
+    }
+
+    private int getRewardForSame(int value){
+        if(value == 3){
+            return 10;
+        } else if(value == 4){
+            return 40;
+        } else if(value == 5){
+            return 100;
+        }
+        return 0;
     }
 }

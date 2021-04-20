@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.Card;
 
 import java.util.ArrayList;
@@ -41,6 +42,14 @@ public class BonusOrBonus extends Bonus {
         sb.append(" -----\n");
         sb.append(this.b2.getText(locale));
         return sb.toString();
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        double p1 = b1.getPotential(hand, table, deckSize, unknownCards, state);
+        double p2 = b2.getPotential(hand, table, deckSize, unknownCards, state);
+        return Math.max(p1,p2);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -80,5 +81,29 @@ public class PlusForEachTypeIfYouHaveCard extends Bonus  {
         } else{
             return 0;
         }
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        long numberOfSuitableCards = hand.stream().filter(c -> types.contains(c.getType())).count();
+        if(hand.stream().filter(c -> c.name.equals(BigSwitches.switchIdForName(cardid))).count() >= 1){
+            potential += (numberOfSuitableCards)*howMuch;
+        }
+        if(hand.stream().filter(c -> c.name.equals(BigSwitches.switchIdForName(cardid))).count() >= 1) {
+            if (numberOfSuitableCards < 5) {
+                long oddsOnTable = table.stream().filter(c -> types.contains(c.getType())).count();
+                potential += (oddsOnTable - state.getNumberOfEnemies() * oddsOnTable / table.size()) * howMuch;
+                long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count();
+                potential += (deckSize / unknownCards) * oddsOnDeck / deckSize * howMuch;
+            }
+        }
+        if(hand.stream().filter(c -> c.name.equals(BigSwitches.switchIdForName(cardid))).count() < 1) {
+            long tableCard = table.stream().filter(c -> c.name.equals(BigSwitches.switchIdForName(cardid))).count();
+            potential += (tableCard - state.getNumberOfEnemies() * tableCard / table.size()) * howMuch * numberOfSuitableCards;
+            long deck = state.getProbablyInDeck().stream().filter(c -> c.name.equals(BigSwitches.switchIdForName(cardid))).count();
+            potential += (deck - state.getNumberOfEnemies() * deck / table.size()) * howMuch * numberOfSuitableCards;
+        }
+        return potential;
     }
 }

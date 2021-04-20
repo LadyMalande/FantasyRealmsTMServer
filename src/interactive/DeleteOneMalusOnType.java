@@ -1,6 +1,7 @@
 package interactive;
 
 import artificialintelligence.ScoreCounterForAI;
+import artificialintelligence.State;
 import bonuses.Bonus;
 import maluses.Malus;
 import server.BigSwitches;
@@ -203,5 +204,12 @@ public class DeleteOneMalusOnType extends Interactive {
         newi.types = (ArrayList<Type>) this.types.clone();
         newi.thiscardid = this.thiscardid;
         return newi;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

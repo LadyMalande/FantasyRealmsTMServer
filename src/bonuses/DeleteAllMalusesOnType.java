@@ -1,6 +1,6 @@
 package bonuses;
 
-import maluses.Malus;
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -53,4 +53,30 @@ public class DeleteAllMalusesOnType extends Bonus  {
         }
         return 0;
     }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        double swamp = 0.0;
+        double wildfire = 0.0;
+        double greatflood = 0.0;
+        for(Card c : hand){
+            if( c.getId() == 35 ){
+                swamp = c.getMaluses().get(0).count(hand);
+            }
+            if(c.getId() == 33 ){
+                ArrayList<Card> whatToRemove = new ArrayList<>();
+                c.getMaluses().get(0).count(hand, whatToRemove);
+                greatflood = giveValue(hand, whatToRemove);
+            }
+            if(c.getId() == 41){
+                ArrayList<Card> whatToRemove = new ArrayList<>();
+                c.getMaluses().get(0).count(hand, whatToRemove);
+                wildfire = giveValue(hand, whatToRemove);
+            }
+        }
+        return Math.max(Math.max(swamp,wildfire), greatflood);
+    }
+
+
 }

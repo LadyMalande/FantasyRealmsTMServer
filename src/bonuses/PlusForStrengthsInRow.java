@@ -1,6 +1,6 @@
 package bonuses;
 
-import server.BigSwitches;
+import artificialintelligence.State;
 import server.Card;
 
 import java.util.*;
@@ -57,5 +57,12 @@ public class PlusForStrengthsInRow extends Bonus  {
             case 7: return 150;
             default: return 0;
         }
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

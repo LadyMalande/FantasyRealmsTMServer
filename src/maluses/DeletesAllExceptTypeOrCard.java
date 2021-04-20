@@ -1,5 +1,6 @@
 package maluses;
 
+import artificialintelligence.State;
 import server.Card;
 import server.Type;
 
@@ -122,5 +123,12 @@ public class DeletesAllExceptTypeOrCard extends Malus {
         newm.cards = newCardIds;
         //System.out.println("In cloning DeletesAllExceptTypeOrCard: The new types and old types are equal = " + (newm.types == this.types));
         return newm;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

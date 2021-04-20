@@ -1,6 +1,7 @@
 package bonuses;
 
-import maluses.Malus;
+import artificialintelligence.State;
+import maluses.*;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -65,5 +66,34 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
 
         }
         return 0;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double saved = 0.0;
+        double minus = 0.0;
+        double withoutType = 0.0;
+        for(Card c : hand){
+            if (c.getType().equals(onWhichType)) {
+                for(Malus m: c.getMaluses()){
+                    if(m instanceof DeletesAllType || m instanceof DeletesAllTypeExceptCard || m instanceof DeletesAllTypeOrOtherSelftype){
+                        ArrayList<Card> whatToRemove = new ArrayList<>();
+                        m.count(hand, whatToRemove);
+                        minus = giveValue(hand, whatToRemove);
+                        m.types.remove(deleteThisTypeFromMaluses);
+                        withoutType += giveValue(hand, whatToRemove);
+                        m.types.add(deleteThisTypeFromMaluses);
+                    }
+                    if(m instanceof MinusForEachType || m instanceof MinusForEachType){
+                        minus += m.count(hand);
+                        m.types.remove(deleteThisTypeFromMaluses);
+                        withoutType += m.count(hand);
+                        m.types.add(deleteThisTypeFromMaluses);
+                    }
+                }
+            }
+        }
+        saved = minus - withoutType;
+        return saved;
     }
 }

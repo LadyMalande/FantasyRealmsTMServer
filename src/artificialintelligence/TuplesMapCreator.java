@@ -45,7 +45,7 @@ public class TuplesMapCreator {
 
             }
             stateMap.put(pair, new Coefficients(actual));
-            System.out.println( pair.getKey() + " : " + pair.getValue() + " = " + actual);
+            //System.out.println( pair.getKey() + " : " + pair.getValue() + " = " + actual);
 
             return;
         }

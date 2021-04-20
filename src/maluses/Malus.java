@@ -1,7 +1,7 @@
 package maluses;
 
+import artificialintelligence.State;
 import bonuses.ScoringInterface;
-import interactive.Interactive;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -136,5 +136,11 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
         Malus newm = (Malus)super.clone();
         //System.out.println("Clone malus in Malus class");
         return newm;
+    }
+
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

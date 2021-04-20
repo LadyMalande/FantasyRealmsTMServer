@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -51,5 +52,16 @@ public class PlusIfYouDontHaveType extends Bonus  {
             }
         }
         return howMuch;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        if(!state.getHaveTheseTypes().contains(type)){
+            return howMuch;
+        }
+        potential += howMuch * 1/(state.getNumOfType(type) + 1);
+
+        return potential;
     }
 }

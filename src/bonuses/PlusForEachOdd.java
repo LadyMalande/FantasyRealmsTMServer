@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.Card;
 
 import java.util.ArrayList;
@@ -61,5 +62,26 @@ public class PlusForEachOdd extends Bonus  {
             }
         }
         return sum;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // This points are sure, we have them in our hand
+        potential += state.getNumOdd() * how_much;
+        // there is fitting card on the table, will it last there?
+        if(state.getNumOdd() < 7){
+            long oddsOnTable = table.stream().filter(c -> c.isOdd() == true).count();
+            potential += Math.max((oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * how_much,0) ;
+
+            // check the deck
+            long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> c.isOdd() == true).count();
+            potential += Math.max((deckSize / unknownCards) * oddsOnDeck/deckSize * how_much,0) ;
+        }
+
+
+        //
+
+        return potential;
     }
 }

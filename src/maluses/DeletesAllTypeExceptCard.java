@@ -1,6 +1,6 @@
 package maluses;
 
-import server.BigSwitches;
+import artificialintelligence.State;
 import server.Card;
 import server.Type;
 
@@ -88,5 +88,12 @@ public class DeletesAllTypeExceptCard extends Malus {
         DeletesAllTypeExceptCard newm = new DeletesAllTypeExceptCard(this.thiscardid,newtypes,this.cards);
         //System.out.println("In cloning DeletesAllTypeExceptCard: The new types and old types are equal = " + (newm.types == this.types));
         return newm;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

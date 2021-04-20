@@ -1,13 +1,15 @@
 package interactive;
 
 import artificialintelligence.ScoreCounterForAI;
+import artificialintelligence.State;
 import maluses.Malus;
 import server.Card;
 import server.ClientHandler;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class CopyNameColorStrengthMalusFromHand extends Interactive  {
     public int priority = 2;
@@ -156,5 +158,12 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
         newi.text = this.text;
         newi.thiscardid = this.thiscardid;
         return newi;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

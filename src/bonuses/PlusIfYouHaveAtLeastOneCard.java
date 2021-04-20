@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 
@@ -65,5 +66,22 @@ public class PlusIfYouHaveAtLeastOneCard extends Bonus {
             }
         }
         return 0;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potentialTable, potentialDeck;
+        ArrayList<String> names = new ArrayList<>();
+        for(Integer i : idsOfCardsNeeded){
+            names.add(BigSwitches.switchIdForName(i));
+        }
+        if(hand.stream().filter(c -> names.contains(c.getName())).count() >= 1){
+            return how_much;
+        }
+        long suitableOnTable = table.stream().filter(c -> names.contains(c.getName())).count();
+        potentialTable = Math.min(suitableOnTable - state.getNumberOfEnemies() * suitableOnTable / table.size() * how_much, how_much);
+        long suitableInDeck = state.getProbablyInDeck().stream().filter(c -> names.contains(c.getName())).count();
+        potentialDeck = Math.min((deckSize / unknownCards) * suitableInDeck / deckSize * how_much, how_much);
+        return Math.max(potentialTable, potentialDeck);
     }
 }

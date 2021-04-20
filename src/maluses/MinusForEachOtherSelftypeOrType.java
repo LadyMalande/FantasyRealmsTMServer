@@ -1,5 +1,6 @@
 package maluses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -94,5 +95,12 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
         MinusForEachOtherSelftypeOrType newm = new MinusForEachOtherSelftypeOrType(this.howMuch, newtypes, this.selftype, this.thiscardid);
         //System.out.println("In cloning CardIsDeletedIfYouDontHaveAtLeastOneType: The new types and old types are equal = " + (newm.types == this.types));
         return newm;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        // TODO
+        return potential;
     }
 }

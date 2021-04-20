@@ -1,5 +1,6 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
@@ -63,5 +64,19 @@ public class PlusForEachType extends Bonus  {
         }
 
         return sum;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        long numberOfSuitableCards = hand.stream().filter(c -> types.contains(c.getType())).count();
+        potential += (numberOfSuitableCards)*how_much;
+        if(numberOfSuitableCards <6){
+            long oddsOnTable = table.stream().filter(c -> types.contains(c.getType())).count();
+            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * how_much;
+            long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count();
+            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * how_much;
+        }
+        return potential;
     }
 }

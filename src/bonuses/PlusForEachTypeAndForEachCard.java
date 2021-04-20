@@ -1,11 +1,10 @@
 package bonuses;
 
+import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
 
-import javax.imageio.plugins.bmp.BMPImageWriteParam;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -87,5 +86,19 @@ public class PlusForEachTypeAndForEachCard extends Bonus  {
         }
 
         return total;
+    }
+
+    @Override
+    public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
+        double potential = 0.0;
+        long numberOfSuitableCards = hand.stream().filter(c -> types.contains(c.getType())).count() + hand.stream().filter(c -> cards.contains(c.getId())).count();
+        potential += (numberOfSuitableCards)*how_much;
+        if(numberOfSuitableCards <6){
+            long oddsOnTable = table.stream().filter(c -> types.contains(c.getType())).count() + table.stream().filter(c -> cards.contains(c.getId())).count();
+            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * how_much;
+            long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count() + state.getProbablyInDeck().stream().filter(c -> cards.contains(c.getId())).count();
+            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * how_much;
+        }
+        return potential;
     }
 }

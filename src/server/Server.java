@@ -9,10 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -213,6 +210,7 @@ Server extends Thread
                         + elapsedTime/1000000);
                 //startTheGame();
                //System.out.println("End of Server game number " + i);
+                writeToFile();
             }
         } else {
             //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
@@ -238,6 +236,7 @@ Server extends Thread
 
             //System.out.println("Players size" + players.size());
             //System.out.println("End of Server");
+            writeToFile();
 
         }
 
@@ -251,6 +250,12 @@ Server extends Thread
                 tArrayList.add(0, item);
             }
         }
+    }
+
+    private void writeToFile(){
+        players.sort(Comparator.comparing(PlayerOrAI::getName));
+        ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
+        eoc.createOutput(experimentOutputName);
     }
 
     private void readArgs(String[] args) throws NotAIType{
@@ -299,7 +304,7 @@ Server extends Thread
                         } else if(args[ar].startsWith("MC")){
                             varietyOfPlayersAI.append("M");
                             try {
-                                LearningPlayer ai = new LearningPlayer(this, ar + "_MonteCarlo", 0.5, 0.05);
+                                LearningPlayer ai = new LearningPlayer(this, ar + "_MonteCarlo", 0.2, 0.05);
                                 players.add(ai);
                             } catch (CloneNotSupportedException e) {
                                 e.printStackTrace();
@@ -318,22 +323,6 @@ Server extends Thread
         }
     }
 
-    public void increaseCountedScoreNumber(){
-        int nowCounted = numberOfCountedScores.incrementAndGet();
-        //System.out.println("nowCounted incremented in increaseCountedScoreNumber");
-        if(players.size() == nowCounted){
-            //System.out.println("Sending counted score in increaseCountedScoreNumber");
-            sendCountedScore();
-        }
-    }
-
-    private void sendCountedScore(){
-        //System.out.println("inside sendCOuntedScore");
-        players.forEach(p -> p.sendScore(gatherScores(p)));
-        ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
-        eoc.createOutput(experimentOutputName);
-        //System.out.println("Telling all clients about final score");
-    }
 
     public void putCardOnTable(Card c){
         // Tell all clients to put this card on tables
@@ -389,8 +378,26 @@ Server extends Thread
 
     private void sendEndGame(){
         //Tell all clients to disable all buttons, end of the game, start counting hand
+
         players.forEach(p -> p.endGame());
 
+    }
+
+
+    public void increaseCountedScoreNumber(){
+        int nowCounted = numberOfCountedScores.incrementAndGet();
+        //System.out.println("nowCounted incremented in increaseCountedScoreNumber");
+        if(players.size() == nowCounted){
+            //System.out.println("Sending counted score in increaseCountedScoreNumber");
+            sendCountedScore();
+        }
+    }
+
+    private void sendCountedScore(){
+        //System.out.println("inside sendCOuntedScore");
+        players.forEach(p -> p.sendScore(gatherScores(p)));
+
+        //System.out.println("Telling all clients about final score");
     }
 
     public String giveNamesInOrder(PlayerOrAI client){
