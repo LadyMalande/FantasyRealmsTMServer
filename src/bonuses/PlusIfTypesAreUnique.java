@@ -68,4 +68,46 @@ public class PlusIfTypesAreUnique extends Bonus  {
         }
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+    public boolean reactsWithTypes(ArrayList<Type> types, ArrayList<Card> hand){
+        ArrayList<Type> haveTypesInHand = new ArrayList<>();
+        for(Card c : hand){
+            if(!haveTypesInHand.contains(c.getType())){
+                haveTypesInHand.add(c.getType());
+            }
+        }
+        // We have different cards, no need to use Shapeshifter/Mirage
+        if(haveTypesInHand.size() == hand.size()){
+            return false;
+        } else{
+            // There are already all changeable colors, cant react with this card
+            if(haveTypesInHand.containsAll(types)){
+                return false;
+            } else{
+                return true;
+            }
+        }
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        ArrayList<Type> haveTypesInHand = new ArrayList<>();
+        for(Card c : hand){
+            if(!haveTypesInHand.contains(c.getType())){
+                haveTypesInHand.add(c.getType());
+            }
+        }
+        // We have different cards, no need to use Shapeshifter/Mirage
+        if(hand.size() - haveTypesInHand.size()  == 1){
+            if(!haveTypesInHand.contains(t)){
+                return howMuch;
+            }
+        }
+        return 0;
+    }
 }

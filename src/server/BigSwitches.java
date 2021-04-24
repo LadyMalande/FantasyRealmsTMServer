@@ -419,6 +419,34 @@ public class BigSwitches {
 
     }
 
+    public static ArrayList<Integer> switchTypeForIds(Type type){
+        switch(type){
+            case FLAME: return new ArrayList<>(
+                    Arrays.asList(37,38,39,40,41));
+            case ARMY: return new ArrayList<>(
+                    Arrays.asList(22,23,24,25,26));
+            case WILD: return new ArrayList<>(
+                    Arrays.asList(52,53,54));
+            case LAND: return new ArrayList<>(
+                    Arrays.asList(42,43,44,45,46));
+            case FLOOD: return new ArrayList<>(
+                    Arrays.asList(32,33,34,35,36));
+            case LEADER: return new ArrayList<>(
+                    Arrays.asList(17,18,19,20,21));
+            case WEAPON: return new ArrayList<>(
+                    Arrays.asList(6,7,8,9,10));
+            case WIZARD: return new ArrayList<>(
+                    Arrays.asList(11,12,13,14,15,16));
+            case WEATHER: return new ArrayList<>(
+                    Arrays.asList(47,48,49,50,51));
+            case ARTIFACT: return new ArrayList<>(
+                    Arrays.asList(27,28,29,30,31));
+            case BEAST: return new ArrayList<>(
+                    Arrays.asList(1,2,3,4,5));
+            default: return null;
+        }
+    }
+
     public static ArrayList<String> switchTypeForNames(Type type){
         switch(type){
             case FLAME: return new ArrayList<>(

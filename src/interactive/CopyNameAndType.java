@@ -2,13 +2,14 @@ package interactive;
 
 import artificialintelligence.ScoreCounterForAI;
 import artificialintelligence.State;
-import maluses.Malus;
+import bonuses.Bonus;
+import bonuses.BonusOrBonus;
+import bonuses.PlusForSameColorCards;
+import bonuses.PlusIfTypesAreUnique;
+import maluses.*;
 import server.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class CopyNameAndType extends Interactive {
     public int priority = 4;
@@ -56,7 +57,7 @@ public class CopyNameAndType extends Interactive {
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
 
-        //long startTime = System.nanoTime();
+        long startTime = System.nanoTime();
         //System.out.println("Counting CopyNameAndType");
         Type bestTypeToChangeInto = null;
         String bestNameToChangeInto = null;
@@ -144,18 +145,86 @@ public class CopyNameAndType extends Interactive {
             thisCard.name = bestNameToChangeInto;
             //System.out.println("Changed the card to be " + thisCard.name + " [" + thisCard.type + "]");
         }
-        /*
-        long elapsedTime = System.nanoTime() - startTime;
-        System.out.println("Total execution time spent in CopyNameAndType in millis: "
-                + elapsedTime/1000000);
 
-         */
+        long elapsedTime = System.nanoTime() - startTime;
+        //System.out.println("Total execution time spent in CopyNameAndType in millis: " + elapsedTime/1000000);
+
+
+    }
+
+    public void changeHandWithInteractiveNoRecursion(){
+
+    }
+
+    private Map<Type, Integer> getReactions(ArrayList<Card> hand){
+        ArrayList<Card> inspectCards = cardsThatReactWithThisOne(hand);
+        Map<Type, Integer> reactions = new HashMap<>();
+        for(Type t : types){
+            reactions.put(t, 0);
+        }
+        for(Card c : inspectCards){
+            for(Type t : types){
+                for(Bonus b : c.bonuses){
+                    int newValue = reactions.get(t) +  b.getReaction(t, hand);
+                    reactions.put(t, newValue);
+                }
+                for(Malus m : c.maluses){
+                    int newValue = reactions.get(t) +  m.getReaction(t, hand);
+                    reactions.put(t, newValue);
+                }
+            }
+
+        }
+
+        return reactions;
+    }
+
+
+
+    private ArrayList<Card> cardsThatReactWithThisOne(ArrayList<Card> hand){
+        ArrayList<Card> cardsThatReact = new ArrayList<>();
+        for(Card c : hand){
+            for(Bonus b : c.bonuses){
+                if(b instanceof BonusOrBonus && ((BonusOrBonus)b).reactsWithTypes(types)){
+                    cardsThatReact.add(c);
+                    break;
+                } else if(b instanceof PlusForSameColorCards){
+                    if(((PlusForSameColorCards)b).reactsWithTypes(types, hand)){
+                        cardsThatReact.add(c);
+                        break;
+                    }
+                } else if(b instanceof PlusIfTypesAreUnique){
+                    if(((PlusIfTypesAreUnique)b).reactsWithTypes(types, hand)){
+                        cardsThatReact.add(c);
+                        break;
+                    }
+                }
+                else if(b.reactsWithTypes(types)){
+                    cardsThatReact.add(c);
+                    break;
+                }
+            }
+            for(Malus m : c.maluses){
+                if(m.reactsWithTypes(types)){
+                    cardsThatReact.add(c);
+                    break;
+                }
+            }
+        }
+
+        return cardsThatReact;
     }
 
     private ArrayList<Integer> willBeWiped(ArrayList<Card> hand){
         ArrayList<Integer> wiped = new ArrayList<>();
-
-
+        for(Card c: hand) {
+            for (Malus m : c.getMaluses()) {
+                if (m instanceof DeletesAllExceptTypeOrCard || m instanceof DeletesAllType ||
+                        m instanceof DeletesAllTypeExceptCard || m instanceof DeletesAllTypeOrOtherSelftype) {
+                    wiped.addAll(m.returnWillBeDeleted());
+                }
+            }
+        }
         return wiped;
     }
 

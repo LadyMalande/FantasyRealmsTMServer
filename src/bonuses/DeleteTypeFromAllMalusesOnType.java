@@ -96,4 +96,9 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
         saved = minus - withoutType;
         return saved;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
 }

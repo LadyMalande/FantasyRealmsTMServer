@@ -1,13 +1,17 @@
 package maluses;
 
+import artificialintelligence.ScoreCounterForAI;
 import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
 import server.Type;
+import util.HandCloner;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class CardIsDeletedIfYouDontHaveAtLeastOneType extends Malus {
     public int priority = 7;
@@ -90,5 +94,37 @@ public class CardIsDeletedIfYouDontHaveAtLeastOneType extends Malus {
         double potential = 0.0;
         // TODO
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return this.types.stream().anyMatch(type -> types.contains(type));
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            // no need to enhance for this card, it is satisfied
+            return 0;
+        } else{
+            if(types.contains(t)){
+                //the card can help
+                HandCloner hc = new HandCloner();
+                try{
+                    ArrayList<Card> newHand = hc.cloneHand(null, hand);
+                    List<Card> toOmit = hand.stream().filter(card -> card.getMaluses().contains(this)).collect(Collectors.toList());
+                    ArrayList<Card> withoutThis = hc.cloneHand(toOmit.get(0), hand);
+                    ScoreCounterForAI sc = new ScoreCounterForAI();
+                    int newHandScore = sc.countScore(hand, null);
+                    int handOmited = sc.countScore(withoutThis, null);
+                    return newHandScore - handOmited;
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }
+        return 0;
     }
 }

@@ -3,6 +3,7 @@ package bonuses;
 import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
+import server.Type;
 
 
 import java.util.ArrayList;
@@ -12,6 +13,9 @@ import java.util.ResourceBundle;
 public class PlusForEachCard extends Bonus {
     public long serialVersionUID = 7;
     private int how_much;
+
+
+
     private ArrayList<Integer> idsOfCardsNeeded;
     public final String text;
 
@@ -30,6 +34,10 @@ public class PlusForEachCard extends Bonus {
         this.text = "+" + how_much + " for each of these: " + s;
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
+    }
+
+    public ArrayList<Integer> getIdsOfCardsNeeded() {
+        return idsOfCardsNeeded;
     }
 
     @Override
@@ -66,5 +74,17 @@ public class PlusForEachCard extends Bonus {
         double potential = 0.0;
         // TODO
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return idsOfCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id)))));
+    }
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(idsOfCardsNeeded.stream().anyMatch(id -> t == (BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id)))))){
+            return how_much;
+        }
+        return 0;
     }
 }

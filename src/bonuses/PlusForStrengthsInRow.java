@@ -2,6 +2,7 @@ package bonuses;
 
 import artificialintelligence.State;
 import server.Card;
+import server.Type;
 
 import java.util.*;
 
@@ -64,5 +65,10 @@ public class PlusForStrengthsInRow extends Bonus  {
         double potential = 0.0;
         // TODO
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
     }
 }

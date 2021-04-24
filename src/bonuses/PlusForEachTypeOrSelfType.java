@@ -93,4 +93,20 @@ public class PlusForEachTypeOrSelfType extends Bonus  {
         }
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return types.stream().anyMatch(type -> types.contains(type)) || types.contains(selftype);
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(types.contains(t)){
+            return howMuch;
+        }
+        if(selftype == t){
+            return howMuch;
+        }
+        return 0;
+    }
 }

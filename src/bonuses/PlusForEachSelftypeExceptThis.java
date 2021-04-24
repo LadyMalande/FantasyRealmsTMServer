@@ -80,4 +80,17 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * how_much;
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return types.contains(type);
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(type == t){
+            return how_much;
+        }
+        return 0;
+    }
 }

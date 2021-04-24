@@ -1,9 +1,11 @@
 package server;
 
 import artificialintelligence.ArtificialIntelligenceInterface;
+import artificialintelligence.CacheMap;
 import artificialintelligence.GreedyPlayer;
 import artificialintelligence.LearningPlayer;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -47,7 +49,9 @@ Server extends Thread
     int numberOfGamesToPlay = 0;
     StringBuilder startingDeck;
     ArrayList<Card> mightBeInDeck = new ArrayList<>();
-
+    public int ithRound = 0;
+    CacheMap cacheMap;
+    StringBuilder bufferForResults;
     // counter for clients
 
 
@@ -77,6 +81,7 @@ Server extends Thread
         this.ss = ss;
         this.args = args;
         varietyOfPlayersAI = new StringBuilder();
+        bufferForResults = new StringBuilder();
     }
     public void run()
     {
@@ -158,8 +163,13 @@ Server extends Thread
         }
         if(numberOfGamesToPlay != 0){
             decideNeedDelay();
-            for(int i = 0; i < numberOfGamesToPlay; i++){
-                System.out.println("Starting game number " + i + "---------------------------------------------------------");
+            ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
+            FileWriter writer = eoc.createFileWriter(experimentOutputName);
+            for(ithRound = 0; ithRound < numberOfGamesToPlay; ithRound++){
+                if(ithRound % 100 == 0){
+                    writer = eoc.createFileWriter(experimentOutputName);
+                }
+                System.out.println("Starting game number " + ithRound + "---------------------------------------------------------");
                 long startTime = System.nanoTime();
                 deck = new Deck();
                 deck.initializeOriginal();
@@ -210,8 +220,15 @@ Server extends Thread
                         + elapsedTime/1000000);
                 //startTheGame();
                //System.out.println("End of Server game number " + i);
-                writeToFile();
+                writeToBuffer();
+                if(ithRound % 100 == 99){
+                    writeToFileWriter(writer, eoc);
+                    eoc.flushFileWriter(writer);
+
+                    bufferForResults = new StringBuilder();
+                }
             }
+            eoc.flushFileWriter(writer);
         } else {
             //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
             Random randomGeneratorForPlayers = new Random();
@@ -252,9 +269,41 @@ Server extends Thread
         }
     }
 
+    private void writeToBuffer(){
+        double totalNumberOfRounds = 0;
+
+        for(PlayerOrAI player : players) {
+            totalNumberOfRounds += player.getNumberOfRoundsPlayed();
+        }
+        bufferForResults.append(totalNumberOfRounds + ";");
+
+        for(PlayerOrAI player : players){
+
+            bufferForResults.append(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";"+ player.score + ";" );
+
+            for(Card c: player.getHand()){
+                bufferForResults.append(c.name + ";");
+            }
+            if(player.getHand().size() < 8){
+                for(int i = player.getHand().size(); i < 8; i++){
+                    bufferForResults.append("-;");
+                }
+            }
+        }
+        // Writes the content to the file
+        bufferForResults.append("\n");
+    }
+
+    private void writeToFileWriter(FileWriter writer, ExperimentOutputCreator eoc){
+        players.sort(Comparator.comparing(PlayerOrAI::getName));
+        eoc.writeToFileWriter(writer, bufferForResults);
+
+    }
+
     private void writeToFile(){
         players.sort(Comparator.comparing(PlayerOrAI::getName));
         ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
+
         eoc.createOutput(experimentOutputName);
     }
 
@@ -291,10 +340,11 @@ Server extends Thread
                 if(ar > 1 && ar < 1 + numberOfAI + 1){
                     if (Stream.of(AITypes).anyMatch(args[ar]::startsWith)){
                         if(args[ar].startsWith("GREEDY_")){
+                            cacheMap = new CacheMap();
                             try {
                                 varietyOfPlayersAI.append("G");
                                 int parameterOfGreedy = Integer.parseInt(args[ar].substring(7));
-                                GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY");
+                                GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY", cacheMap);
                                 players.add(ai);
                             } catch (NumberFormatException | CloneNotSupportedException e) {
                                 System.out.println("Invalid arguments format of GREEDY type of AI. Correct type is: GREEDY_0 or GREEDY_10 etc. Run the program again with proper arguments. Terminating the program.");

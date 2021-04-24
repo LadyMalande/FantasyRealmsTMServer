@@ -13,6 +13,10 @@ public class Coefficients implements Serializable {
         this.actualValue = actual;
         this.actalValueCoefficient = 0.5;
     }
+    public Coefficients(int actual, double coefficient){
+        this.actualValue = actual;
+        this.actalValueCoefficient = coefficient;
+    }
 
     public void setActualValue(int actualValue) {
         this.actualValue = actualValue;

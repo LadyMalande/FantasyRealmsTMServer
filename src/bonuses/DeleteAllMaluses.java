@@ -2,6 +2,7 @@ package bonuses;
 
 import artificialintelligence.State;
 import server.Card;
+import server.Type;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,4 +51,11 @@ public class DeleteAllMaluses extends Bonus implements Serializable {
         }
         return 0;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+
 }

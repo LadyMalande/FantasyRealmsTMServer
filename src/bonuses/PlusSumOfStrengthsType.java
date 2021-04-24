@@ -55,4 +55,14 @@ public class PlusSumOfStrengthsType extends Bonus  {
         // TODO
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        return 0;
+    }
 }

@@ -84,4 +84,14 @@ public class PlusStrengthOfAnyCardOfType extends Bonus  {
         potentialTableDeck = Math.max(tableStrength, deckStrength);
         return Math.max(now, potentialTableDeck);
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        return 0;
+    }
 }

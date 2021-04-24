@@ -6,10 +6,7 @@ import server.ExperimentOutputCreator;
 import server.PlayerOrAI;
 import server.Server;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.FutureTask;
 
@@ -46,12 +43,12 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             this.server = server;
             bestPossibleScore = 0;
             bestCardToTake = null;
-            bestCardToDrop = null;
             numberOfRoundsPlayed = 0;
             handValuesMap = new HashMap<>();
             historyHandRound = new HashMap<>();
             stateRecognized = false;
-            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
+            //1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,  ,52,53,54
+            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51});
             coefficientsMap = loadCoefficientsFromFile();
             if(coefficientsMap == null){
                 coefficientsMap = tmc.makeStateMap();
@@ -297,7 +294,8 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         for(Pair<Integer,Integer> pair : pairs){
             //System.out.println(pair);
             Coefficients co = coefficientsMap.get(pair);
-            cummulativeValue += co.getActualValue() * co.getActalValueCoefficient();
+            //cummulativeValue += co.getActualValue() * co.getActalValueCoefficient();
+            cummulativeValue += co.getActalValueCoefficient();
         }
         handValuesMap.put(ids, cummulativeValue);
         return cummulativeValue;
@@ -328,40 +326,35 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
                 }
             }
         }
-
-        writeValuesToFile();
+        if(server.ithRound % 100 == 0){
+            writeValuesToFile();
+        }
     }
 
     private void writeValuesToFile(){
         ExperimentOutputCreator ex = new ExperimentOutputCreator(server.getPlayers());
-        ex.writeCoefficients(ex.createOutputFile("pair_values"),coefficientsMap);
+        ex.writeCoefficients(ex.createOutputFile("map_coefficients"),coefficientsMap);
     }
 
     private Map<Pair<Integer,Integer>, Coefficients> loadCoefficientsFromFile(){
         Map<Pair<Integer,Integer>, Coefficients> map = new HashMap<>();
-
         try{
-            FileInputStream fi = new FileInputStream(new File("map_coefficients.txt"));
-            ObjectInputStream oi = new ObjectInputStream(fi);
+            FileReader r = new FileReader("map_coefficients.txt");
+            BufferedReader fr = new BufferedReader(r);
 
+            String line;
             // Read objects
-            for(int i = 0; i < 1431; i++){
-                map.put((Pair<Integer,Integer>)oi.readObject(),(Coefficients) oi.readObject());
-
+            while((line = fr.readLine()) != null){
+                String[] separated = line.split(";");
+                map.put(new Pair<Integer, Integer>(Integer.parseInt(separated[0]), Integer.parseInt(separated[1])),
+                        new Coefficients(Integer.parseInt(separated[2]), Double.parseDouble((separated[3]))));
             }
             for(Map.Entry entry: map.entrySet()){
-                //System.out.println(entry.getKey() + " value: " + ((Coefficients)entry.getValue()).getActualValue() + " newc: "+ ((Coefficients)entry.getValue()).getActalValueCoefficient());
+                System.out.println(entry.getKey() + " value: " + ((Coefficients)entry.getValue()).getActualValue() + " newc: "+ ((Coefficients)entry.getValue()).getActalValueCoefficient());
             }
-
-            oi.close();
-            fi.close();
+            fr.close();
         } catch (IOException e) {
             System.out.println("Error initializing stream while loading");
-            return null;
-        }
-        catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
             return null;
         }
 

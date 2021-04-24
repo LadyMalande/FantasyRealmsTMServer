@@ -13,7 +13,7 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
     public long serialVersionUID = 20;
     public final String text;
     private int howMuch;
-    private ArrayList<Integer> idCardsNeeded;
+    public ArrayList<Integer> idCardsNeeded;
     public ArrayList<Type> types;
 
     public PlusIfYouHaveAllCardsAndAtLeastOneType( int howMuch, ArrayList<Integer> idCardsNeeded, ArrayList<Type> types) {
@@ -79,5 +79,60 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
         double potential = 0.0;
         // TODO
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return idCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ||
+                types.stream().anyMatch(type -> types.contains(type)) ;
+
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            // The type need is covered, check the cards
+            ArrayList<Integer> howManyCardsAreMissing = howManyCardsAreMissing(hand);
+            if(howManyCardsAreMissing.size() == 0){
+                return 0;
+            } else if(howManyCardsAreMissing.size() == 1){
+                if(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((howManyCardsAreMissing.get(0)))) == t){
+                    return howMuch;
+                }
+            } else if(howManyCardsAreMissing.size() == 2){
+                if(hand.stream().filter(card -> card.getId() == 52 || card.getId() == 53).count() == 2){
+                    if((howManyCardsAreMissing.get(0) == 42 || howManyCardsAreMissing.get(0) == 31) && (howManyCardsAreMissing.get(1) == 42 || howManyCardsAreMissing.get(1) == 31))
+                    return howMuch;
+                }
+
+            }
+        } else{
+            // The type is not covered, check if the cards are there, then ask if the type can be supplemented
+            // The type need is covered, check the cards
+            ArrayList<Integer> howManyCardsAreMissing = howManyCardsAreMissing(hand);
+            if(howManyCardsAreMissing.size() == 0){
+                if(types.contains(t)){
+                    return howMuch;
+                }
+            } else if(howManyCardsAreMissing.size() == 1){
+                if(howManyCardsAreMissing.get(0) == 42 && hand.stream().filter(card -> card.getId() == 52 || card.getId() == 53).count() == 2){
+                    return howMuch;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private ArrayList<Integer> howManyCardsAreMissing(ArrayList<Card> hand){
+        ArrayList<Integer> missingCards = new ArrayList<>(idCardsNeeded);
+        for(int id: idCardsNeeded){
+            for(Card card: hand){
+                if(BigSwitches.switchIdForName(id).equals(card.name)){
+                    idCardsNeeded.remove(card.getId());
+                }
+            }
+        }
+        return missingCards;
     }
 }

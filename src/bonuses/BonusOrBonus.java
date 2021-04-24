@@ -1,7 +1,9 @@
 package bonuses;
 
 import artificialintelligence.State;
+import server.BigSwitches;
 import server.Card;
+import server.Type;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -61,5 +63,43 @@ public class BonusOrBonus extends Bonus {
         newb.b1 = this.b1.clone();
         newb.b2 = this.b1.clone();
         return newb;
+    }
+
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        if(reactsBonusWithTypes(b1, types) || reactsBonusWithTypes(b2, types)){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean reactsBonusWithTypes(Bonus b, ArrayList<Type> types){
+
+        if(b instanceof PlusForEachType){
+            return ((PlusForEachType) b).types.stream().anyMatch(type -> types.contains(type));
+        }
+        if(b instanceof PlusForEachTypeIfYouHaveCard){
+            String name = BigSwitches.switchIdForSimplifiedName(((PlusForEachTypeIfYouHaveCard) b).cardid);
+            return ((PlusForEachTypeIfYouHaveCard) b).types.stream().anyMatch(type -> types.contains(type)) ||
+                    types.contains(BigSwitches.switchNameForType(name));
+        }
+        if(b instanceof PlusIfYouHaveAtLeastOneType){
+            return ((PlusIfYouHaveAtLeastOneType) b).types.stream().anyMatch(type -> types.contains(type));
+        }
+        if(b instanceof PlusIfYouHaveAllCardsAndAtLeastOneType){
+            return ((PlusIfYouHaveAllCardsAndAtLeastOneType) b).types.stream().anyMatch(type -> types.contains(type)) ||
+                    ((PlusIfYouHaveAllCardsAndAtLeastOneType) b).idCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ;
+        }
+        if(b instanceof PlusIfYouHaveAll){
+            return ((PlusIfYouHaveAll) b).idsOfCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ;
+        }
+        if(b instanceof PlusIfYouHaveAtLeastOneCard){
+            return ((PlusIfYouHaveAtLeastOneCard) b).idsOfCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ;
+        }
+        return false;
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        return Math.max(b1.getReaction(t, hand), b2.getReaction(t, hand));
     }
 }

@@ -1,6 +1,7 @@
 package maluses;
 
 import artificialintelligence.State;
+import server.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -130,5 +131,24 @@ public class DeletesAllExceptTypeOrCard extends Malus {
         double potential = 0.0;
         // TODO
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return this.types.stream().anyMatch(type -> types.contains(type));
+    }
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        return 0;
+    }
+
+    @Override
+    public ArrayList<Integer> returnWillBeDeleted(){
+        ArrayList<Integer> willBeDeleted = new ArrayList<>();
+        for(Type t: types){
+            willBeDeleted.addAll(BigSwitches.switchTypeForIds(t));
+        }
+        willBeDeleted.removeAll(cards);
+        return willBeDeleted;
     }
 }

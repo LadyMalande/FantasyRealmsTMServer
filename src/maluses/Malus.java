@@ -143,4 +143,16 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
         // TODO
         return potential;
     }
+
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        return 0;
+    }
+
+    public ArrayList<Integer> returnWillBeDeleted(){
+        return null;
+    }
 }

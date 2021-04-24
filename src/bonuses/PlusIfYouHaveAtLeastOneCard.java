@@ -3,6 +3,7 @@ package bonuses;
 import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
+import server.Type;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -12,7 +13,7 @@ public class PlusIfYouHaveAtLeastOneCard extends Bonus {
     public long serialVersionUID = 21;
     public final String text;
     private int how_much;
-    private ArrayList<Integer> idsOfCardsNeeded;
+    public ArrayList<Integer> idsOfCardsNeeded;
 
     public PlusIfYouHaveAtLeastOneCard(int hm, ArrayList<Integer> cards){
 
@@ -83,5 +84,24 @@ public class PlusIfYouHaveAtLeastOneCard extends Bonus {
         long suitableInDeck = state.getProbablyInDeck().stream().filter(c -> names.contains(c.getName())).count();
         potentialDeck = Math.min((deckSize / unknownCards) * suitableInDeck / deckSize * how_much, how_much);
         return Math.max(potentialTable, potentialDeck);
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return idsOfCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id)))));
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        // Nothing to do better
+        if(hand.stream().anyMatch(card -> idsOfCardsNeeded.contains(card.getId()))){
+            return 0;
+        }
+        else{
+            if(idsOfCardsNeeded.stream().anyMatch(id -> BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName(id)) == t)){
+                return how_much;
+            }
+        }
+        return 0;
     }
 }

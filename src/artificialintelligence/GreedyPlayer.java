@@ -26,6 +26,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
     int beginningHandScore;
     boolean playing = false;
     Map<List<Integer>,Integer> cache;
+    CacheMap cacheMap;
 
     public GreedyPlayer(Server server) throws CloneNotSupportedException {
         hand = new ArrayList<>();
@@ -49,6 +50,22 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         this.gainThreshold = gainThreshold;
         getInitCards();
         cache = new HashMap<>();
+        //System.out.println("Making Greedy player with gain threshold: " + gainThreshold);
+    }
+
+    public GreedyPlayer(Server server, int gainThreshold, String name, CacheMap cacheMap) throws CloneNotSupportedException {
+        this.name = name;
+        //System.out.println("Name of GreedyPlayer " + this.name);
+        hand = new ArrayList<>();
+        this.server = server;
+        bestPossibleScore = 0;
+        bestCardToTake = null;
+        bestCardToDrop = null;
+        numberOfRoundsPlayed = 0;
+        this.gainThreshold = gainThreshold;
+        getInitCards();
+        cache = new HashMap<>();
+        this.cacheMap = cacheMap;
         //System.out.println("Making Greedy player with gain threshold: " + gainThreshold);
     }
 
@@ -146,10 +163,11 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         for(Map.Entry<List<Integer>, Integer> entry : cache.entrySet()){
             List<Integer> key = entry.getKey();
             for(Integer id : key){
-                if(!hand.stream().anyMatch(card -> id.equals(card.getId())) &&
-                        !cardsOnTable.stream().anyMatch(card -> id.equals(card.getId())) && !id.equals(toBePutOnTable.getId())) {
+                if(id == 31) {
+                    if (!hand.stream().anyMatch(card -> id.equals(card.getId())) &&
+                            !cardsOnTable.stream().anyMatch(card -> id.equals(card.getId())) && !id.equals(toBePutOnTable.getId())) {
 
-                    toRemove.add(key);
+                        toRemove.add(key);
                     /*
                     System.out.print("Removing from cache: "); key.forEach(num -> System.out.print(num + ", "));
 
@@ -158,6 +176,9 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                     System.out.println();
                      */
 
+                        break;
+                    }
+                    toRemove.remove(key);
                     break;
                 }
             }
@@ -220,13 +241,12 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
         int currentScore;
         // Count if there is gain from the table greater than the gainThreshold and keep the highest combination of them
         ScoreCounterForAI sc = new ScoreCounterForAI();
-        List<Integer> originalKey = newHandOldScore.stream().map(Card::getId).collect(Collectors.toList());
-        Collections.sort(originalKey);
-        if(cache.keySet().contains(originalKey)) {
-            currentScore = cache.get(originalKey);
+        int score = cacheMap.getValue(newHandOldScore);
+        if(score > -998) {
+            currentScore = score;
         } else {
             currentScore = sc.countScore(newHandOldScore, cardsOnTable);
-
+            cacheMap.putValue(newHandOldScore, currentScore);
             //System.out.print("Players cards on hand before deciding what to do [score: " + currentMaxScore + "]: ");
         }
         int currentMaxScore = currentScore;
@@ -279,20 +299,14 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                     //System.out.println("Pocet karet na stole: " + newTable.size() + " pocet karet na ruce " + hand.size() + " pocet karet na NOVE ruce: " + newHand.size());
 
                     // Count the score with the new cards on hand and on table
-                    List<Integer> key = newHand.stream().map(Card::getId).collect(Collectors.toList());
-                    Collections.sort(key);
-                    if(cache.keySet().contains(key)){
-                        currentScore = cache.get(key);
-                        //System.out.print("I know this value already! Its " + currentScore + ": "); key.forEach(id -> System.out.print(id + ", ")); System.out.println();
+                    score = cacheMap.getValue(newHand);
+                    if(score > -998){
+                        currentScore = score;
                     } else {
                         currentScore = sc.countScore(newHand, newTable);
                         //System.out.println("After counting score in performMove after selecting a card in foreachCardInHandLoop");
-                        while (currentScore < -999) {
-                            // wait;
-                            System.out.println("Score is less than -999, waiting in while loop");
-                        }
                         //System.out.print("DANG I have to compute this one, its " + currentScore + ": "); key.forEach(id -> System.out.print(id + ", "));System.out.println();
-                        cache.put(key, currentScore);
+                        cacheMap.putValue(newHand,currentScore);
                     }
                     if (currentScore > currentMaxScore + gainThreshold) {
                         currentMaxScore = currentScore;
@@ -330,19 +344,13 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                     newTable = cardsOnTable;
                     newTable.add(cardToChange);
                     //System.out.println("Pocet karet na stole: " + newTable.size() + " pocet karet na ruce " + hand.size());
-                   // System.out.println("AI drew and is now changing card in hand: " + cardToChange.getNameLoc("cs") + " and counting score with " + copiedCardFromTable.getNameLoc("cs"));
-
-                List<Integer> key = newHand.stream().map(Card::getId).collect(Collectors.toList());
-                Collections.sort(key);
+                   //System.out.println("AI drew and is now changing card in hand: " + cardToChange.getNameLoc("cs") + " and counting score with " + copiedCardFromTable.getNameLoc("cs"));
 
                     currentScore = sc.countScore(newHand, newTable);
                     //System.out.print("DANG I have to compute this one, its " + currentScore + ": "); key.forEach(id -> System.out.print(id + ", "));System.out.println();
                     //System.out.println("AI drew and is now changing card in hand: " + cardToChange.getNameLoc("cs") + " and is done counting score with " + copiedCardFromTable.getNameLoc("cs") + " " + currentScore);
-                    while (currentScore < -999) {
-                            // wait;
-                            //System.out.println("Score is less than zero, while loop");
-                        }
-                    cache.put(key, currentScore);
+
+                    cacheMap.putValue(newHand, currentScore);
 
                 newTable.remove(cardToChange);
                 if(currentScore > currentMaxScore + gainThreshold){
@@ -354,6 +362,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                 bestCardToDrop = cardFromDeck;
             }
                 hand.add(cardFromDeck);
+            cacheMap.manageNecromancer();
         }
 
         // Drop a card = if there is a best card to drop, drop it. If not, first card in hand will be dropped.
@@ -377,7 +386,7 @@ public class GreedyPlayer extends PlayerOrAI implements ArtificialIntelligenceIn
                 + elapsedTime/1000000);
         */
 
-        manageCache(cardsOnTable, bestCardToDrop);
+        //manageCache(cardsOnTable, bestCardToDrop);
         //System.out.println(bestCardToDrop.getNameLoc("cs"));
         if(server.getNeedDelay()){
             System.out.println("Waiting till 5000ms");

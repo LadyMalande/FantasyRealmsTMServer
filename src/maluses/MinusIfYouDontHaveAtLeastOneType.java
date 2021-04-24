@@ -75,4 +75,20 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
         // TODO
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return this.types.stream().anyMatch(type -> types.contains(type));
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        if(!hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            //We dont have the needed type AND we can change into it
+            if(types.contains(t)){
+                return howMuch;
+            }
+        }
+        return 0;
+    }
 }

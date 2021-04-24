@@ -39,22 +39,21 @@ public class ExperimentOutputCreator {
 
     public void writeCoefficients(File file, Map<Pair<Integer, Integer>, Coefficients> map){
         try {
-            FileWriter writer = new FileWriter(file, true);
-            FileOutputStream f = new FileOutputStream(createOutputFile("map_coefficients"));
-            ObjectOutputStream o = new ObjectOutputStream(f);
+            FileWriter writer = new FileWriter(file);
 
             // Write objects to file
-            for(Map.Entry entry : map.entrySet()){
-                o.writeObject(entry.getKey());
-                o.writeObject(entry.getValue());
-                //System.out.println("ID: " + c.id + " Name: " + c.name);
+            for(Map.Entry<Pair<Integer,Integer>, Coefficients> entry : map.entrySet()){
+                writer.write(entry.getKey().getKey().toString() + ";");
+                writer.write(entry.getKey().getValue().toString() + ";");
+                writer.write(String.valueOf(entry.getValue().getActualValue()) + ";");
+                writer.write(String.valueOf(entry.getValue().getActalValueCoefficient()));
+                writer.write("\n");
+                System.out.println("ID: " + entry.getKey() + " Val: " + ((Coefficients)entry.getValue()).getActalValueCoefficient());
+
             }
 
-            o.close();
-            f.close();
-
             // Writes the content to the file
-            writer.write("\n");
+
             writer.flush();
             writer.close();
         } catch(IOException ex){
@@ -115,6 +114,42 @@ public class ExperimentOutputCreator {
             writer.write("\n");
             writer.flush();
             writer.close();
+        } catch(IOException ex){
+            ex.printStackTrace();
+            System.out.println("Unable to send experiment data to file.");
+        }
+    }
+
+
+    public FileWriter createFileWriter(String experimentName){
+        File file = createOutputFile(experimentName);
+        try{
+            FileWriter writer = new FileWriter(file, true);
+            return writer;
+        } catch(IOException ex){
+            ex.printStackTrace();
+            System.out.println("Unable to send experiment data to file.");
+            return null;
+        }
+
+    }
+
+    public void flushFileWriter(FileWriter writer){
+        try {
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void writeToFileWriter(FileWriter writer, StringBuilder sb){
+        try {
+
+
+            writer.write(sb.toString());
+
         } catch(IOException ex){
             ex.printStackTrace();
             System.out.println("Unable to send experiment data to file.");

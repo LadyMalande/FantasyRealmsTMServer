@@ -78,5 +78,9 @@ public class DeleteAllMalusesOnType extends Bonus  {
         return Math.max(Math.max(swamp,wildfire), greatflood);
     }
 
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
 
 }

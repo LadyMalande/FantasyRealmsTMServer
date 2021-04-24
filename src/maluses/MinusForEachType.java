@@ -78,4 +78,17 @@ public class MinusForEachType extends Malus {
         // TODO
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return this.types.stream().anyMatch(type -> types.contains(type));
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        if(types.contains(t)){
+            return howMuch;
+        }
+        return 0;
+    }
 }

@@ -149,4 +149,12 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
         }
         return sum;
     }
+
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+    public int getReaction(Type t, ArrayList<Card> hand){
+        return 0;
+    }
 }

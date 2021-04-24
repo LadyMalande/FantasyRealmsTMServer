@@ -13,7 +13,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
     public long serialVersionUID = 22;
     public final String text;
     private int how_much;
-    private ArrayList<Type> types;
+    public ArrayList<Type> types;
 
     public PlusIfYouHaveAtLeastOneType(int hm, ArrayList<Type> types){
 
@@ -79,5 +79,24 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
         long suitableInDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count();
         potentialDeck = Math.min((deckSize / unknownCards) * suitableInDeck / deckSize * how_much, how_much);
         return Math.max(potentialTable, potentialDeck);
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return types.stream().anyMatch(type -> types.contains(type));
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        // Nothing to do better
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            return 0;
+        }
+        else{
+            if(types.contains(t)){
+                return how_much;
+            }
+        }
+        return 0;
     }
 }

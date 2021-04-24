@@ -101,4 +101,22 @@ public class PlusForEachTypeAndForEachCard extends Bonus  {
         }
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return this.types.stream().anyMatch(type -> types.contains(type)) ||
+                cards.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id)))));
+
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(types.contains(t)){
+            return how_much;
+        }
+        if(cards.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id)))))){
+            return how_much;
+        }
+        return 0;
+    }
 }

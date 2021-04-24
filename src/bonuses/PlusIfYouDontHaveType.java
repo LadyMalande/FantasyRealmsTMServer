@@ -64,4 +64,17 @@ public class PlusIfYouDontHaveType extends Bonus  {
 
         return potential;
     }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return types.contains(type);
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(type == t){
+            return -howMuch;
+        }
+        return 0;
+    }
 }

@@ -4,10 +4,7 @@ import artificialintelligence.State;
 import server.Card;
 import server.Type;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class PlusForSameColorCards extends Bonus  {
     public long serialVersionUID = 14;
@@ -90,4 +87,62 @@ public class PlusForSameColorCards extends Bonus  {
         }
         return 0;
     }
+
+    private Map<Type, Integer> getNumberOfTypes(ArrayList<Card> hand){
+        Map<Type, Integer> typesNumber = new HashMap<>();
+        for(Card c : hand){
+            if(typesNumber.get(c.getType()) != null){
+                int newValue = typesNumber.get(c.getType()) + 1;
+                typesNumber.put(c.getType(),newValue);
+            } else{
+                typesNumber.put(c.getType(),1);
+            }
+        }
+        return typesNumber;
+    }
+
+    private ArrayList<Type> getMostUsedTypes(Map<Type, Integer> typesNumber){
+        ArrayList<Type> mostUsedTypes = new ArrayList<>();
+        int max = 1;
+        for(Map.Entry<Type,Integer> entry : typesNumber.entrySet()){
+            if(entry.getValue() > max){
+                max = entry.getValue();
+            }
+        }
+        for(Map.Entry<Type,Integer> entry : typesNumber.entrySet()){
+            if(entry.getValue() == max){
+                mostUsedTypes.add(entry.getKey());
+            }
+        }
+        return mostUsedTypes;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
+    }
+
+    public boolean reactsWithTypes(ArrayList<Type> types, ArrayList<Card> hand){
+        Map<Type, Integer> typesNumber = getNumberOfTypes(hand);
+        ArrayList<Type> mostUsedTypes = getMostUsedTypes(typesNumber);
+
+        // We can extend mostTypes by one with this change
+        if(mostUsedTypes.stream().anyMatch(type -> types.contains(type))){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        Map<Type, Integer> typesNumber = getNumberOfTypes(hand);
+        ArrayList<Type> mostUsedTypes = getMostUsedTypes(typesNumber);
+        if(mostUsedTypes.contains(t)){
+            return getRewardForSame(typesNumber.get(t) + 1) - getRewardForSame(typesNumber.get(t));
+        }
+        return 0;
+    }
+
+
 }

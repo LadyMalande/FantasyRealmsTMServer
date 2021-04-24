@@ -3,6 +3,7 @@ package bonuses;
 import artificialintelligence.State;
 import server.BigSwitches;
 import server.Card;
+import server.Type;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -76,5 +77,28 @@ public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
         double potential = 0.0;
         // TODO
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return idsOfCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ||
+                types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((cardNeeded))));
+
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand){
+        if(hand.stream().anyMatch(card -> card.getId() == cardNeeded)){
+            // We have the card needed in our hand,check the other cards
+            if(idsOfCardsNeeded.stream().anyMatch((id -> BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName(id)) == t))){
+                return how_much;
+            }
+        } else{
+            // We DONT have the card needed in our hand,check the other cards
+            if(hand.stream().anyMatch(card -> idsOfCardsNeeded.contains(card.getId())) && BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName(cardNeeded)) == t){
+                return how_much;
+            }
+        }
+        return 0;
     }
 }

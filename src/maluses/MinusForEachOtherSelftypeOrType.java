@@ -103,4 +103,17 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
         // TODO
         return potential;
     }
+
+    public boolean reactsWithTypes(ArrayList<Type> types) {
+        return this.types.stream().anyMatch(type -> types.contains(type))
+                || types.contains(selftype);
+    }
+
+    @Override
+    public int getReaction(Type t, ArrayList<Card> hand) {
+        if(types.contains(t) || selftype == t){
+            return howMuch;
+        }
+        return 0;
+    }
 }

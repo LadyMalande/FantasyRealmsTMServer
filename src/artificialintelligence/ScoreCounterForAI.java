@@ -96,7 +96,7 @@ public class ScoreCounterForAI {
                                         int sumForCardMalus = m.count(handOriginal);
                                         sum += sumForCardMalus;
                                         //System.out.println("SumForMalusOfCard: " + c.name + " : " + sumForCardMalus + " priority is: " + i);
-                                       // System.out.println("Now cards in hands after resolving malus with priority " + i + " is " + handOriginal.size());
+                                       //System.out.println("Now cards in hands after resolving malus with priority " + i + " is " + handOriginal.size());
                                     }
                                 }
                             }
@@ -240,9 +240,12 @@ public class ScoreCounterForAI {
             }
 
         }
+        /*
         if(numTable == 10 && handOriginal.size() > 7){
             System.out.println("Player took card with necromancer");
         }
+
+         */
         // Delete this interactive to not get stuck in endless loop
         if (interactiveToDelete != null){
 

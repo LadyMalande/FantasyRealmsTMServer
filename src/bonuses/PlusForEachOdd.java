@@ -2,6 +2,7 @@ package bonuses;
 
 import artificialintelligence.State;
 import server.Card;
+import server.Type;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -83,5 +84,10 @@ public class PlusForEachOdd extends Bonus  {
         //
 
         return potential;
+    }
+
+    @Override
+    public boolean reactsWithTypes(ArrayList<Type> types){
+        return false;
     }
 }
