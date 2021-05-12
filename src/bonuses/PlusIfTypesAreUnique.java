@@ -4,9 +4,8 @@ import artificialintelligence.State;
 import server.Card;
 import server.Type;
 
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PlusIfTypesAreUnique extends Bonus  {
     public long serialVersionUID = 17;
@@ -18,6 +17,67 @@ public class PlusIfTypesAreUnique extends Bonus  {
         this.howMuch = howMuch;
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
+    }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        // Makes map of colors in hand. If there is more than one color with count 2, Change color cant help
+        ArrayList<Type> types = new ArrayList<>();
+        int typeDuplicates = 0;
+        Map<Type, Integer> typeCounts = new HashMap<>();
+        for(Card c : hand){
+            if(typeCounts.keySet().contains(c.getType())){
+                int newCount = typeCounts.get(c.getType()) + 1;
+                typeCounts.put(c.getType(), newCount);
+                typeDuplicates++;
+            } else{
+                typeCounts.put(c.getType(), 1);
+            }
+        }
+        if(typeDuplicates > 1){
+            return null;
+        } else{
+            ArrayList<Type> colors =
+                    new ArrayList<Type>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
+                            Type.LAND, Type.LEADER, Type.WEAPON, Type.WEATHER, Type.WIZARD));
+            for(Map.Entry<Type, Integer> entry : typeCounts.entrySet()){
+                colors.remove(entry.getKey());
+            }
+            return colors;
+        }
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
+
+    public Card whichCardNeedsChange(ArrayList<Card> hand){
+
+        // Makes map of colors in hand. If there is more than one color with count 2, Change color cant help
+        ArrayList<Type> types = new ArrayList<>();
+        Type duplicate = Type.FLOOD;
+        int typeDuplicates = 0;
+        Map<Type, Integer> typeCounts = new HashMap<>();
+        for(Card c : hand){
+            if(typeCounts.keySet().contains(c.getType())){
+                int newCount = typeCounts.get(c.getType()) + 1;
+                typeCounts.put(c.getType(), newCount);
+                typeDuplicates++;
+                duplicate = c.getType();
+            } else{
+                typeCounts.put(c.getType(), 1);
+            }
+        }
+        if(typeDuplicates > 1){
+            return null;
+        } else{
+            if(typeDuplicates == 1){
+                Type finalDuplicate = duplicate;
+                List<Card> fitsTheDescription = hand.stream().filter(card -> card.getId() != 31 && card.getType() == finalDuplicate).collect(Collectors.toList());
+                return fitsTheDescription.get(0);
+            }
+            return null;
+        }
+
     }
 
     @Override

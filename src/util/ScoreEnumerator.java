@@ -55,7 +55,7 @@ public class ScoreEnumerator {
                 hand.add(deck.getDeck().stream().filter(card -> card.getId() == s).findAny().get());
             }
             deck.getDeck().removeAll(hand);
-            int score = sc.countScore(hand, deck.getDeck());
+            int score = sc.countScore(hand, deck.getDeck(),true);
             while(score < -999){
 
             }

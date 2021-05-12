@@ -11,8 +11,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import static server.Type.NONE;
-
 public class DeleteSelftypeFromAllMaluses extends Bonus  {
     public long serialVersionUID = 5;
     public int priority = 5;
@@ -58,12 +56,12 @@ public class DeleteSelftypeFromAllMaluses extends Bonus  {
                     }
                     if(m instanceof DeletesAllTypeOrOtherSelftype){
                         if(deleteThisTypeFromMaluses == ((DeletesAllTypeOrOtherSelftype) m).selftype){
-                            ((DeletesAllTypeOrOtherSelftype) m).selftype = NONE;
+                            ((DeletesAllTypeOrOtherSelftype) m).selftype = null;
                         }
                     }
                     if(m instanceof MinusForEachOtherSelftypeOrType){
                         if(deleteThisTypeFromMaluses == ((MinusForEachOtherSelftypeOrType) m).selftype){
-                            ((MinusForEachOtherSelftypeOrType) m).selftype = NONE;
+                            ((MinusForEachOtherSelftypeOrType) m).selftype = null;
                         }
                     }
                 }

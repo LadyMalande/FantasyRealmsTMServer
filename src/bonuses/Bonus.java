@@ -7,10 +7,7 @@ import server.Card;
 import server.Type;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class Bonus implements ScoringInterface, Serializable, Cloneable {
     public long serialVersionUID = 1;
@@ -40,6 +37,20 @@ public class Bonus implements ScoringInterface, Serializable, Cloneable {
             first = false;
         }
         return listcards.toString();
+    }
+
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+
+        return null;
+    }
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+        //Says ids of cards that cant be recolored if the size of this array is only 1
+        return null;
+    }
+
+    public int getHowMuch(ArrayList<Card> hand) {
+        return 0;
     }
 
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){

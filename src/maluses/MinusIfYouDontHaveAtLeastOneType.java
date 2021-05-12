@@ -6,8 +6,10 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     public int priority = 8;
@@ -21,6 +23,32 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
         this.types = types;
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
+    }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            return null;
+        }
+        else {
+            return types;
+        }
+    }
+
+    @Override
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+         List<Card> cards = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
+        //Says ids of cards that cant be recolored if the size of this array is only 1
+        if(cards.size() == 1){
+            return cards.get(0);
+        } else{
+            return null;
+        }
+    }
+
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return -howMuch;
     }
 
     @Override

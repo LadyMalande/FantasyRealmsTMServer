@@ -22,6 +22,15 @@ public class PlusIfYouDontHaveType extends Bonus  {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        // You get -howMuch if u have the foribidden type
+        return new ArrayList<>() {{add(type);}};
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return -howMuch;
+    }
 
     @Override
     public String getText(){

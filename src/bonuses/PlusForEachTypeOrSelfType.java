@@ -35,6 +35,18 @@ public class PlusForEachTypeOrSelfType extends Bonus  {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        ArrayList<Type> list = new ArrayList<>();
+        list.addAll(types);
+        list.add(selftype);
+        //System.out.println("Size of list in PlusForEachTypeOrSelftype " + list.size());
+        return list;
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
 
     @Override
     public String getText(){

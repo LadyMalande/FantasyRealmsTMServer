@@ -6,8 +6,10 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
     public long serialVersionUID = 20;
@@ -23,6 +25,47 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
         this.types = types;
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
+    }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            return null;
+        } else{
+            ArrayList<String> names = new ArrayList<>();
+            for(Integer i: idCardsNeeded){
+                names.add(BigSwitches.switchIdForName(i));
+            }
+            int hascards = 0;
+            boolean hasoneofthese = false;
+            for(Card c: hand){
+                if(names.contains(c.name)){
+                    hascards++;
+                }
+                if(hascards == idCardsNeeded.size()){
+                    return types;
+                }
+            }
+        }
+        return null;
+    }
+    @Override
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+        List<Card> cards = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
+        //Says ids of cards that cant be recolored if the size of this array is only 1
+        if(cards.size() == 1){
+            if(count(hand) != 0){
+                return cards.get(0);
+            }
+                return null;
+        } else{
+            return null;
+        }
+    }
+
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
     }
 
     @Override

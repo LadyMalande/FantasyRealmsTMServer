@@ -14,6 +14,14 @@ public class CacheMap {
         cache = new HashMap<>();
     }
 
+    public void clear(){
+        this.cache.clear();
+    }
+
+    public int size(){
+        return this.cache.size();
+    }
+
     public void putValue(List<Card> hand, Integer score){
         List<Integer> ids = hand.stream().map(Card::getId).sorted().collect(Collectors.toList());
         cache.put(ids, score);
@@ -22,7 +30,9 @@ public class CacheMap {
 
     public int getValue(List<Card> hand){
         List<Integer> ids = hand.stream().map(Card::getId).sorted().collect(Collectors.toList());
+        //System.out.println("chaCHEmap size = " + cache.size());
         return cache.getOrDefault(ids, -999);
+
     }
 
     private void manageCache(){

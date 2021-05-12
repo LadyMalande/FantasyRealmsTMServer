@@ -12,7 +12,7 @@ import server.*;
 import java.util.*;
 
 public class CopyNameAndType extends Interactive {
-    public int priority = 4;
+    public int priority = 3;
     public String text;
     public ArrayList<Type> types;
     private int thiscardid;
@@ -54,6 +54,103 @@ public class CopyNameAndType extends Interactive {
         return client.sendInteractive("CopyNameAndType#" + thiscardid + "#" + toSend);
     }
 
+
+    @Override
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        int processors = Runtime.getRuntime().availableProcessors();
+        //
+        // System.out.println("CPU cores: " + processors);
+        long startTime = System.nanoTime();
+        //System.out.println("Counting CopyNameAndType");
+        Type bestTypeToChangeInto = null;
+        String bestNameToChangeInto = null;
+        Card thisCard = null;
+
+
+        // Remove this interactive from card to not get stuck in loop
+        for (Card original : originalHand) {
+            if (thiscardid == original.id) {
+                thisCard = original;
+
+                original.interactives.remove(this);
+            }
+            //System.out.print(original.name + ", ");
+        }
+        //System.out.println();
+
+        //Copy hand for computing the original score on Hand
+        List<Card> newHandOldScore = new ArrayList<>();
+        for (Card copy : originalHand) {
+            ArrayList<Malus> maluses = new ArrayList<>();
+            ArrayList<Interactive> interactives = new ArrayList<>();
+            // bonuses are never deleted, they can be the same objects
+            // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
+            if (copy.maluses != null) {
+                //System.out.println("Klonuji kartu " + copy.name);
+                for (Malus m : copy.maluses) {
+                    maluses.add(m.clone());
+                }
+            }
+            // The same rule apply to interactives = they can be deleted to signal it has been used
+            if (copy.interactives != null) {
+                for (Interactive inter : copy.interactives) {
+                    interactives.add(inter.clone());
+                }
+            }
+            newHandOldScore.add(new Card(copy.id, copy.name, copy.strength, copy.type, copy.bonuses, maluses, interactives));
+        }
+
+        //Count the score of the hand without this interactive to get the base best score
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+        int bestScore = sc.countScore(newHandOldScore, cardsOnTable, true);
+
+        //System.out.println("Best score form original hand: " + bestScore);
+        // Try out different changes and find out the actual best possible score
+        ArrayList<ScoreCounterCopyNameAndTypeThread> threads = new ArrayList<>();
+        for(Type type : types){
+            ScoreCounterCopyNameAndTypeThread t = new ScoreCounterCopyNameAndTypeThread(newHandOldScore,cardsOnTable,type,thiscardid);
+            threads.add(t);
+            t.start();
+        }
+
+        for(ScoreCounterCopyNameAndTypeThread thread : threads){
+            try {
+                thread.join();
+                //System.out.println("Syncing thread of type " + thread.typeToTry);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for(ScoreCounterCopyNameAndTypeThread thread : threads){
+            int best = thread.getBestScore();
+            if(best > bestScore){
+                bestScore = best;
+                bestNameToChangeInto = thread.getBestName();
+                bestTypeToChangeInto = thread.getTypeToTry();
+            }
+        }
+
+
+        if(bestTypeToChangeInto != null){
+            thisCard.type = bestTypeToChangeInto;
+            thisCard.name = bestNameToChangeInto;
+            //System.out.println("Changed the card to be " + thisCard.name + " [" + thisCard.type + "]");
+        }
+
+        //long elapsedTime = System.nanoTime() - startTime;
+        //System.out.println("Total execution time spent in CopyNameAndType in millis: " + elapsedTime/1000000);
+        /*
+        for(Card c : originalHand){
+            System.out.print(c.name + ", ");
+        }
+        System.out.println();
+*/
+
+
+        return bestScore;
+    }
+    /*
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
 
@@ -147,10 +244,14 @@ public class CopyNameAndType extends Interactive {
         }
 
         long elapsedTime = System.nanoTime() - startTime;
-        //System.out.println("Total execution time spent in CopyNameAndType in millis: " + elapsedTime/1000000);
+        System.out.println("Total execution time spent in CopyNameAndType in millis: " + elapsedTime/1000000);
 
 
     }
+
+
+     */
+
 
     public void changeHandWithInteractiveNoRecursion(){
 

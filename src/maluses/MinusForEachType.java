@@ -22,6 +22,15 @@ public class MinusForEachType extends Malus {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+
+        return types;
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
 
     @Override
     public String getText(){

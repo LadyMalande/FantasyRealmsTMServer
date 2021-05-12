@@ -23,6 +23,8 @@ public class DeletesAllTypeExceptCard extends Malus {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public ArrayList<Integer> getCards(){ return cards;}
 
     @Override
     public String getText(){

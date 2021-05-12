@@ -1,6 +1,5 @@
 package util;
 
-import bonuses.Bonus;
 import interactive.Interactive;
 import maluses.Malus;
 import server.Card;
@@ -15,7 +14,6 @@ public class HandCloner {
         ArrayList<Card> newHand = new ArrayList<>();
         for(Card cardOnHand : hand){
             if(cardOnHand != cardToChange){
-                ArrayList<Bonus> bonuses = new ArrayList<>();
                 ArrayList<Malus> maluses = new ArrayList<>();
                 ArrayList<Interactive> interactives = new ArrayList<>();
                 // bonuses are never deleted, they can be the same objects

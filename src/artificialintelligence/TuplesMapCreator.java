@@ -40,7 +40,7 @@ public class TuplesMapCreator {
             deck.setDeck(false);
             List<Card> hand = deck.getDeck().stream().filter(card -> (card.getId() == pair.getKey()) || (card.getId() == pair.getValue())).collect(Collectors.toList());
             ScoreCounterForAI sc = new ScoreCounterForAI();
-            int actual = sc.countScore(hand,new ArrayList<>());
+            int actual = sc.countScore(hand,new ArrayList<>(), true);
             while(actual < -999){
 
             }

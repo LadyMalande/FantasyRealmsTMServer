@@ -6,18 +6,20 @@ import server.Card;
 import server.Type;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class PlusIfYouHaveAtLeastOneType extends Bonus  {
     public long serialVersionUID = 22;
     public final String text;
-    private int how_much;
+    private int howMuch;
     public ArrayList<Type> types;
 
     public PlusIfYouHaveAtLeastOneType(int hm, ArrayList<Type> types){
 
-        this.how_much = hm;
+        this.howMuch = hm;
         this.types = types;
 
         String listtypes = "";
@@ -29,9 +31,37 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
             listtypes += BigSwitches.switchTypeForName(t);
             first = false;
         }
-        this.text = "+" + how_much + " if you have any type " + listtypes;
+        this.text = "+" + howMuch + " if you have any type " + listtypes;
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
+    }
+
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            return null;
+        } else{
+            return types;
+        }
+    }
+    @Override
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+        List<Card> cards = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
+        //Says ids of cards that cant be recolored if the size of this array is only 1
+        if(cards.size() == 1){
+            if(count(hand) != 0){
+                return cards.get(0);
+            }
+            return null;
+        } else{
+            return null;
+        }
+    }
+
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
     }
 
     @Override
@@ -45,7 +75,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
         Locale loc = new Locale(locale);
         ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append("+" + how_much);
+        sb.append("+" + howMuch);
         sb.append(bonuses.getString("ifYouHave"));
         sb.append(" ");
         sb.append(rb.getString("atLeast"));
@@ -61,7 +91,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
             if(types.contains(c.type)){
-                return how_much;
+                return howMuch;
             }
         }
         return 0;
@@ -72,12 +102,12 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
         double potentialTable, potentialDeck;
 
         if(hand.stream().filter(c -> types.contains(c.getType())).count() >= 1){
-            return how_much;
+            return howMuch;
         }
         long suitableOnTable = table.stream().filter(c -> types.contains(c.getType())).count();
-        potentialTable = Math.min(suitableOnTable - state.getNumberOfEnemies() * suitableOnTable / table.size() * how_much, how_much);
+        potentialTable = Math.min(suitableOnTable - state.getNumberOfEnemies() * suitableOnTable / table.size() * howMuch, howMuch);
         long suitableInDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count();
-        potentialDeck = Math.min((deckSize / unknownCards) * suitableInDeck / deckSize * how_much, how_much);
+        potentialDeck = Math.min((deckSize / unknownCards) * suitableInDeck / deckSize * howMuch, howMuch);
         return Math.max(potentialTable, potentialDeck);
     }
 
@@ -94,7 +124,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
         }
         else{
             if(types.contains(t)){
-                return how_much;
+                return howMuch;
             }
         }
         return 0;

@@ -7,10 +7,7 @@ import server.Card;
 import server.Type;
 import util.HandCloner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CardIsDeletedIfYouHaveAnyType extends Malus {
@@ -25,6 +22,41 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
         this.types = types;
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
+    }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        List<Card> match = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
+
+        if(match.size() > 1){
+            return null;
+        }
+        if(match.size() == 1){
+            ArrayList<Type> colors =
+                    new ArrayList<Type>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
+                            Type.LAND, Type.LEADER, Type.WEAPON, Type.WEATHER, Type.WIZARD));
+            colors.removeAll(types);
+            return colors;
+        } else{
+            return types;
+        }
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        List<Card> match = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
+        if(match.size() > 1){
+            return 0;
+        }
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+        int fullHand = sc.countScore(hand, null, true);
+        List<Card> without = hand.stream().filter(card -> card.getId() != thiscardid).collect(Collectors.toList());
+        int withoutThis = sc.countScore(without, null, true);
+        int difference = fullHand - withoutThis;
+        if(match.size() == 1){
+            return difference;
+        } else{
+            return -difference;
+        }
+
     }
 
     @Override
@@ -111,8 +143,8 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
                     List<Card> toOmit = hand.stream().filter(card -> card.getMaluses().contains(this)).collect(Collectors.toList());
                     ArrayList<Card> withoutThis = hc.cloneHand(toOmit.get(0), hand);
                     ScoreCounterForAI sc = new ScoreCounterForAI();
-                    int newHandScore = sc.countScore(hand, null);
-                    int handOmited = sc.countScore(withoutThis, null);
+                    int newHandScore = sc.countScore(hand, null, true);
+                    int handOmited = sc.countScore(withoutThis, null, true);
                     return handOmited - newHandScore;
                 } catch (CloneNotSupportedException e) {
                     e.printStackTrace();

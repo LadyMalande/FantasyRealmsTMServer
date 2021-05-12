@@ -99,7 +99,7 @@ public class DeleteOneMalusOnType extends Interactive {
     }
 
     @Override
-    public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
         long startTime = System.nanoTime();
         //System.out.println("Counting DeleteOneMalusOnType");
 
@@ -138,7 +138,7 @@ public class DeleteOneMalusOnType extends Interactive {
         }
 
         ScoreCounterForAI sc = new ScoreCounterForAI();
-        int bestScore = sc.countScore(newHandOldScore, cardsOnTable);
+        int bestScore = sc.countScore(newHandOldScore, cardsOnTable, true);
 
         //Try to delete every malus on hand and find out which one is the best to remove
         for(Card c : originalHand){
@@ -171,7 +171,7 @@ public class DeleteOneMalusOnType extends Interactive {
                         }
 
 
-                        int currentScore = sc.countScore(newHand, cardsOnTable);
+                        int currentScore = sc.countScore(newHand, cardsOnTable, true);
                         if (currentScore > bestScore) {
                             bestScore = currentScore;
                             whichMalusToDelete = storeMalus;
@@ -193,6 +193,7 @@ public class DeleteOneMalusOnType extends Interactive {
 
         long elapsedTime = System.nanoTime() - startTime;
         //System.out.println("Total execution time spent in DeleteOneMalusOnType in millis: " + elapsedTime/1000000);
+        return bestScore;
     }
 
     @Override

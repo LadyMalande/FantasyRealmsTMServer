@@ -15,6 +15,75 @@ public class PlusForSameColorCards extends Bonus  {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        ArrayList<Type> types = new ArrayList<>();
+        HashMap<Type, Integer> table = new HashMap<>();
+        ArrayList<String> alreadyInList = new ArrayList<>();
+        for(Card c: hand){
+            if(table.containsKey(c.type)){
+                if(!alreadyInList.isEmpty()){
+                    if(!alreadyInList.contains(c.name)){
+                        table.put(c.type, table.get(c.type) + 1);
+                        alreadyInList.add(c.name);
+                    }
+                } else{
+                    table.put(c.type, table.get(c.type) + 1);
+                    alreadyInList.add(c.name);
+                }
+
+            } else{
+                table.put(c.type, 1);
+                alreadyInList.add(c.name);
+            }
+        }
+        // these types can gain from getting +1 type. 1 of type is too little, 5 is already full potential.
+        for (Map.Entry<Type,Integer> entry : table.entrySet()) {
+            if(entry.getValue() == 2 || entry.getValue() == 3 || entry.getValue() == 4){
+                types.add(entry.getKey());
+            }
+        }
+        return types;
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        // This class has a special method for obtaining bonuses out of colors
+        return 0;
+    }
+
+    public Map<Type, Integer> howMuchCanTypeGive(ArrayList<Card> hand){
+        Map<Type, Integer> typeBenefit = new HashMap<>();
+        HashMap<Type, Integer> table = new HashMap<>();
+        ArrayList<String> alreadyInList = new ArrayList<>();
+        for(Card c: hand){
+            if(table.containsKey(c.type)){
+                if(!alreadyInList.isEmpty()){
+                    if(!alreadyInList.contains(c.name)){
+                        table.put(c.type, table.get(c.type) + 1);
+                        alreadyInList.add(c.name);
+                    }
+                } else{
+                    table.put(c.type, table.get(c.type) + 1);
+                    alreadyInList.add(c.name);
+                }
+
+            } else{
+                table.put(c.type, 1);
+                alreadyInList.add(c.name);
+            }
+        }
+        // these types can gain from getting +1 type. 1 of type is too little, 5 is already full potential.
+        for (Map.Entry<Type,Integer> entry : table.entrySet()) {
+            if(entry.getValue() == 2) {
+                typeBenefit.put(entry.getKey(),10);
+            } else if(entry.getValue() == 3){
+                typeBenefit.put(entry.getKey(),30);
+            } else if (entry.getValue() == 4){
+                typeBenefit.put(entry.getKey(),60);
+            }
+        }
+        return typeBenefit;
+    }
 
     @Override
     public String getText(){

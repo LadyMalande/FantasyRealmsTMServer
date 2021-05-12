@@ -10,6 +10,8 @@ public class StateMapCreator {
     int id;
     int[] poolOfIDs;
     ArrayList<Integer> listPoolOfIDs;
+    ArrayList<ArrayList<Integer>> listOfTuples;
+
     int hand;
     int table;
     public StateMapCreator(int[] arrayOfIDs, int handCapacity, int tableCapacity){
@@ -28,6 +30,40 @@ public class StateMapCreator {
         combineHand(tempHand, 0, poolOfIDs.length-1,0,hand);
 
         return stateMap;
+    }
+
+    public ArrayList<ArrayList<Integer>> makeNTuples(int[] arrayOfIDs, int lengthOfTuple){
+        //System.out.println("i = " + lengthOfTuple);
+        int[] tempTuple = new int[lengthOfTuple];
+        listOfTuples = new ArrayList<>();
+        poolOfIDs = arrayOfIDs;
+        if(lengthOfTuple != 0){
+            combineNNumbersFromPool(tempTuple,0, arrayOfIDs.length-1,0,lengthOfTuple);
+            return listOfTuples;
+        }
+        return null;
+    }
+
+    private void combineNNumbersFromPool(int[] tempHand,int startIndexOfPool, int endIndexOfPool, int startIndex, int numberOfItems){
+        if(startIndex == numberOfItems){
+            int[] tempTable = new int[table];
+            ArrayList<Integer> listHand = makeList(tempHand);
+/*
+            for(Integer i : listHand){
+                System.out.print(i + ",");
+            }
+
+            System.out.println();
+
+ */
+            listOfTuples.add(listHand);
+            return;
+        }
+
+        for(int i = startIndexOfPool; i < poolOfIDs.length; i++){
+            tempHand[startIndex] = poolOfIDs[i];
+            combineNNumbersFromPool(tempHand,i+1,endIndexOfPool,startIndex+1,numberOfItems);
+        }
     }
 
     private void combineHand(int[] tempHand,int startIndexOfPool, int endIndexOfPool, int startIndex, int numberOfItems){

@@ -87,8 +87,8 @@ public class Interactive implements InteractiveBonusInterface , Serializable, Cl
         return newi;
     }
 
-    public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
-
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+        return 0;
     }
 
     public void writeAllCardsAndTheirAttributes(List<Card> cards){

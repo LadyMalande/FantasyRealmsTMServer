@@ -42,6 +42,17 @@ public class PlusForEachTypeIfYouHaveCard extends Bonus  {
     public String getText(){
         return this.text;
     }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        if(hand.stream().anyMatch(c -> c.name.equals(BigSwitches.switchIdForName(cardid)))){
+            return types;
+        }
+        return null;
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
 
     @Override
     public String getText(String locale){

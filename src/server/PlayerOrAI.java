@@ -78,4 +78,12 @@ public class PlayerOrAI {
 
     public void getInitCards() throws CloneNotSupportedException {
     }
+
+    public ArrayList<Card> getStoredHand() {
+        return null;
+    }
+
+    public ArrayList<Integer> getScoresInRound(){
+        return null;
+    }
 }

@@ -209,7 +209,7 @@ public class BigSwitches {
 
     public static String switchTypeForName(Type type, String locale){
         if (type == null) {
-            System.out.println("Null pointer v switchTypeForName");
+            //System.out.println("Null pointer v switchTypeForName");
             return null;
 
         }
@@ -233,7 +233,7 @@ public class BigSwitches {
 
     public static String switchTypeForName(Type type){
         if (type == null) {
-            System.out.println("Null pointer v switchTypeForName");
+            //System.out.println("Null pointer v switchTypeForName");
             return null;
 
         }

@@ -45,7 +45,7 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
     }
 
     @Override
-    public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
 
         long startTime = System.nanoTime();
         //System.out.println("Counting CopyNameColorStrengthMalus From hand");
@@ -81,7 +81,7 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
         }
 
         ScoreCounterForAI sc = new ScoreCounterForAI();
-        bestScore = sc.countScore(newHandOldScore, cardsOnTable);
+        bestScore = sc.countScore(newHandOldScore, cardsOnTable, true);
 
 
         Card whichCardToCopy = null;
@@ -116,11 +116,17 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
 
                     }
                 }
+                if(cardInHand.maluses != null){
+                    //System.out.println("Klonuji kartu " + copy.name);
+                    for(Malus m : cardInHand.maluses){
+                        maluses2.add(m.clone());
+                    }
+                }
                 // Add the changed Doppleganger to hand
                 newHand.add(new Card(thiscardid, cardInHand.name, cardInHand.strength, cardInHand.type,null, maluses2, null));
-        }
+            }
 
-            int currentScore = sc.countScore(newHand,cardsOnTable);
+            int currentScore = sc.countScore(newHand,cardsOnTable, true);
             if (currentScore > bestScore) {
                 bestScore = currentScore;
                 whichCardToCopy = cardInHand;
@@ -148,7 +154,7 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
 
         long elapsedTime = System.nanoTime() - startTime;
         //System.out.println("Total execution time spent in CopyNameColorStrengthMalus from hand in millis: "+ elapsedTime/1000000);
-
+        return bestScore;
     }
 
     @Override

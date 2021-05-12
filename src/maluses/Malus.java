@@ -7,17 +7,14 @@ import server.Card;
 import server.Type;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 
 public class Malus implements ScoringInterface , Serializable, Cloneable  {
 
     public int priority = 6;
     public ArrayList<Type> types;
-    public ArrayList<Card> cards;
+    public ArrayList<Integer> cards;
     public String text;
 
     public String getText(){
@@ -30,11 +27,27 @@ public class Malus implements ScoringInterface , Serializable, Cloneable  {
     public  ArrayList<Type> getTypes(){
         return this.types;
     }
+    public ArrayList<Integer> getCards(){ return null;}
     @Override
     public int count(ArrayList<Card> hand){
         return 0;
     }
     public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove){return 0;}
+
+
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+
+        return types;
+    }
+
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+        //Says ids of cards that cant be recolored if the size of this array is only 1
+        return null;
+    }
+    public int getHowMuch(ArrayList<Card> hand) {
+        return 0;
+    }
 
     String giveListOfCardsWithSeparator(ArrayList<Integer> cards, String separator, String locale) {
         StringBuilder listcards = new StringBuilder();

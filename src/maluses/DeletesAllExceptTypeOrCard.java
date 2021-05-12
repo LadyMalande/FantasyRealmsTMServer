@@ -26,10 +26,11 @@ public class DeletesAllExceptTypeOrCard extends Malus {
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
+    @Override
+    public ArrayList<Integer> getCards(){ return cards;}
+
     private ArrayList<Type> getComplementOfTypes(ArrayList<Type> except) {
         ArrayList<Type> complement_types = new ArrayList<>(){{add(Type.ARMY);add(Type.ARTIFACT); add(Type.WEAPON);add(Type.WEATHER);add(Type.BEAST);add(Type.FLOOD);add(Type.LEADER);add(Type.LAND);add(Type.WIZARD);add(Type.FLAME);add(Type.WILD);}};
-       complement_types.add(Type.ARTIFACT);
-       complement_types.add(Type.ARMY);
        for(Type t: except){
            complement_types.remove(t);
        }

@@ -4,6 +4,8 @@ import artificialintelligence.ArtificialIntelligenceInterface;
 import artificialintelligence.CacheMap;
 import artificialintelligence.GreedyPlayer;
 import artificialintelligence.LearningPlayer;
+import interactive.Interactive;
+import interactive.TakeCardOfTypeAtTheEnd;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
@@ -52,6 +55,11 @@ Server extends Thread
     public int ithRound = 0;
     CacheMap cacheMap;
     StringBuilder bufferForResults;
+    public StringBuilder timeSpentInChangeColor = new StringBuilder();
+    public StringBuilder timeSpentInMakeMoveGrredyPlayer = new StringBuilder();
+    public StringBuilder timeSpentInCopyNameAndType = new StringBuilder();
+    public StringBuilder timeSpentRound = new StringBuilder();
+    public StringBuilder scoreInRound = new StringBuilder();
     // counter for clients
 
 
@@ -163,11 +171,22 @@ Server extends Thread
         }
         if(numberOfGamesToPlay != 0){
             decideNeedDelay();
+            experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
             ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
-            FileWriter writer = eoc.createFileWriter(experimentOutputName);
+            //FileWriter writer = eoc.createFileWriter(experimentOutputName);
+            FileWriter timeInRoundWriter = eoc.createFileWriter(experimentOutputName + "_timeInRound_ms");
+            FileWriter timeInCopyNameWriter = eoc.createFileWriter(experimentOutputName + "_InCopyName_ms");
+            FileWriter timeInChangeColorWriter = eoc.createFileWriter(experimentOutputName + "_timeInChangeColor_ms");
+            FileWriter timeInMakeMoveGreedyWriter = eoc.createFileWriter(experimentOutputName + "_timeInMakeMoveGreedy_ms");
+            //FileWriter scoreInRoundWriter = eoc.createFileWriter(experimentOutputName + "_scoresInRound;");
             for(ithRound = 0; ithRound < numberOfGamesToPlay; ithRound++){
-                if(ithRound % 100 == 0){
-                    writer = eoc.createFileWriter(experimentOutputName);
+                if(ithRound % 50 == 0){
+                    //writer = eoc.createFileWriter(experimentOutputName);
+                    timeInRoundWriter = eoc.createFileWriter(experimentOutputName + "_timeInRound_ms");
+                    timeInCopyNameWriter = eoc.createFileWriter(experimentOutputName + "_InCopyName_ms");
+                    timeInChangeColorWriter = eoc.createFileWriter(experimentOutputName + "_timeInChangeColor_ms");
+                    timeInMakeMoveGreedyWriter = eoc.createFileWriter(experimentOutputName + "_timeInMakeMoveGreedy_ms");
+                    //scoreInRoundWriter = eoc.createFileWriter(experimentOutputName + "_scoresInRound");
                 }
                 System.out.println("Starting game number " + ithRound + "---------------------------------------------------------");
                 long startTime = System.nanoTime();
@@ -204,7 +223,7 @@ Server extends Thread
                 rotateRight(players, players.size() - index2);
                 //for(PlayerOrAI pl:players){System.out.print(">" + pl.getName());}
 
-                experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
+
                 numberOfCountedScores = new AtomicInteger(0);
                 while(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
                     for(PlayerOrAI player : players){
@@ -215,20 +234,47 @@ Server extends Thread
                         }
                     }
                 }
-                long elapsedTime = System.nanoTime() - startTime;
+                while(players.size() > numberOfCountedScores.get()){
+                    System.out.println(players.size() + " != " + numberOfCountedScores.get());
+                }
+
+                long elapsedTime = (System.nanoTime() - startTime) / 1000000;
+
                 System.out.println("Execution time for this game: "
-                        + elapsedTime/1000000);
+                        + elapsedTime);
+                timeSpentRound.append(elapsedTime);
+                timeSpentRound.append("\n");
+                long startTimeForEndCountings = System.nanoTime();
+                //countBetterHandFromState();
+                long elapsedTimeForEndCountings = (System.nanoTime() - startTimeForEndCountings) / 1000000;
+                System.out.println("Execution time for aftergame: " + elapsedTimeForEndCountings);
+
                 //startTheGame();
                //System.out.println("End of Server game number " + i);
+                //System.out.println(this.cacheMap.size());
+                this.cacheMap.clear();
                 writeToBuffer();
-                if(ithRound % 100 == 99){
-                    writeToFileWriter(writer, eoc);
-                    eoc.flushFileWriter(writer);
+                if(ithRound % 100 ==49){
+                    //System.out.println("Round times: ");
+                    //System.out.println(timeSpentRound);
+                    //System.out.println("Greedy player move times: ");
+                    //System.out.println(timeSpentInMakeMoveGrredyPlayer);
+                    //writeToFileWriter(writer, eoc, bufferForResults);
+                    writeToFileWriter(timeInChangeColorWriter, eoc, timeSpentInChangeColor);
+                    writeToFileWriter(timeInRoundWriter, eoc, timeSpentRound);
+                    writeToFileWriter(timeInCopyNameWriter, eoc, timeSpentInCopyNameAndType);
+                    writeToFileWriter(timeInMakeMoveGreedyWriter, eoc, timeSpentInMakeMoveGrredyPlayer);
+                    //writeToFileWriter(scoreInRoundWriter, eoc, scoreInRound);
 
-                    bufferForResults = new StringBuilder();
+                    timeSpentRound = new StringBuilder();
+                    timeSpentInChangeColor = new StringBuilder();
+                    timeSpentInCopyNameAndType = new StringBuilder();
+                    timeSpentInMakeMoveGrredyPlayer = new StringBuilder();
+                    //bufferForResults = new StringBuilder();
+                    //scoreInRound = new StringBuilder();
                 }
             }
-            eoc.flushFileWriter(writer);
+            //eoc.flushFileWriter(writer);
         } else {
             //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
             Random randomGeneratorForPlayers = new Random();
@@ -277,27 +323,114 @@ Server extends Thread
         }
         bufferForResults.append(totalNumberOfRounds + ";");
 
+        ArrayList<Integer> allEndingCardsOfAllPlayers = new ArrayList<>();
+        Set<Integer> setOfCards = new HashSet<>();
+        for(PlayerOrAI player : players){
+            if(player instanceof GreedyPlayer){
+                List<Integer> listIds = ((GreedyPlayer)player).getBestHandAfterTheEnd().stream().map(Card::getId).collect(Collectors.toList());
+                allEndingCardsOfAllPlayers.addAll(listIds);
+                setOfCards.addAll(listIds);
+            }
+        }
+        if(allEndingCardsOfAllPlayers.size() == setOfCards.size()){
+            bufferForResults.append("UNIKATNI;");
+        } else{
+            bufferForResults.append("DUPLIKATY;");
+        }
+
         for(PlayerOrAI player : players){
 
-            bufferForResults.append(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";"+ player.score + ";" );
+            scoreInRound.append(player.getName() + ";");
+            for(Integer score : player.getScoresInRound()){
+                scoreInRound.append( score + ";");
+            }
+            scoreInRound.append("\n");
 
+
+            bufferForResults.append(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";"+ player.score + ";" );
+            Card fromNecromancer = null;
             for(Card c: player.getHand()){
+                if(c.getId() == 13){
+                    ArrayList<Interactive> toIterate = new ArrayList<>(c.interactives);
+                    for(Interactive interactive : toIterate){
+                        if(interactive instanceof TakeCardOfTypeAtTheEnd){
+                            fromNecromancer = ((TakeCardOfTypeAtTheEnd)interactive).giveCardToTakeFromTable(player.getHand(),
+                                    cardsOnTable).getKey();
+
+                        }
+                    }
+                }
                 bufferForResults.append(c.name + ";");
             }
+            if(fromNecromancer == null){
+                bufferForResults.append("-;");
+            } else{
+                bufferForResults.append(fromNecromancer.name + ";");
+            }
+            /*
             if(player.getHand().size() < 8){
                 for(int i = player.getHand().size(); i < 8; i++){
                     bufferForResults.append("-;");
                 }
             }
+
+             */
+            Card fromNecromancer2 = null;
+            if(player instanceof GreedyPlayer) {
+                bufferForResults.append(((GreedyPlayer) player).getNumberOfChangedCardsInIdealHand() + ";");
+                bufferForResults.append(((GreedyPlayer) player).getBestScoreAfterTheEnd() + ";");
+                for (Card c : ((GreedyPlayer) player).getBestHandAfterTheEnd()) {
+                    if (c.getId() == 13) {
+                        ArrayList<Interactive> toIterate = new ArrayList<>(c.interactives);
+                        for (Interactive interactive : toIterate) {
+                            if (interactive instanceof TakeCardOfTypeAtTheEnd) {
+                                fromNecromancer2 = ((TakeCardOfTypeAtTheEnd) interactive).giveCardToTakeFromTable(player.getHand(),
+                                        cardsOnTable).getKey();
+                            }
+                        }
+                    }
+                    bufferForResults.append(c.name + ";");
+                }
+                if (fromNecromancer2 == null) {
+                    bufferForResults.append("-;");
+                } else {
+                    bufferForResults.append(fromNecromancer2.name + ";");
+                }
+            }
+        }
+
+        bufferForResults.append("Table:;");
+        for(Card c : cardsOnTable){
+            bufferForResults.append(c.name + ";");
         }
         // Writes the content to the file
         bufferForResults.append("\n");
     }
 
-    private void writeToFileWriter(FileWriter writer, ExperimentOutputCreator eoc){
-        players.sort(Comparator.comparing(PlayerOrAI::getName));
-        eoc.writeToFileWriter(writer, bufferForResults);
+    private void countBetterHandFromState(){
+        ArrayList<CountBestFromTableAndHandThread> threads = new ArrayList<>();
+        for(PlayerOrAI player : players){
+            if(player instanceof GreedyPlayer){
+                    CountBestFromTableAndHandThread t = new CountBestFromTableAndHandThread(player,cardsOnTable);
+                    threads.add(t);
+                    t.start();
 
+
+                for(CountBestFromTableAndHandThread thread : threads){
+                    try {
+                        thread.join();
+                        //System.out.println("Syncing thread of type " + thread.typeToTry);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    private void writeToFileWriter(FileWriter writer, ExperimentOutputCreator eoc, StringBuilder sb){
+        players.sort(Comparator.comparing(PlayerOrAI::getName));
+        eoc.writeToFileWriter(writer, sb);
     }
 
     private void writeToFile(){
@@ -344,7 +477,15 @@ Server extends Thread
                             try {
                                 varietyOfPlayersAI.append("G");
                                 int parameterOfGreedy = Integer.parseInt(args[ar].substring(7));
-                                GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY", cacheMap);
+                                GreedyPlayer ai;
+                                if(parameterOfGreedy != 0 && parameterOfGreedy != 1){
+                                    varietyOfPlayersAI.append(parameterOfGreedy);
+                                    ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY_insight" + parameterOfGreedy, cacheMap);
+
+                                } else{
+                                    ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY", cacheMap);
+
+                                }
                                 players.add(ai);
                             } catch (NumberFormatException | CloneNotSupportedException e) {
                                 System.out.println("Invalid arguments format of GREEDY type of AI. Correct type is: GREEDY_0 or GREEDY_10 etc. Run the program again with proper arguments. Terminating the program.");

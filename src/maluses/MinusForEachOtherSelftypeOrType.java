@@ -30,6 +30,22 @@ public class MinusForEachOtherSelftypeOrType extends Malus {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        ArrayList<Type> list = new ArrayList<>();
+        if(types != null){
+            list.addAll(types);
+        }
+        if(selftype != null){
+            list.add(selftype);
+        }
+
+        return list;
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
 
     @Override
     public String getText(){

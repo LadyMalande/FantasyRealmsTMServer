@@ -26,6 +26,36 @@ public class CardIsDeletedIfYouDontHaveAtLeastOneType extends Malus {
         //System.out.println("Card INIT: Text: " + getText("en"));
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+    @Override
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+        List<Card> cards = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
+        //Says ids of cards that cant be recolored if the size of this array is only 1
+        if(cards.size() == 1){
+            return cards.get(0);
+        } else{
+            return null;
+        }
+    }
+
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
+            return null;
+        } else{
+            return types;
+        }
+
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+        int fullHand = sc.countScore(hand, null, true);
+        List<Card> without = hand.stream().filter(card -> card.getId() != thiscardid).collect(Collectors.toList());
+        int withoutThis = sc.countScore(without, null, true);
+        int difference = fullHand - withoutThis;
+        return difference;
+    }
 
     @Override
     public String getText(){
@@ -115,8 +145,8 @@ public class CardIsDeletedIfYouDontHaveAtLeastOneType extends Malus {
                     List<Card> toOmit = hand.stream().filter(card -> card.getMaluses().contains(this)).collect(Collectors.toList());
                     ArrayList<Card> withoutThis = hc.cloneHand(toOmit.get(0), hand);
                     ScoreCounterForAI sc = new ScoreCounterForAI();
-                    int newHandScore = sc.countScore(hand, null);
-                    int handOmited = sc.countScore(withoutThis, null);
+                    int newHandScore = sc.countScore(hand, null, true);
+                    int handOmited = sc.countScore(withoutThis, null, true);
                     return newHandScore - handOmited;
                 } catch (CloneNotSupportedException e) {
                     e.printStackTrace();

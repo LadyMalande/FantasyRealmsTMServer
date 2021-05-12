@@ -11,13 +11,13 @@ import java.util.ResourceBundle;
 
 public class PlusForEachSelftypeExceptThis extends Bonus  {
     public long serialVersionUID = 9;
-    public int how_much;
+    public int howMuch;
     public final String text;
     public Type type;
     private int thiscardid;
 
     public PlusForEachSelftypeExceptThis(int how_much, int thiscardid, Type type) {
-        this.how_much = how_much;
+        this.howMuch = how_much;
         this.type = type;
         this.thiscardid = thiscardid;
         this.text = "+" + how_much + " for each other type " + BigSwitches.switchTypeForName(type) + " in your hand";
@@ -25,6 +25,14 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        return new ArrayList<Type>() {{add(type);}};
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
     @Override
     public String getText(){
         return this.text;
@@ -35,7 +43,7 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append("+" + how_much);
+        sb.append("+" + howMuch);
         sb.append(" ");
         sb.append(rb.getString("for"));
         sb.append(" ");
@@ -55,15 +63,15 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         if(hand.stream().filter(card -> card.id == thiscardid).count() > 1 ){
             for(Card c: hand){
                 if(c.type.equals(type)){
-                    sum += how_much;
+                    sum += howMuch;
                 }
             }
-            sum -= how_much;
+            sum -= howMuch;
         }
         else {
             for (Card c : hand) {
                 if (c.type.equals(type) && c.id != thiscardid) {
-                    sum += how_much;
+                    sum += howMuch;
                 }
             }
         }
@@ -73,11 +81,11 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
         double potential = 0.0;
-        potential += (state.getNumOfType(type) - 1)*how_much;
+        potential += (state.getNumOfType(type) - 1)* howMuch;
         long oddsOnTable = table.stream().filter(c -> c.getType() == type).count();
-        potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * how_much;
+        potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * howMuch;
         long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> c.getType() == type).count();
-        potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * how_much;
+        potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * howMuch;
         return potential;
     }
 
@@ -89,7 +97,7 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
     @Override
     public int getReaction(Type t, ArrayList<Card> hand){
         if(type == t){
-            return how_much;
+            return howMuch;
         }
         return 0;
     }

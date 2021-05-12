@@ -29,6 +29,54 @@ public class BonusOrBonus extends Bonus {
     }
 
     @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
+        ArrayList<Type> b1Types = b1.getTypesAvailable(hand);
+        ArrayList<Type> b2Types = b2.getTypesAvailable(hand);
+
+        if(b1Types != null && b2Types != null){
+            if(b2.getHowMuch(hand) > b1.getHowMuch(hand)){
+                return b2Types;
+            }
+            return b1Types;
+        }
+        if(b2Types != null){
+            return  b2Types;
+        }
+        if(b1Types != null){
+            return b1Types;
+        }
+        return null;
+
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        ArrayList<Type> b1Types = b1.getTypesAvailable(hand);
+        ArrayList<Type> b2Types = b2.getTypesAvailable(hand);
+        if(b1Types != null && b2Types != null){
+            return Math.max(b1.getHowMuch(hand), b2.getHowMuch(hand));
+        }
+        if(b2Types != null){
+            return  b2.getHowMuch(hand);
+        }
+        if(b1Types != null){
+            return b1.getHowMuch(hand);
+        }
+        return 0;
+    }
+
+    @Override
+    public Card satisfiesCondition(ArrayList<Card> hand)
+    {
+        if(b1 instanceof PlusIfYouHaveAtLeastOneType){
+            return b1.satisfiesCondition(hand);
+        }
+        if(b2 instanceof PlusIfYouHaveAtLeastOneType){
+            return b2.satisfiesCondition(hand);
+        }
+        return null;
+    }
+
+    @Override
     public String getText() {
         return this.text;
     }

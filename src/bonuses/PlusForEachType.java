@@ -13,11 +13,20 @@ public class PlusForEachType extends Bonus  {
     public long serialVersionUID = 10;
     public final String text;
     public ArrayList<Type> types;
-    public int how_much;
+    public int howMuch;
+    @Override
+    public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
 
-    public PlusForEachType( ArrayList<Type> types, int how_much) {
+        return types;
+    }
+    @Override
+    public int getHowMuch(ArrayList<Card> hand) {
+        return howMuch;
+    }
+
+    public PlusForEachType(ArrayList<Type> types, int how_much) {
         this.types = types;
-        this.how_much = how_much;
+        this.howMuch = how_much;
         StringBuilder s = new StringBuilder();
         boolean first = true;
         for(Type t: types){
@@ -42,7 +51,7 @@ public class PlusForEachType extends Bonus  {
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append("+" + how_much);
+        sb.append("+" + howMuch);
         sb.append(" ");
         sb.append(rb.getString("for"));
         sb.append(" ");
@@ -59,7 +68,7 @@ public class PlusForEachType extends Bonus  {
         int sum = 0;
         for(Card c: hand){
                 if (types.contains(c.type)) {
-                    sum += how_much;
+                    sum += howMuch;
                 }
         }
 
@@ -70,12 +79,12 @@ public class PlusForEachType extends Bonus  {
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
         double potential = 0.0;
         long numberOfSuitableCards = hand.stream().filter(c -> types.contains(c.getType())).count();
-        potential += (numberOfSuitableCards)*how_much;
+        potential += (numberOfSuitableCards)* howMuch;
         if(numberOfSuitableCards <6){
             long oddsOnTable = table.stream().filter(c -> types.contains(c.getType())).count();
-            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * how_much;
+            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * howMuch;
             long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count();
-            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * how_much;
+            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * howMuch;
         }
         return potential;
     }
@@ -89,7 +98,7 @@ public class PlusForEachType extends Bonus  {
     @Override
     public int getReaction(Type t, ArrayList<Card> hand){
         if(types.contains(t)){
-            return how_much;
+            return howMuch;
         }
         return 0;
     }

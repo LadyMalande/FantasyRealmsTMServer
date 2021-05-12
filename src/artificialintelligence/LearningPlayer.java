@@ -386,7 +386,7 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
     public void countScore() {
         // Create different hands by interactives that AI has
         ScoreCounterForAI sc = new ScoreCounterForAI();
-        score = sc.countScore(hand, server.cardsOnTable);
+        score = sc.countScore(hand, server.cardsOnTable, false);
 
         while (score < -999) {
             // wait;

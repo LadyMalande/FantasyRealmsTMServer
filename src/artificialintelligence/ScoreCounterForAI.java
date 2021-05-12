@@ -1,10 +1,14 @@
 package artificialintelligence;
 
 import bonuses.Bonus;
+import interactive.ChangeColor;
+import interactive.CopyNameAndType;
 import interactive.Interactive;
 import interactive.TakeCardOfTypeAtTheEnd;
 import maluses.Malus;
+import server.BigSwitches;
 import server.Card;
+import server.Server;
 import server.Type;
 
 import java.util.ArrayList;
@@ -15,13 +19,25 @@ import java.util.concurrent.*;
 
 public class ScoreCounterForAI {
     private  FutureTask<Integer> futureTask;
-    public static int countBestPossibleScore(ArrayList<Card> handOriginal, ArrayList<Card> cardsOnTable){
+    private static Server server;
+
+    public void setServer(Server server) {
+        ScoreCounterForAI.server = server;
+    }
+
+    public static int countBestPossibleScore(ArrayList<Card> handOriginal, ArrayList<Card> cardsOnTable, boolean quickCount){
         try {
             ArrayList<Card> whatToRemove = new ArrayList<>();
             int sum = 0;
             HashMap<Type, Malus> types_maluses = new HashMap<>();
             // Alter hand by adding a new card with Necromancer before resolving the rest of the cards in loop
-            checkIfThereIsNecromancerLikeCard(handOriginal, cardsOnTable);
+            int score = checkIfThereIsNecromancerLikeCard(handOriginal, cardsOnTable, quickCount);
+            if(score != -999){
+                //System.out.println("Returned sooner from ScoreCOunterForAI Necromancer");
+                return score;
+            }
+
+
             ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(handOriginal);
             ArrayList<Card> resolveOnceAgain = new ArrayList<>();
             int MAX_PRIORITY = 8;
@@ -44,8 +60,22 @@ public class ScoreCounterForAI {
                                     if (in.getPriority() == i) {
                                         if (!(in instanceof TakeCardOfTypeAtTheEnd)) {
                                             //somehow use the interactives
-                                            in.changeHandWithInteractive(handOriginal, cardsOnTable);
-
+                                            long startTime = System.nanoTime();
+                                            int finalScore = in.changeHandWithInteractive(handOriginal, cardsOnTable);
+                                            if(in instanceof ChangeColor){
+                                                long elapsedTime = (System.nanoTime() - startTime) / 1000000;
+                                                server.timeSpentInChangeColor.append(elapsedTime);
+                                                server.timeSpentInChangeColor.append("\n");
+                                            }
+                                            if(in instanceof CopyNameAndType){
+                                                long elapsedTime = (System.nanoTime() - startTime) / 1000000;
+                                                server.timeSpentInCopyNameAndType.append(elapsedTime);
+                                                server.timeSpentInCopyNameAndType.append("\n");
+                                            }
+                                            if(quickCount){
+                                                //System.out.println("Returned sooner from ScoreCOunterForAI " + in.getClass().getName());
+                                                return finalScore;
+                                            }
                                         }
                                     }
 
@@ -132,7 +162,7 @@ public class ScoreCounterForAI {
             for (Card c : cdeckToIterateThrough) {
                 //sum += c.strength;
                 int tabCount = 3 - (c.name.length() / 8);
-                scoreTable.append(server.BigSwitches.switchIdForName(c.id, "en") + "->" + c.name + "[" + c.type + "] contributed with " + c.strength + " basic strength. ");
+                scoreTable.append(BigSwitches.switchIdForName(c.id, "en") + "->" + c.name + "[" + c.type + "] contributed with " + c.strength + " basic strength. ");
                 int bonus = 0;
                 if(c.bonuses != null && !c.bonuses.isEmpty()){
                     for(Bonus b: c.bonuses){
@@ -188,14 +218,29 @@ public class ScoreCounterForAI {
     }
 
 
-    public int countScore(List<Card> handOriginal, List<Card> cardsOnTable){
+    public int countScore(List<Card> handOriginal, List<Card> cardsOnTable, boolean quickCount){
         futureTask = new FutureTask<>(new Callable<Integer>() {
             @Override
             public Integer call() {
                 try {
-                    return countBestPossibleScore(new ArrayList<>(handOriginal), new ArrayList<>(cardsOnTable));
+                    if(cardsOnTable == null){
+                        if(quickCount == false){
+                            return countBestPossibleScore(new ArrayList<>(handOriginal), new ArrayList<Card>(), quickCount);
+                        }
+                        return countBestPossibleScore(new ArrayList<>(handOriginal), new ArrayList<Card>(), quickCount);
+                    } else{
+                        if(quickCount == false){
+                            return countBestPossibleScore(new ArrayList<>(handOriginal), new ArrayList<Card>(), quickCount);
+                        }
+                        return countBestPossibleScore(new ArrayList<>(handOriginal), new ArrayList<>(cardsOnTable), quickCount);
+                    }
+
+
                 } catch (NullPointerException ex) {
                     ex.printStackTrace();
+                    for(Card c : handOriginal){
+                        System.out.println(c.getName());
+                    }
                     System.out.println("Nullpointer Exception while counting Score for AI");
                 }
                 return -1;
@@ -205,7 +250,7 @@ public class ScoreCounterForAI {
                 Integer score = -1000;
                 try {
                 score = this.futureTask.get();
-                //System.out.print("Score got from FutureTask for hand ^^^^: " + score.toString());
+                //System.out.println("Score got from FutureTask for hand ^^^^: " + score.toString());
 
                 //System.out.println();
                 } catch (InterruptedException | ExecutionException e) {
@@ -213,26 +258,39 @@ public class ScoreCounterForAI {
                 }
 
                 es.shutdown();
-
+                while (score < -999) {
+                    // wait;
+                }
                 return score;
 
     }
 
-    private static void checkIfThereIsNecromancerLikeCard(ArrayList<Card> handOriginal, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+    private static int checkIfThereIsNecromancerLikeCard(ArrayList<Card> handOriginal, ArrayList<Card> cardsOnTable, boolean quickCount) throws CloneNotSupportedException {
         //System.out.println("Inside checkIfThereIsNecromancerLikeCard");
         ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(handOriginal);
-        int numTable = cardsOnTable.size();
+        int numTable;
+        if(cardsOnTable == null){
+            numTable = 0;
+        } else{
+            numTable = cardsOnTable.size();
+        }
         Interactive interactiveToDelete = null;
         ArrayList<Interactive> whereToDelete = null;
         for (Card c : copyDeckToMakeChanges) {
 
             if (c.interactives != null) {
                 //System.out.println("Interactives are not null, size is " + c.interactives.size());
-                for (Interactive in : c.interactives) {
+                ArrayList<Interactive> toIterateThrough = new ArrayList<>(c.interactives);
+                for (Interactive in : toIterateThrough) {
                     //System.out.println(in.text);
                     if (in instanceof TakeCardOfTypeAtTheEnd) {
-                        //System.out.println("There is a Necromancer like card.");
-                        in.changeHandWithInteractive(handOriginal, cardsOnTable);
+
+
+                            int score = in.changeHandWithInteractive(handOriginal, cardsOnTable);
+                            if(score != -999){
+                                return score;
+                            }
+                        //System.out.println("There is a Necromancer like card. Counted score: " + score);
                         whereToDelete = c.interactives;
                         interactiveToDelete = in;
                     }
@@ -251,6 +309,6 @@ public class ScoreCounterForAI {
 
             whereToDelete.remove(interactiveToDelete);
         }
-
+        return -999;
     }
 }

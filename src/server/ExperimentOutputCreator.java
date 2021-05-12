@@ -27,7 +27,7 @@ public class ExperimentOutputCreator {
             if (myFile.createNewFile()) {
                 System.out.println("File created: " + myFile.getName());
             } else {
-                //System.out.println("File already exists.");
+                System.out.println("File already exists.");
             }
             return myFile;
         } catch (IOException e) {
@@ -146,10 +146,8 @@ public class ExperimentOutputCreator {
 
     public void writeToFileWriter(FileWriter writer, StringBuilder sb){
         try {
-
-
             writer.write(sb.toString());
-
+            flushFileWriter(writer);
         } catch(IOException ex){
             ex.printStackTrace();
             System.out.println("Unable to send experiment data to file.");
