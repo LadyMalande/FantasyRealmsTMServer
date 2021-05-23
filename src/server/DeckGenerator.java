@@ -1,25 +1,54 @@
 package server;
 
 import bonuses.*;
-import interactive.Interactive;
-import maluses.*;
 import interactive.*;
+import maluses.*;
+import util.BigSwitches;
+
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 import static server.Type.*;
 
-
+/**
+ * Class for creating cards with randomized properties. The id, names and types of the cards remain the same.
+ * Only bonuses, maluses, interactives and strength of the card are generated.
+ * @author Tereza Miklóšová
+ */
 public class DeckGenerator {
 
-private final int SEED_SIZE = 20;
-private final int SEED_BONUS_END = 6;
-private final int SEED_MALUS_END = 11;
-private final int SEED_INTERACTIVE_END = 14;
-private final int SEED_BONUS_MALUS_END = 17;
-private final int SEED_2BONUS_END = 18;
-private final int SEED_2MALUS_END = SEED_SIZE - 1;
+    /**
+     * Number of Attributes categories.
+     */
+    private final int SEED_SIZE = 20;
+    /**
+     * The final border of one bonus pool.
+     */
+    private final int SEED_BONUS_END = 6;
+    /**
+     * The final border of one malus pool.
+     */
+    private final int SEED_MALUS_END = 11;
+    /**
+     * The final border of one interactive field.
+     */
+    private final int SEED_INTERACTIVE_END = 14;
+    /**
+     * The final border of one bonus and one malus field.
+     */
+    private final int SEED_BONUS_MALUS_END = 17;
+    /**
+     * The final border of 2 bonuses field.
+     */
+    private final int SEED_2BONUS_END = 18;
+
+    /**
+     * Generates deck of cards with randomized properties. The id, names and types of the cards remain the same.
+     * @return List of generated cards.
+     */
     public ArrayList<Card> generateDeck(){
+        Locale locale = new Locale("en");
         ArrayList<Card> deck = new ArrayList<>();
         for(int i = 1; i < 55;i++){
             Random randomGenerator = new Random();
@@ -27,14 +56,18 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
             ArrayList<Bonus> bonuses = generateBonuses(seed, i, false);
             ArrayList<Malus> maluses = generateMaluses(seed, i);
             ArrayList<Interactive> interactives = generateInteractives(seed, i);
-            Card newCard = new Card(i,BigSwitches.switchIdForName(i), getStrengthByBonuses(seed), BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(i)), bonuses, maluses, interactives );
-            //System.out.println("Name: " + newCard.name + " seed: " + seed + " Text: " + getAllText(newCard));
+            Card newCard = new Card(i, BigSwitches.switchIdForName(i,locale.getLanguage()), getStrengthByBonuses(seed), BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(i, locale.getLanguage())), bonuses, maluses, interactives );
             deck.add(newCard);
         }
 
         return deck;
     }
 
+    /**
+     * generates strength based by the bonuses/maluses/interactives mixed on the card.
+     * @param seed What category of attributes is going to be created for the card.
+     * @return Strength of the card.
+     */
     private int getStrengthByBonuses(int seed){
         int strength;
         Random random = new Random();
@@ -56,32 +89,14 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
         return strength;
     }
 
-    private String getAllText(Card c){
-        StringBuilder allText = new StringBuilder();
-        if(c.bonuses != null){
-            allText.append("BONUS\n");
-            for(Bonus b: c.bonuses){
-                allText.append(b.getText()).append("\n");
-                //System.out.println("Name: " + c.name + " TEXT: " + b.getText());
-            }
-        }
-        if(c.maluses != null){
-            allText.append("MALUS\n");
-            for(Malus m: c.maluses){
-                allText.append(m.getText()).append("\n");
-            }
-        }
-        if(c.interactives != null){
-            for(Interactive b: c.interactives){
-                allText.append(b.getText()).append("\n");
-            }
-        }
-        if(c.interactives == null && c.bonuses == null && c.maluses==null){
-            //System.out.println("All is null, card doesnt have any text");
-        }
-        return allText.toString();
-    }
-
+    /**
+     * Randomly generates bonuses by given seed on the card of given id. if the given seed does not correspond
+     * to any bonuses, no bonuses will be generated.
+     * @param seed Seed of the randomized choice.
+     * @param thisCardID The card for which the bonuses are being created.
+     * @param notBonusOrBonus True if the bonus is not bonus or bonus one. False if the bonus is the bonus or bonus one.
+     * @return List of generated bonuses.
+     */
     private ArrayList<Bonus> generateBonuses(int seed, int thisCardID, boolean notBonusOrBonus){
         ArrayList<Bonus> bonuses;
         if(((seed >= 0) && (seed <= SEED_BONUS_END)) || ((seed > SEED_INTERACTIVE_END) && (seed <= SEED_2BONUS_END))) {
@@ -143,7 +158,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
                         howMuch = randomGenerator.nextInt(8);
                         mustHave = randomGenerator.nextInt(3);
                         mustHaveID = randomGenerator.nextInt(2);
-                        ArrayList<Type> types = generateTypes(mustHave, BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(thisCardID)));
+                        ArrayList<Type> types = generateTypes(mustHave + 1, BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(thisCardID)));
                         bonuses.add(new PlusForEachTypeAndForEachCard(6 + howMuch, types , generateCardIDs(mustHaveID + 1,thisCardID, complementToAllTypes(types))));
                         break;
                     case 10:
@@ -224,9 +239,17 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
         return bonuses;
     }
 
+    /**
+     * Randomly generates maluses by given seed on the card of given id. if the given seed does not correspond
+     * to any malus scheme, no maluses will be generated.
+     * @param seed Seed of the randomized choice.
+     * @param thisCardID The card for which the maluses are being created.
+     * @return List of generated maluses.
+     */
     private ArrayList<Malus> generateMaluses(int seed, int thisCardID){
         ArrayList<Malus> maluses;
         int howManyMaluses;
+        int SEED_2MALUS_END = SEED_SIZE - 1;
         if(((seed > SEED_BONUS_END) && (seed <= SEED_MALUS_END)) || ((seed > SEED_INTERACTIVE_END) && (seed <= SEED_BONUS_MALUS_END)) || (seed == SEED_2MALUS_END)){
             maluses = new ArrayList<>();
             if(seed == SEED_2MALUS_END){
@@ -272,7 +295,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
                     case 6:
                         mustHave = randomGenerator.nextInt(3);
                         mustHaveID = randomGenerator.nextInt(10);
-                        maluses.add(new MinusForEachOtherSelftypeOrType( - mustHaveID - 1 , generateTypes(mustHave + 1, BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(thisCardID))) ,BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(thisCardID)), thisCardID));
+                        maluses.add(new MinusForEachOtherSelftypeOrType( - mustHaveID - 1 , generateTypes(mustHave + 1, BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(thisCardID))) ,BigSwitches.switchCardNameForType(BigSwitches.switchIdForName(thisCardID, "en")), thisCardID));
                         break;
                     case 7:
                         mustHave = randomGenerator.nextInt(3);
@@ -292,12 +315,24 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
         return maluses;
     }
 
+    /**
+     * Creates a list of types to complement the ones given as parameter to create all 11 colors together.
+     * @param iDontWantThose Types to create complement to.
+     * @return List of complement types to the ones given in parameter.
+     */
     private ArrayList<Type> complementToAllTypes(ArrayList<Type> iDontWantThose){
         ArrayList<Type> all = new ArrayList<>(){{add(ARMY); add(ARTIFACT); add(BEAST); add(LAND); add(FLAME); add(FLOOD); add(LEADER); add(WEAPON); add(WEATHER); add(WIZARD); add(WILD);}};
         all.removeIf(iDontWantThose::contains);
         return all;
     }
 
+    /**
+     * Randomly generates interactives by given seed on the card of given id. if the given seed does not correspond
+     * to any interactives, no interactives will be generated.
+     * @param seed Seed of the randomized choice.
+     * @param thisCardID The card for which the interactives are being created.
+     * @return List of generated interactives.
+     */
     private ArrayList<Interactive> generateInteractives(int seed, int thisCardID){
         ArrayList<Interactive> interactives;
         if(((seed > SEED_MALUS_END) && (seed <= SEED_INTERACTIVE_END))){
@@ -314,7 +349,7 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
                     ArrayList<Type> types = generateTypes(5, null);
                     interactives.add(new CopyNameAndType(thisCardID, types));
                     break;
-                case 2: interactives.add(new CopyNameColorStrengthMalusFromHand(thisCardID));
+                case 2: interactives.add(new CopyCardFromHand(thisCardID));
                     break;
                 case 3:
                     int howManyToGenerate = randomGenerator.nextInt(10) + 1;
@@ -332,6 +367,12 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
         return interactives;
     }
 
+    /**
+     * Generates given number of random types.
+     * @param howMany How many types to generate.
+     * @param except Those types are not wanted in the result.
+     * @return Generated list of types.
+     */
     private ArrayList<Type> generateTypes(int howMany, Type except){
         ArrayList<Type> types = new ArrayList<>();
         ArrayList<Type> all = new ArrayList<>(){{add(ARMY); add(ARTIFACT); add(BEAST); add(LAND); add(FLAME); add(FLOOD); add(LEADER); add(WEAPON); add(WEATHER); add(WIZARD); add(WILD);}};
@@ -347,6 +388,13 @@ private final int SEED_2MALUS_END = SEED_SIZE - 1;
         return types;
     }
 
+    /**
+     * Generates list of random ids of cards.
+     * @param howMany How many ids to generate.
+     * @param except Those ids will not be in the resulting list.
+     * @param forTypes Select ids from these types.
+     * @return List of card ids.
+     */
     private ArrayList<Integer> generateCardIDs(int howMany, Integer except, ArrayList<Type> forTypes){
         ArrayList<Integer> ids = new ArrayList<>();
         ArrayList<Integer> all = new ArrayList<>();

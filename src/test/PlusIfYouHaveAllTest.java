@@ -37,7 +37,7 @@ class PlusIfYouHaveAllTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Požár")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Kouř")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 50);
     }
 
@@ -47,7 +47,7 @@ class PlusIfYouHaveAllTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Šašek")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Pán šelem")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 
@@ -57,7 +57,7 @@ class PlusIfYouHaveAllTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Pán šelem")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Požár")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 
@@ -67,7 +67,7 @@ class PlusIfYouHaveAllTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Šašek")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Kouř")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 

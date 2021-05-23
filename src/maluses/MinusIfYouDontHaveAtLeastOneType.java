@@ -1,9 +1,10 @@
 package maluses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,19 +12,35 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/**
+ * Implements the penalty that deletes all given types with the exception of named cards.
+ * @author Tereza Miklóšová
+ */
 public class MinusIfYouDontHaveAtLeastOneType extends Malus {
+    /**
+     * This penalty will be resolved last.
+     */
     public int priority = 8;
-    public String text;
+    /**
+     *  How many points will be deducted from the final score if the player doesn't have at least one
+     *  card of given types in hand.
+     */
     int howMuch;
+    /**
+     * Player has to have at least one card of one of these types to not lose points.
+     */
     ArrayList<Type> types;
 
+    /**
+     * Constructor for this penalty.
+     * @param howMuch Points deduced from the score for breaking the condition.
+     * @param types Player has to have at least one card of one of these types to not lose points.
+     */
     public MinusIfYouDontHaveAtLeastOneType( int howMuch, ArrayList<Type> types) {
-        this.text = howMuch + " unless with at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.types = types;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
         if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
@@ -35,8 +52,7 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     }
 
     @Override
-    public Card satisfiesCondition(ArrayList<Card> hand)
-    {
+    public Card satisfiesCondition(ArrayList<Card> hand) {
          List<Card> cards = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
         //Says ids of cards that cant be recolored if the size of this array is only 1
         if(cards.size() == 1){
@@ -52,11 +68,8 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     }
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-    @Override
     public  ArrayList<Type> getTypes(){ return this.types; }
+
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
@@ -68,18 +81,19 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
         sb.append(" ");
         sb.append(rb.getString("one4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, "or",locale,4,false));
+        sb.append(TextCreators.giveListOfTypesWithSeparator(types, "or",locale,4,false));
         sb.append(".");
         return sb.toString();
     }
 
     @Override
     public int getPriority(){ return this.priority; }
+
     @Override
     public int count(ArrayList<Card> hand) {
 
         for(Card c: hand){
-            if(types.contains(c.type)){
+            if(types.contains(c.getType())){
                 return 0;
             }
         }
@@ -87,31 +101,25 @@ public class MinusIfYouDontHaveAtLeastOneType extends Malus {
     }
 
     @Override
-    public Malus clone() throws CloneNotSupportedException{
-        ArrayList<Type> newtypes = new ArrayList<Type>();
-        for(Type t: types){
-            newtypes.add(t);
-        }
-        MinusIfYouDontHaveAtLeastOneType newm = new MinusIfYouDontHaveAtLeastOneType(this.howMuch, newtypes);
-        //System.out.println("In cloning CardIsDeletedIfYouDontHaveAtLeastOneType: The new types and old types are equal = " + (newm.types == this.types));
-        return newm;
+    public Malus clone(){
+        ArrayList<Type> newtypes = new ArrayList<>(types);
+        return new MinusIfYouDontHaveAtLeastOneType(this.howMuch, newtypes);
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        return this.types.stream().anyMatch(type -> types.contains(type));
+        return this.types.stream().anyMatch(types::contains);
     }
 
     @Override
     public int getReaction(Type t, ArrayList<Card> hand) {
-        if(!hand.stream().anyMatch(card -> types.contains(card.getType()))){
+        if(hand.stream().noneMatch(card -> types.contains(card.getType()))){
             //We dont have the needed type AND we can change into it
             if(types.contains(t)){
                 return howMuch;

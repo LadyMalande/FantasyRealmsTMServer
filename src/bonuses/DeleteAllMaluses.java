@@ -9,19 +9,20 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus that can delete all penalties from all cards in hand.
+ * @author Tereza Miklóšová
+ */
 public class DeleteAllMaluses extends Bonus implements Serializable {
-    public long serialVersionUID = 2;
+    /**
+     * The priority of the bonus. Goes before the deleting penalties are counted.
+     */
     public int priority = 5;
-    public final String text = "Remove all maluses from all cards";
 
+    /**
+     * Constructor of the bonus.
+     */
     public DeleteAllMaluses(){
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -44,9 +45,8 @@ public class DeleteAllMaluses extends Bonus implements Serializable {
     @Override
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
-            if(c.maluses != null) {
-                c.maluses = null;
-                //System.out.println("----------- Mazu vsechny postihy z karet, nyni z karty " + c.name);
+            if(c.getMaluses() != null) {
+                c.setMaluses(null);
             }
         }
         return 0;

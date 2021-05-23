@@ -36,7 +36,7 @@ class PlusIfYouDontHaveTypeTest {
     void countConditionSatisfied() {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Císařovna")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 5);
     }
 
@@ -46,7 +46,7 @@ class PlusIfYouDontHaveTypeTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Kouř")).findAny().get());
 
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 

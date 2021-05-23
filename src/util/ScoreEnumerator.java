@@ -2,7 +2,6 @@ package util;
 
 import artificialintelligence.Coefficients;
 import artificialintelligence.ScoreCounterForAI;
-import javafx.util.Pair;
 import server.Card;
 import server.Deck;
 
@@ -12,11 +11,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Support class for counting scores of generated combinations of cards.
+ * @author Tereza Miklóšová
+ */
 public class ScoreEnumerator {
+    /**
+     * Map of cards combined and their value.
+     */
     Map<String, Integer> map;
+    /**
+     * Score counter to count all the scores.
+     */
     ScoreCounterForAI sc;
+    /**
+     * Cards in hand.
+     */
     int hand;
+    /**
+     * Cards in deck.
+     */
     Deck deck;
+
+    /**
+     * Constructor for this class. Creates n-element hands.
+     * @param hand Size of hands to create.
+     */
     public ScoreEnumerator(int hand){
         this.hand = hand;
         map = new HashMap<>();
@@ -26,11 +46,20 @@ public class ScoreEnumerator {
         sc = new ScoreCounterForAI();
     }
 
+
+
+    /**
+     * Save all counted scores to file.
+     */
     public void saveAllPossibilities(){
 
         saveMapToFile("allPossibilities");
     }
 
+    /**
+     * Write the results to given file.
+     * @param file Name of the output file.
+     */
     private void saveMapToFile(String file){
 
         int[] tempCards = new int[hand];
@@ -41,6 +70,14 @@ public class ScoreEnumerator {
         writeToOutputFile(createOutputFile(file));
     }
 
+    /**
+     * Combine cards of different ids to create all possible hands.
+     * @param tempCards Variable for storing the made combination so far.
+     * @param startIndexOfPool At which index of the supplied pool to start.
+     * @param endIndexOfPool At which index of the supplied pool to end.
+     * @param startIndex Start index for iterating.
+     * @param numberOfItems How big n-elements array to create.
+     */
     private void combineCards(int[] tempCards,int startIndexOfPool, int endIndexOfPool, int startIndex, int numberOfItems){
         if(startIndex == numberOfItems){
             deck.initializeOriginal();
@@ -69,14 +106,17 @@ public class ScoreEnumerator {
         }
     }
 
+    /**
+     * Creates output file with given name.
+     * @param filename Name for the output file.
+     * @return File by the given name.
+     */
     private File createOutputFile(String filename){
         try {
             File myFile = new File(filename + ".txt");
-            //System.out.println("Creating file named: " + myFile.getName());
             if (myFile.createNewFile()) {
                 System.out.println("File created: " + myFile.getName());
             } else {
-                //System.out.println("File already exists.");
             }
             return myFile;
         } catch (IOException e) {
@@ -86,6 +126,10 @@ public class ScoreEnumerator {
         return null;
     }
 
+    /**
+     * Write the values from the map to a file.
+     * @param map Map of combinations and its values.
+     */
     public void storeMapToFile(Map<Pair<Integer,Integer>, Coefficients> map){
         try {
             FileOutputStream f = new FileOutputStream(new File("DefaultGameDeckCardsObjects.txt"));
@@ -94,13 +138,9 @@ public class ScoreEnumerator {
             // Write objects to file
             for(Map.Entry entry: map.entrySet()){
                 o.writeObject(entry);
-                //System.out.println("ID: " + c.id + " Name: " + c.name);
             }
-
             o.close();
             f.close();
-
-
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
@@ -110,6 +150,10 @@ public class ScoreEnumerator {
         }
     }
 
+    /**
+     * Writes all the counted combinations and their values to given file.
+     * @param file File to write to.
+     */
     private void writeToOutputFile(File file){
         try {
             FileWriter writer = new FileWriter(file, true);

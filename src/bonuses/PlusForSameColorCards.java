@@ -6,35 +6,39 @@ import server.Type;
 
 import java.util.*;
 
+/**
+ * Bonus that represents bonus which gives increasing points for the cards of the same color.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusForSameColorCards extends Bonus  {
-    public long serialVersionUID = 14;
-    public final String text;
 
+    /**
+     * Constructor for the bonus.
+     */
     public PlusForSameColorCards() {
-        this.text = "+10 for 3,\n +40 for 4,\n +100 for 5 cards of the same type";
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
         ArrayList<Type> types = new ArrayList<>();
         HashMap<Type, Integer> table = new HashMap<>();
         ArrayList<String> alreadyInList = new ArrayList<>();
         for(Card c: hand){
-            if(table.containsKey(c.type)){
+            if(table.containsKey(c.getType())){
                 if(!alreadyInList.isEmpty()){
-                    if(!alreadyInList.contains(c.name)){
-                        table.put(c.type, table.get(c.type) + 1);
-                        alreadyInList.add(c.name);
+                    if(!alreadyInList.contains(c.getName())){
+                        table.put(c.getType(), table.get(c.getType()) + 1);
+                        alreadyInList.add(c.getName());
                     }
                 } else{
-                    table.put(c.type, table.get(c.type) + 1);
-                    alreadyInList.add(c.name);
+                    table.put(c.getType(), table.get(c.getType()) + 1);
+                    alreadyInList.add(c.getName());
                 }
 
             } else{
-                table.put(c.type, 1);
-                alreadyInList.add(c.name);
+                table.put(c.getType(), 1);
+                alreadyInList.add(c.getName());
             }
         }
         // these types can gain from getting +1 type. 1 of type is too little, 5 is already full potential.
@@ -51,25 +55,30 @@ public class PlusForSameColorCards extends Bonus  {
         return 0;
     }
 
+    /**
+     * Counts how much each type can give if added to hand.
+     * @param hand Cards in hand.
+     * @return Map of types and points awarded if one more card of that type is added to hand.
+     */
     public Map<Type, Integer> howMuchCanTypeGive(ArrayList<Card> hand){
         Map<Type, Integer> typeBenefit = new HashMap<>();
         HashMap<Type, Integer> table = new HashMap<>();
         ArrayList<String> alreadyInList = new ArrayList<>();
         for(Card c: hand){
-            if(table.containsKey(c.type)){
+            if(table.containsKey(c.getType())){
                 if(!alreadyInList.isEmpty()){
-                    if(!alreadyInList.contains(c.name)){
-                        table.put(c.type, table.get(c.type) + 1);
-                        alreadyInList.add(c.name);
+                    if(!alreadyInList.contains(c.getName())){
+                        table.put(c.getType(), table.get(c.getType()) + 1);
+                        alreadyInList.add(c.getName());
                     }
                 } else{
-                    table.put(c.type, table.get(c.type) + 1);
-                    alreadyInList.add(c.name);
+                    table.put(c.getType(), table.get(c.getType()) + 1);
+                    alreadyInList.add(c.getName());
                 }
 
             } else{
-                table.put(c.type, 1);
-                alreadyInList.add(c.name);
+                table.put(c.getType(), 1);
+                alreadyInList.add(c.getName());
             }
         }
         // these types can gain from getting +1 type. 1 of type is too little, 5 is already full potential.
@@ -83,11 +92,6 @@ public class PlusForSameColorCards extends Bonus  {
             }
         }
         return typeBenefit;
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -105,20 +109,20 @@ public class PlusForSameColorCards extends Bonus  {
         HashMap<Type, Integer> table = new HashMap<>();
         ArrayList<String> alreadyInList = new ArrayList<>();
         for(Card c: hand){
-            if(table.containsKey(c.type)){
+            if(table.containsKey(c.getType())){
                 if(!alreadyInList.isEmpty()){
-                    if(!alreadyInList.contains(c.name)){
-                        table.put(c.type, table.get(c.type) + 1);
-                        alreadyInList.add(c.name);
+                    if(!alreadyInList.contains(c.getName())){
+                        table.put(c.getType(), table.get(c.getType()) + 1);
+                        alreadyInList.add(c.getName());
                     }
                 } else{
-                    table.put(c.type, table.get(c.type) + 1);
-                    alreadyInList.add(c.name);
+                    table.put(c.getType(), table.get(c.getType()) + 1);
+                    alreadyInList.add(c.getName());
                 }
 
             } else{
-                table.put(c.type, 1);
-                alreadyInList.add(c.name);
+                table.put(c.getType(), 1);
+                alreadyInList.add(c.getName());
             }
         }
         for (Integer value : table.values()) {
@@ -139,13 +143,18 @@ public class PlusForSameColorCards extends Bonus  {
         potential += getRewardForSame(state.getMostFromOneType());
         if(potential < 100){
             long oddsOnTable = table.stream().filter(c -> state.getWhichTypeIsMost().contains(c.getType())).count();
-            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * getRewardForSame(state.getMostFromOneType() + 1);
+            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/(float)table.size()) * getRewardForSame(state.getMostFromOneType() + 1);
             long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> state.getWhichTypeIsMost().contains(c.getType())).count();
-            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * getRewardForSame(state.getMostFromOneType() + 1);
+            potential += (deckSize / (float)unknownCards) * oddsOnDeck/(float)deckSize * getRewardForSame(state.getMostFromOneType() + 1);
         }
         return potential;
     }
 
+    /**
+     * Gets the bonus points for given number of the same color cards.
+     * @param value Number of same color cards.
+     * @return Points to final score.
+     */
     private int getRewardForSame(int value){
         if(value == 3){
             return 10;
@@ -157,6 +166,11 @@ public class PlusForSameColorCards extends Bonus  {
         return 0;
     }
 
+    /**
+     * Collects a map of the types in hand and their number.
+     * @param hand Cards in hand.
+     * @return Map of types in hand and their size.
+     */
     private Map<Type, Integer> getNumberOfTypes(ArrayList<Card> hand){
         Map<Type, Integer> typesNumber = new HashMap<>();
         for(Card c : hand){
@@ -170,6 +184,11 @@ public class PlusForSameColorCards extends Bonus  {
         return typesNumber;
     }
 
+    /**
+     * Collects a list of the most same colors.
+     * @param typesNumber Map of types and their number in hand.
+     * @return List of the types that are most numerous in hand.
+     */
     private ArrayList<Type> getMostUsedTypes(Map<Type, Integer> typesNumber){
         ArrayList<Type> mostUsedTypes = new ArrayList<>();
         int max = 1;
@@ -191,16 +210,18 @@ public class PlusForSameColorCards extends Bonus  {
         return false;
     }
 
+    /**
+     * Tells if the types can yield a profit.
+     * @param types Types that we want to know if they give some profit.
+     * @param hand Cards in hand.
+     * @return True if any of the types gives extra points.
+     */
     public boolean reactsWithTypes(ArrayList<Type> types, ArrayList<Card> hand){
         Map<Type, Integer> typesNumber = getNumberOfTypes(hand);
         ArrayList<Type> mostUsedTypes = getMostUsedTypes(typesNumber);
 
         // We can extend mostTypes by one with this change
-        if(mostUsedTypes.stream().anyMatch(type -> types.contains(type))){
-            return true;
-        } else{
-            return false;
-        }
+        return mostUsedTypes.stream().anyMatch(types::contains);
     }
 
     @Override

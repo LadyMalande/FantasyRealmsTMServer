@@ -8,29 +8,35 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives points for each odd/even card.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusForEachOdd extends Bonus  {
-    public long serialVersionUID = 8;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     public int how_much;
+    /**
+     * If true this bonus gives points for every odd card in hand. If false it gives points for every even card in hand.
+     */
     private boolean odd;
+    /**
+     * This card won't award points.
+     */
     private int thiscardid;
 
+    /**
+     * Constructor for this bonus.
+     * @param how_much Points given for each even/odd card in hand.
+     * @param odd True if odd cards are awarded. False if even cards are awarded.
+     * @param thiscardid This card won't award points.
+     */
     public PlusForEachOdd(int how_much, boolean odd, int thiscardid) {
         this.odd = odd;
         this.thiscardid = thiscardid;
         this.how_much = how_much;
-        if(odd) {
-            this.text = "+" + how_much + " for each OTHER card in your hand with odd strength";
-        } else{
-            this.text = "+" + how_much + " for each OTHER card in your hand with even strength";
-        }
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -38,7 +44,7 @@ public class PlusForEachOdd extends Bonus  {
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + how_much);
+        sb.append("+").append(how_much);
         if(!odd){
             sb.append(rb.getString("plusForEachEven"));
         } else{
@@ -52,12 +58,12 @@ public class PlusForEachOdd extends Bonus  {
         int sum = 0;
         for(Card c: hand){
             if(odd){
-                if(((c.strength % 2) != 0) && (c.id != thiscardid)){
+                if(((c.getStrength() % 2) != 0) && (c.getId() != thiscardid)){
                     sum += how_much;
                 }
             }
             else{
-                if(((c.strength % 2) == 0) && (c.id != thiscardid)){
+                if(((c.getStrength() % 2) == 0) && (c.getId() != thiscardid)){
                     sum += how_much;
                 }
             }
@@ -72,16 +78,13 @@ public class PlusForEachOdd extends Bonus  {
         potential += state.getNumOdd() * how_much;
         // there is fitting card on the table, will it last there?
         if(state.getNumOdd() < 7){
-            long oddsOnTable = table.stream().filter(c -> c.isOdd() == true).count();
+            long oddsOnTable = table.stream().filter(Card::isOdd).count();
             potential += Math.max((oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * how_much,0) ;
 
             // check the deck
-            long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> c.isOdd() == true).count();
+            long oddsOnDeck = state.getProbablyInDeck().stream().filter(Card::isOdd).count();
             potential += Math.max((deckSize / unknownCards) * oddsOnDeck/deckSize * how_much,0) ;
         }
-
-
-        //
 
         return potential;
     }

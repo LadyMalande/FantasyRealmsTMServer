@@ -1,7 +1,7 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -9,33 +9,44 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives extra points for all cards of this type safe for this card.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusForEachSelftypeExceptThis extends Bonus  {
-    public long serialVersionUID = 9;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     public int howMuch;
-    public final String text;
+    /**
+     * Cards of this type will give extra points.
+     */
     public Type type;
+    /**
+     * This card won't award extra points.
+     */
     private int thiscardid;
 
+    /**
+     * Constructor for this bonus.
+     * @param how_much Points given for each completion of the conditions to get it.
+     * @param thiscardid This card won't award extra points.
+     * @param type Cards of this type will give extra points.
+     */
     public PlusForEachSelftypeExceptThis(int how_much, int thiscardid, Type type) {
         this.howMuch = how_much;
         this.type = type;
         this.thiscardid = thiscardid;
-        this.text = "+" + how_much + " for each other type " + BigSwitches.switchTypeForName(type) + " in your hand";
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
-        return new ArrayList<Type>() {{add(type);}};
+        return new ArrayList<>() {{add(type);}};
     }
     @Override
     public int getHowMuch(ArrayList<Card> hand) {
         return howMuch;
-    }
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -43,7 +54,7 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append("+" + howMuch);
+        sb.append("+").append(howMuch);
         sb.append(" ");
         sb.append(rb.getString("for"));
         sb.append(" ");
@@ -60,9 +71,9 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
     @Override
     public int count(ArrayList<Card> hand) {
         int sum = 0;
-        if(hand.stream().filter(card -> card.id == thiscardid).count() > 1 ){
+        if(hand.stream().filter(card -> card.getId() == thiscardid).count() > 1 ){
             for(Card c: hand){
-                if(c.type.equals(type)){
+                if(c.getType().equals(type)){
                     sum += howMuch;
                 }
             }
@@ -70,7 +81,7 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         }
         else {
             for (Card c : hand) {
-                if (c.type.equals(type) && c.id != thiscardid) {
+                if (c.getType().equals(type) && c.getId() != thiscardid) {
                     sum += howMuch;
                 }
             }
@@ -83,9 +94,9 @@ public class PlusForEachSelftypeExceptThis extends Bonus  {
         double potential = 0.0;
         potential += (state.getNumOfType(type) - 1)* howMuch;
         long oddsOnTable = table.stream().filter(c -> c.getType() == type).count();
-        potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * howMuch;
+        potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/(float)table.size()) * howMuch;
         long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> c.getType() == type).count();
-        potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * howMuch;
+        potential += (deckSize / (float)unknownCards) * oddsOnDeck/(float)deckSize * howMuch;
         return potential;
     }
 

@@ -25,7 +25,7 @@ class PlusForEachSelftypeExceptThisTest {
         //String size = String.valueOf(deck.size());
         //String msg = "Size of deck" + size;
         //log.info(msg);
-        cardsInHands = new ArrayList<Card>();
+        cardsInHands = new ArrayList<>();
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Elementál ohně")).findAny().get();
         cardsInHands.add(cardToBeTested);
@@ -40,7 +40,7 @@ class PlusForEachSelftypeExceptThisTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 15);
     }
 
@@ -52,7 +52,7 @@ class PlusForEachSelftypeExceptThisTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Požár")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 30);
     }
 
@@ -64,7 +64,7 @@ class PlusForEachSelftypeExceptThisTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Meč")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Blesk")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Požár")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 45);
     }
 
@@ -77,7 +77,7 @@ class PlusForEachSelftypeExceptThisTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Blesk")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Požár")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 60);
     }
 
@@ -90,7 +90,7 @@ class PlusForEachSelftypeExceptThisTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Stoletá voda")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 }

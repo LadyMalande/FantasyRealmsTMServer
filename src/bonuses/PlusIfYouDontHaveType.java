@@ -1,7 +1,7 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -9,18 +9,30 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives one time points if given type is not in player's hand.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfYouDontHaveType extends Bonus  {
-    public long serialVersionUID = 18;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     public int howMuch;
+
+    /**
+     * If this type is not in the hand, player will receive bonus points.
+     */
     public Type type;
 
+    /**
+     * Constructor for the bonus.
+     * @param howMuch How much will the player get when the condition is met.
+     * @param type This type can't be in player's hand in order to receive the bonus.
+     */
     public PlusIfYouDontHaveType( int howMuch, Type type) {
-        this.text = "+" + howMuch + " if no " + BigSwitches.switchTypeForName(type);
         this.howMuch = howMuch;
         this.type = type;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
@@ -33,17 +45,12 @@ public class PlusIfYouDontHaveType extends Bonus  {
     }
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-
-    @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
         ResourceBundle rbbonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + howMuch);
+        sb.append("+").append(howMuch);
         sb.append(rbbonuses.getString("ifYouDontHave"));
         sb.append(" ");
             sb.append(rb.getString("no4" + BigSwitches.switchTypeForGender(type)));
@@ -56,7 +63,7 @@ public class PlusIfYouDontHaveType extends Bonus  {
     @Override
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
-            if(c.type.equals(type)){
+            if(c.getType().equals(type)){
                 return 0;
             }
         }
@@ -69,7 +76,7 @@ public class PlusIfYouDontHaveType extends Bonus  {
         if(!state.getHaveTheseTypes().contains(type)){
             return howMuch;
         }
-        potential += howMuch * 1/(state.getNumOfType(type) + 1);
+        potential += howMuch /(float)(state.getNumOfType(type) + 1);
 
         return potential;
     }

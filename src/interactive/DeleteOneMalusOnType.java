@@ -3,34 +3,43 @@ package interactive;
 import artificialintelligence.ScoreCounterForAI;
 import artificialintelligence.State;
 import maluses.Malus;
-import server.BigSwitches;
 import server.Card;
 import server.ClientHandler;
+import server.Server;
 import server.Type;
+import util.BigSwitches;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * The interactive bonus that implements the possibility of deleting one malus on card of offered types.
+ * @author Tereza Miklóšová
+ */
 public class DeleteOneMalusOnType extends Interactive {
-    public int priority = 4;
-    public String text;
+    /**
+     * Bonus is resolved after ChangeColor cards
+     */
+    public int priority = 5;
+    /**
+     * Types of cards that can have one of their maluses deleted.
+     */
     public ArrayList<Type> types;
+    /**
+     * Id of the card containing this bonus.
+     */
     private int thiscardid;
 
+    /**
+     * Constructor of this interactive bonus.
+     * @param id Id of the card containing this bonus.
+     * @param types Types of cards that can have one of their maluses deleted.
+     */
     public DeleteOneMalusOnType(int id, ArrayList<Type> types) {
-        this.text = "Delete one malus on type " + giveListOfTypesWithSeparator(types, " or ");
         this.types = types;
         this.thiscardid = id;
-        //System.out.println("Card INIT: Text: " + getText());
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText() {
-        return this.text;
     }
 
     @Override
@@ -39,10 +48,10 @@ public class DeleteOneMalusOnType extends Interactive {
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("interactive.CardInteractives",loc);
         ResourceBundle type = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append(rb.getString("deleteOneMalusOnType"));
+        sb.append(rb.getString("deleteOneMalusOnType")).append(" ");
         sb.append(type.getString("one2" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, "or", locale, 2));
+        sb.append(giveListOfTypesWithSeparator(types, locale, 2));
         sb.append(".");
         return sb.toString();
     }
@@ -57,18 +66,18 @@ public class DeleteOneMalusOnType extends Interactive {
         boolean firstTime = true;
         for(Type t: types){
             for(Card c: client.getHand()){
-                if(c.type.equals(t)){
-                    if(c.maluses != null && !c.maluses.isEmpty()){
+                if(c.getType().equals(t)){
+                    if(c.getMaluses() != null && !c.getMaluses().isEmpty()){
                         if(!firstTime){
                             str.append("%");
                         }
 
                         boolean firstTimeInMaluses = true;
-                        for(Malus m: c.maluses){
+                        for(Malus m: c.getMaluses()){
                             if(!firstTimeInMaluses){
                                 str.append("%");
                             }
-                            str.append(c.getNameLoc(client.locale.getLanguage()) + ": ");
+                            str.append(c.getNameLoc(client.locale.getLanguage())).append(": ");
                             str.append(m.getText(client.locale.getLanguage()));
                             firstTimeInMaluses = false;
                         }
@@ -81,36 +90,31 @@ public class DeleteOneMalusOnType extends Interactive {
     }
 
     @Override
-    public boolean askPlayer(ClientHandler client) {
-        //            ch.getHand().stream().filter(card -> card.name.equals(result1)).findAny().ifPresent(removeMalusHere -> removeMalusHere.maluses.removeIf(malus -> malus.getText().equals(result2)));
+    public void askPlayer(ClientHandler client) {
        String s = getAllMalusesForTypesToString(client);
         if(s.isEmpty()){
             synchronized(client.interactivesResolvedAtomicBoolean) {
                 client.interactivesResolved.incrementAndGet();
                 //client.futureTask.notify();
                 client.interactivesResolvedAtomicBoolean.set(true);
-                return true;
             }
         }
         else{
-            return client.sendInteractive("DeleteOneMalusOnType#" + thiscardid + "#" + getAllMalusesForTypesToString(client));
-
+            client.sendMessage("DeleteOneMalusOnType#" + thiscardid + "#" + getAllMalusesForTypesToString(client));
         }
     }
 
     @Override
-    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
-        long startTime = System.nanoTime();
-        //System.out.println("Counting DeleteOneMalusOnType");
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable, Server server,
+                                         Integer idOfCardToChange, Card toChangeInto) throws CloneNotSupportedException {
 
-        ArrayList<Integer> malusesScore = new ArrayList<>();
         Card onWhichDeleteMalus = null;
         Malus whichMalusToDelete = null;
 
         // Remove this interactive from card to not get stuck in loop
         for(Card original : originalHand){
-            if(thiscardid == original.id){
-                original.interactives.remove(this);
+            if(thiscardid == original.getId()){
+                original.getInteractives().remove(this);
             }
         }
 
@@ -122,31 +126,31 @@ public class DeleteOneMalusOnType extends Interactive {
             ArrayList<Interactive> interactives = new ArrayList<>();
             // bonuses are never deleted, they can be the same objects
             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
-            if(copy.maluses != null){
+            if(copy.getMaluses() != null){
                 //System.out.println("Klonuji kartu " + copy.name);
-                for(Malus m : copy.maluses){
+                for(Malus m : copy.getMaluses()){
                     maluses.add(m.clone());
                 }
             }
             // The same rule apply to interactives = they can be deleted to signal it has been used
-            if(copy.interactives != null){
-                for(Interactive inter : copy.interactives){
+            if(copy.getInteractives() != null){
+                for(Interactive inter : copy.getInteractives()){
                     interactives.add(inter.clone());
                 }
             }
-            newHandOldScore.add(new Card(copy.id,copy.name,copy.strength, copy.type, copy.bonuses, maluses, interactives));
+            newHandOldScore.add(new Card(copy.getId(),copy.getName(),copy.getStrength(), copy.getType(), copy.getBonuses(), maluses, interactives));
         }
 
-        ScoreCounterForAI sc = new ScoreCounterForAI();
+        ScoreCounterForAI sc = new ScoreCounterForAI(server);
         int bestScore = sc.countScore(newHandOldScore, cardsOnTable, true);
 
         //Try to delete every malus on hand and find out which one is the best to remove
         for(Card c : originalHand){
-            if(this.types.contains(c.type)) {
-                if (c.maluses != null) {
-                    for (int i = 0; i < c.maluses.size(); i++){
-                        Malus storeMalus = c.maluses.get(i);
-                        c.maluses.remove(i);
+            if(this.types.contains(c.getType())) {
+                if (c.getMaluses() != null) {
+                    ArrayList<Malus> malusesCopyToIterate = new ArrayList<>(c.getMaluses());
+                    for (Malus malus : malusesCopyToIterate){
+                        c.getMaluses().remove(malus);
 
 
                         List<Card> newHand = new ArrayList<>();
@@ -155,44 +159,38 @@ public class DeleteOneMalusOnType extends Interactive {
                             ArrayList<Interactive> interactives = new ArrayList<>();
                             // bonuses are never deleted, they can be the same objects
                             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
-                            if(copy.maluses != null){
-                                //System.out.println("Klonuji kartu " + copy.name);
-                                for(Malus m : copy.maluses){
+                            if(copy.getMaluses() != null){
+                                for(Malus m : copy.getMaluses()){
                                     maluses.add(m.clone());
                                 }
                             }
                             // The same rule apply to interactives = they can be deleted to signal it has been used
-                            if(copy.interactives != null){
-                                for(Interactive inter : copy.interactives){
+                            if(copy.getInteractives() != null){
+                                for(Interactive inter : copy.getInteractives()){
                                     interactives.add(inter.clone());
                                 }
                             }
-                            newHand.add(new Card(copy.id,copy.name,copy.strength, copy.type, copy.bonuses, maluses, interactives));
+                            newHand.add(new Card(copy.getId(),copy.getName(),copy.getStrength(), copy.getType(), copy.getBonuses(), maluses, interactives));
                         }
 
 
                         int currentScore = sc.countScore(newHand, cardsOnTable, true);
                         if (currentScore > bestScore) {
                             bestScore = currentScore;
-                            whichMalusToDelete = storeMalus;
+                            whichMalusToDelete = malus;
                             onWhichDeleteMalus = c;
-                            //System.out.println("Without Malus on card " + c.name + ": " + storeMalus.text + " the score is " + currentScore);
-                            //System.out.println("Which is better than the previous score: best score so far = " + bestScore);
                         }
-                        c.maluses.add(i, storeMalus);
-                        //System.out.println("After trying out the score, it was " + currentScore + " number of maluses on card is " + c.maluses.size());
+                        c.getMaluses().add(malus);
                     }
                 }
             }
         }
         if(onWhichDeleteMalus != null && whichMalusToDelete != null){
-            onWhichDeleteMalus.maluses.remove(whichMalusToDelete);
-            //System.out.println("Finally deleting Malus on card " + onWhichDeleteMalus.name + ": " + whichMalusToDelete.text);
+            onWhichDeleteMalus.getMaluses().remove(whichMalusToDelete);
+            idOfCardToChange = onWhichDeleteMalus.getId();
+            toChangeInto = onWhichDeleteMalus;
         }
 
-
-        long elapsedTime = System.nanoTime() - startTime;
-        //System.out.println("Total execution time spent in DeleteOneMalusOnType in millis: " + elapsedTime/1000000);
         return bestScore;
     }
 
@@ -200,16 +198,14 @@ public class DeleteOneMalusOnType extends Interactive {
     public Interactive clone() throws CloneNotSupportedException{
         DeleteOneMalusOnType newi = (DeleteOneMalusOnType)super.clone();
         newi.priority = this.priority;
-        newi.text = this.text;
-        newi.types = (ArrayList<Type>) this.types.clone();
+        newi.types = new ArrayList<> (this.types);
         newi.thiscardid = this.thiscardid;
         return newi;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 }

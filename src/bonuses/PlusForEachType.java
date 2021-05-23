@@ -1,22 +1,32 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives bonus points for every card of given types.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusForEachType extends Bonus  {
-    public long serialVersionUID = 10;
-    public final String text;
+    /**
+     * Types that award bonus points.
+     */
     public ArrayList<Type> types;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     public int howMuch;
+
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
-
         return types;
     }
     @Override
@@ -24,6 +34,11 @@ public class PlusForEachType extends Bonus  {
         return howMuch;
     }
 
+    /**
+     * Constructor for this bonus.
+     * @param types Types that award bonus points.
+     * @param how_much Points given for each completion of the conditions to get it.
+     */
     public PlusForEachType(ArrayList<Type> types, int how_much) {
         this.types = types;
         this.howMuch = how_much;
@@ -36,14 +51,6 @@ public class PlusForEachType extends Bonus  {
             s.append(BigSwitches.switchTypeForName(t));
             first = false;
         }
-        this.text = "+" + how_much + " for each type " + s;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -51,13 +58,13 @@ public class PlusForEachType extends Bonus  {
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append("+" + howMuch);
+        sb.append("+").append(howMuch);
         sb.append(" ");
         sb.append(rb.getString("for"));
         sb.append(" ");
         sb.append(rb.getString("each4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types,"or",locale, 4,false));
+        sb.append(TextCreators.giveListOfTypesWithSeparator(types,"or",locale, 4));
         sb.append(" ");
         sb.append(rb.getString("inYourHand"));
         return sb.toString();
@@ -67,11 +74,10 @@ public class PlusForEachType extends Bonus  {
     public int count(ArrayList<Card> hand) {
         int sum = 0;
         for(Card c: hand){
-                if (types.contains(c.type)) {
+                if (types.contains(c.getType())) {
                     sum += howMuch;
                 }
         }
-
         return sum;
     }
 
@@ -82,16 +88,16 @@ public class PlusForEachType extends Bonus  {
         potential += (numberOfSuitableCards)* howMuch;
         if(numberOfSuitableCards <6){
             long oddsOnTable = table.stream().filter(c -> types.contains(c.getType())).count();
-            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/table.size()) * howMuch;
+            potential += (oddsOnTable - state.getNumberOfEnemies()*oddsOnTable/(float)table.size()) * howMuch;
             long oddsOnDeck = state.getProbablyInDeck().stream().filter(c -> types.contains(c.getType())).count();
-            potential += (deckSize / unknownCards) * oddsOnDeck/deckSize * howMuch;
+            potential += (deckSize / (float)unknownCards) * oddsOnDeck/(float)deckSize * howMuch;
         }
         return potential;
     }
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        return this.types.stream().anyMatch(type -> types.contains(type));
+        return this.types.stream().anyMatch(types::contains);
 
     }
 

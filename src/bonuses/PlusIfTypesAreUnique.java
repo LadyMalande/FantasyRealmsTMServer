@@ -7,25 +7,31 @@ import server.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Bonus that represents bonus which gives points if all the types of cards in hands are unique.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfTypesAreUnique extends Bonus  {
-    public long serialVersionUID = 17;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     public int howMuch;
 
+    /**
+     * Constructor for the bonus,
+     * @param howMuch Points that will be awarded if there is no duplicated type in the hand.
+     */
     public PlusIfTypesAreUnique(int howMuch) {
-        this.text = "+" + howMuch +" if every non-BLANKED card is a different type ";
         this.howMuch = howMuch;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
         // Makes map of colors in hand. If there is more than one color with count 2, Change color cant help
-        ArrayList<Type> types = new ArrayList<>();
         int typeDuplicates = 0;
         Map<Type, Integer> typeCounts = new HashMap<>();
         for(Card c : hand){
-            if(typeCounts.keySet().contains(c.getType())){
+            if(typeCounts.containsKey(c.getType())){
                 int newCount = typeCounts.get(c.getType()) + 1;
                 typeCounts.put(c.getType(), newCount);
                 typeDuplicates++;
@@ -37,7 +43,7 @@ public class PlusIfTypesAreUnique extends Bonus  {
             return null;
         } else{
             ArrayList<Type> colors =
-                    new ArrayList<Type>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
+                    new ArrayList<>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
                             Type.LAND, Type.LEADER, Type.WEAPON, Type.WEATHER, Type.WIZARD));
             for(Map.Entry<Type, Integer> entry : typeCounts.entrySet()){
                 colors.remove(entry.getKey());
@@ -50,15 +56,20 @@ public class PlusIfTypesAreUnique extends Bonus  {
         return howMuch;
     }
 
+    /**
+     * returns card that needs to be changed if it helps to get the bonus done.
+     * @param hand The hand for inspection.
+     * @return The card that must change its type in order to get the bonus. If there is more than one card that needs to be
+     * changed, null is returned.
+     */
     public Card whichCardNeedsChange(ArrayList<Card> hand){
 
         // Makes map of colors in hand. If there is more than one color with count 2, Change color cant help
-        ArrayList<Type> types = new ArrayList<>();
         Type duplicate = Type.FLOOD;
         int typeDuplicates = 0;
         Map<Type, Integer> typeCounts = new HashMap<>();
         for(Card c : hand){
-            if(typeCounts.keySet().contains(c.getType())){
+            if(typeCounts.containsKey(c.getType())){
                 int newCount = typeCounts.get(c.getType()) + 1;
                 typeCounts.put(c.getType(), newCount);
                 typeDuplicates++;
@@ -67,22 +78,15 @@ public class PlusIfTypesAreUnique extends Bonus  {
                 typeCounts.put(c.getType(), 1);
             }
         }
-        if(typeDuplicates > 1){
-            return null;
-        } else{
-            if(typeDuplicates == 1){
+        if (typeDuplicates <= 1) {
+            if (typeDuplicates == 1) {
                 Type finalDuplicate = duplicate;
                 List<Card> fitsTheDescription = hand.stream().filter(card -> card.getId() != 31 && card.getType() == finalDuplicate).collect(Collectors.toList());
                 return fitsTheDescription.get(0);
             }
-            return null;
         }
+        return null;
 
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -90,7 +94,7 @@ public class PlusIfTypesAreUnique extends Bonus  {
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + howMuch);
+        sb.append("+").append(howMuch);
         sb.append(bonuses.getString("plusIfTypesAreUnique"));
         return sb.toString();
     }
@@ -100,12 +104,12 @@ public class PlusIfTypesAreUnique extends Bonus  {
         if(hand.size() == 2){
             return 0;
         }
-        ArrayList<Type> types = new ArrayList<Type>();
+        ArrayList<Type> types = new ArrayList<>();
         for(Card c: hand){
-            if(types.contains(c.type)){
+            if(types.contains(c.getType())){
                 return 0;
             } else{
-                types.add(c.type);
+                types.add(c.getType());
             }
         }
 
@@ -134,6 +138,12 @@ public class PlusIfTypesAreUnique extends Bonus  {
         return false;
     }
 
+    /**
+     * Tells if the bonus reacts somehow with given types. If the bonus can be made better by changing some cards into those types.
+     * @param types Types we want to change cards to.
+     * @param hand Cards in hand.
+     * @return True if there is some card that is not unique. False if all cards are of unique color.
+     */
     public boolean reactsWithTypes(ArrayList<Type> types, ArrayList<Card> hand){
         ArrayList<Type> haveTypesInHand = new ArrayList<>();
         for(Card c : hand){
@@ -146,11 +156,7 @@ public class PlusIfTypesAreUnique extends Bonus  {
             return false;
         } else{
             // There are already all changeable colors, cant react with this card
-            if(haveTypesInHand.containsAll(types)){
-                return false;
-            } else{
-                return true;
-            }
+            return !haveTypesInHand.containsAll(types);
         }
     }
 

@@ -6,31 +6,40 @@ import bonuses.*;
 import maluses.*;
 import server.Card;
 import server.ClientHandler;
+import server.Server;
 import server.Type;
 import util.HandCloner;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/**
+ * The interactive bonus that implements the possibility of changing color of one card
+ * other than the one containing this bonus.
+ * @author Tereza Miklóšová
+ */
 public class ChangeColor extends Interactive {
+    /**
+     * This bonus is computed after CopyNameAndType.
+     */
     public int priority = 4;
-    public String text;
+
+    /**
+     * This card's color can't be changed by this bonus.
+     */
     public int thiscardid;
-    private ArrayList<Integer> exceptionsFromDeletion;
+
+    /**
+     * Deleted cards in hand.
+     */
     ArrayList<Card> deletedCards = new ArrayList<>();
 
+    /**
+     * Constructor for interactive bonus.
+     * @param id Id of the card that can;t be affected by this bonus.
+     */
     public ChangeColor(int id) {
-        this.text = "Change type of one card in your hand";
         this.thiscardid = id;
-        //System.out.println("Card INIT: Text: " + getText());
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -45,11 +54,12 @@ public class ChangeColor extends Interactive {
     // All dialogs made with the help of example on https://code.makery.ch/blog/javafx-dialogs-official/
 
     @Override
-    public boolean askPlayer(ClientHandler client) {
-        return client.sendInteractive( "ChangeColor#"+thiscardid);
+    public void askPlayer(ClientHandler client) {
+        client.sendMessage("ChangeColor#" + thiscardid);
 
     }
 /*
+// OPTIMIZED WITH THREADS, TOO MUCH THREADING
     @Override
     public void changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
         long startTime = System.nanoTime();
@@ -133,6 +143,7 @@ public class ChangeColor extends Interactive {
  */
 
 /*
+    //NOT OPTIMIZED
     @Override
     public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
         long startTime = System.nanoTime();
@@ -225,84 +236,69 @@ public class ChangeColor extends Interactive {
         }
         long elapsedTime = (System.nanoTime() - startTime) / 1000000;
         //System.out.println("Total execution time spent in performMove in millis: " + elapsedTime/1000000);
-        server.timeSpentInChangeColor.append(elapsedTime);
-        server.timeSpentInChangeColor.append("\n");
+
         return bestScore;
     }
-*/
+    */
 
+    // OPTIMIZED SELECTION
     @Override
-    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable)
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable, Server server,
+                                         Integer idOfCardToChange, Card cardToChangeInto)
             throws CloneNotSupportedException {
-        long startTime = System.nanoTime();
-        int maxScore = -999;
+        int maxScore;
         Card suitableCard = null;
         // Remove this interactive from card to not get stuck in loop
         for (Card original : originalHand) {
-            if (thiscardid == original.id) {
-                original.interactives.remove(this);
+            if (thiscardid == original.getId()) {
+                original.getInteractives().remove(this);
             }
         }
         HandCloner hc = new HandCloner();
-        ScoreCounterForAI sc = new ScoreCounterForAI();
+        ScoreCounterForAI sc = new ScoreCounterForAI(server);
                 ArrayList<Card> copiedHand = hc.cloneHand(null,originalHand);
         maxScore = sc.countScore(copiedHand, cardsOnTable, true);
         ArrayList<Card> handWithoutThisCard = new ArrayList<>(copiedHand);
         handWithoutThisCard.removeIf(card -> card.getId() == thiscardid);
         ArrayList<Type> deletedTypes = getDeletedTypes(copiedHand, handWithoutThisCard);
         ArrayList<Type> colors =
-                new ArrayList<Type>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
+                new ArrayList<>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
                         Type.LAND, Type.LEADER, Type.WEAPON, Type.WEATHER, Type.WIZARD));
         colors.removeAll(deletedTypes);
-        Type minType = null;
-        int minTypeValue = 0;
+        Type minType;
         Type toChangeInto = null;
-        int toChangeIntoBonus = 0;
         Card worstColorCard = null;
-        List<Card> worstColorCards = null;
+        List<Card> worstColorCards;
         Map<Type, Integer> typeValues = getTypeValues(copiedHand, handWithoutThisCard, deletedTypes);
-        if(typeValues != null && !typeValues.isEmpty()){
+        if(!typeValues.isEmpty()){
             toChangeInto = getMax(typeValues);
 
             minType = getMin(typeValues);
-            if(minType != toChangeInto){
-            } else {
-                /*
-        for(Map.Entry<Type, Integer> entry : typeValues.entrySet()){
-            System.out.println(BigSwitches.switchTypeForName(entry.getKey()) + " = " + entry.getValue());
-        }
-        System.out.println();
-        System.out.println("MaxEntryType : " + toChangeInto);
-                System.out.println("handwithoutThisCard:");
-                for(Card c : handWithoutThisCard){
-                    System.out.print(c.getName() + ", ");
-                }
-                System.out.println();
-
-                System.out.println("Max i min entries jsou stejne, to je divne.");
-*/
-            }
+            //        for(Map.Entry<Type, Integer> entry : typeValues.entrySet()){
+            //            System.out.println(BigSwitches.switchTypeForName(entry.getKey()) + " = " + entry.getValue());
+            //        }
+            //        System.out.println();
+            //        System.out.println("MaxEntryType : " + toChangeInto);
+            //                System.out.println("handwithoutThisCard:");
+            //                for(Card c : handWithoutThisCard){
+            //                    System.out.print(c.getName() + ", ");
+            //                }
+            //                System.out.println();
+            //
+            //                System.out.println("Max i min entries jsou stejne, to je divne.");
+            //
 
 
-
-
-
-        if(deletedCards.isEmpty() &&
+            if(deletedCards.isEmpty() &&
                 typeValues.get(toChangeInto) == 0
                 && typeValues.get(minType) == 0){
+                return maxScore;
         } else {
             // First try to change those that substract points
             ArrayList<Card> doNotChange = ratherNotChange(copiedHand, handWithoutThisCard);
             minType = getMin(typeValues);
-            Type finalMinType = minType;
-            //worstColorCards = handWithoutThisCard.stream().filter(card -> card.getType() == finalMinType).collect(Collectors.toList());
             worstColorCards = getMinTypeCard(handWithoutThisCard, minType);
-            //Card worstColorCard = handWithoutThisCard.stream().filter(card -> card.getType() == finalMinType).findAny().orElse(null);
-            //System.out.println("worstCards je empty? " + worstColorCards.isEmpty());
-            /*
 
-
-             */
             // The card we want to change is essential, we cant change it
             if(!worstColorCards.isEmpty()) {
                 worstColorCard = worstColorCards.get(0);
@@ -314,24 +310,12 @@ public class ChangeColor extends Interactive {
                 if (!typeValues.isEmpty() && typeValues.size() > 1) {
                     minType = getMin(typeValues);
 
-                    //minType = minEntry.getKey();
-                    //System.out.println("minType ve while: " + BigSwitches.switchTypeForName(minType) + " " + minEntry.getValue());
                     if(minType != toChangeInto){
-                        Type finalMinType1 = minType;
-                        //worstColorCards = handWithoutThisCard.stream().filter(card -> card.getType() == finalMinType).collect(Collectors.toList());
                         worstColorCards = getMinTypeCard(handWithoutThisCard, minType);
                         if(!worstColorCards.isEmpty()) {
                             worstColorCard = worstColorCards.get(0);
                         }
-                            //worstColorCard = handWithoutThisCard.stream().filter(card -> card.getType() == finalMinType1).findAny().orElse(null);
-
                     }
-                    /*
-                    System.out.println("We had to find new worstColorCards, " +
-                            String.valueOf(doNotChange.contains(worstColorCard)) + " null? "+
-                            String.valueOf(worstColorCard == null));
-
-                     */
                 } else {
                     // TypeValues are empty or there is only one value left = the value to change into
                     break;
@@ -339,83 +323,47 @@ public class ChangeColor extends Interactive {
             }
 
             if (worstColorCard != null) {
-                /*
-                System.out.print("Bad cards: ");
-
-                for(Card c : worstColorCards){
-                    System.out.print(c.getName() + ", ");
-                }
-                System.out.println();
-
-                 */
                 // Try the combination of the worst Color cards to avoid lesser score (for example Princess, Queen and King,
                 // toChangeInto is ARMY and better benefit is if PRINCESS is turned into army because she benefits from all)
                 for(Card c : worstColorCards){
                     int currentScore;
-                    Type storeType = worstColorCard.type;
-                    worstColorCard.type = toChangeInto;
+                    Type storeType = worstColorCard.getType();
+                    worstColorCard.setType(toChangeInto);
                     currentScore = sc.countScore(copiedHand, cardsOnTable, true);
-                    worstColorCard.type = storeType;
+                    worstColorCard.setType(storeType);
                     if(currentScore > maxScore){
                         worstColorCard = c;
                         maxScore = currentScore;
                     }
                 }
-                    Type storeType = worstColorCard.type;
-                    worstColorCard.type = toChangeInto;
+                    Type storeType = worstColorCard.getType();
+                    worstColorCard.setType(toChangeInto);
                     maxScore = sc.countScore(copiedHand, cardsOnTable, true);
-                    worstColorCard.type = storeType;
+                    worstColorCard.setType(storeType);
                     //System.out.println(worstColorCard.getName() + " --> " + BigSwitches.switchTypeForName(toChangeInto) + " = " + maxScore);
-            } else {
-                // There is no worst card that we could change
-                //System.out.println("Cekni tuhle formaci, nenalezeno zadne vylepseni, ale mozna...");
-                /*
-                for(Card c : originalHand) {
-                    System.out.print(c.getName() + ", " + " typ " + c.getType());
-                }
-                System.out.println();
-                //System.out.println("Do not change: blank");
-                for(Card c : doNotChange) {
-                    //System.out.print(c.getName() + ", ");
-                }
-                //System.out.println();
-                for(Map.Entry<Type, Integer> entry : typeValues.entrySet()){
-                    System.out.println(BigSwitches.switchTypeForName(entry.getKey()) + " = " + entry.getValue());
-                }
-                System.out.println();
-                System.out.println("Deleted types: ");
-                for(Type t : deletedTypes){
-                    System.out.print(BigSwitches.switchTypeForName(t)+ ", ");
-                }
-                System.out.println();
-                System.out.println("toChangeInto: " + BigSwitches.switchTypeForName(toChangeInto));
-                System.out.println("minEntry: " + BigSwitches.switchTypeForName(minType));
+            }  // There is no worst card that we could change
 
-                 */
             }
-        }
-        } else{
-            System.out.println("typeValues jsou null nebo prazdne, CHYBA");
         }
         // Treatment of Warlord
         if(originalHand.stream().anyMatch(card -> card.getId() == 18)){
-            int tempScore = -999;
+            int tempScore;
 
             for(Card c : handWithoutThisCard){
                 Type storeType = c.getType();
-                c.type = Type.ARMY;
+                c.setType(Type.ARMY);
                 tempScore = sc.countScore(copiedHand, cardsOnTable, true);
                 if(tempScore > maxScore){
                     maxScore = tempScore;
                     suitableCard = c;
                 }
-                c.type = storeType;
+                c.setType(storeType);
             }
         }
         // Treatment of Fountain of Life
         if(originalHand.stream().anyMatch(card -> card.getId() == 32)){
             Card suitableCardToGet = null;
-            int tempScore = handleFountain(handWithoutThisCard, deletedTypes, cardsOnTable, typeValues, suitableCardToGet);
+            int tempScore = handleFountain(copiedHand, cardsOnTable, typeValues, suitableCardToGet, sc);
             if(tempScore > maxScore){
                 maxScore = tempScore;
                 suitableCard = suitableCardToGet;
@@ -426,53 +374,55 @@ public class ChangeColor extends Interactive {
             // try to change deleted cards
             if (toChangeInto == null) {
                 toChangeInto = colors.get(0);
-                //System.out.println("Got first color from colors because toChangeinto was null, not its " + BigSwitches.switchTypeForName(toChangeInto));
             }
-            int tempScore = -999;
+            int tempScore;
                 for(Card c : deletedCards){
                     Type storeType = c.getType();
-                    c.type = toChangeInto;
+                    c.setType(toChangeInto);
                     tempScore = sc.countScore(copiedHand, cardsOnTable, true);
                         if(tempScore > maxScore){
                             maxScore = tempScore;
                             suitableCard = c;
                         }
-                    c.type = storeType;
+                    c.setType(storeType);
                 }
         }
         // Treatment of World Tree card
         if(copiedHand.stream().anyMatch(card -> card.getId() == 30)){
             List<Card> tree = copiedHand.stream().filter(card -> card.getId() == 30).collect(Collectors.toList());
             Card treeCard = tree.get(0);
-            Bonus b = treeCard.bonuses.get(0);
+            Bonus b = treeCard.getBonuses().get(0);
             Card toChangeCard = ((PlusIfTypesAreUnique)b).whichCardNeedsChange(copiedHand);
             if(toChangeCard != null) {
-                int tempScore = -999;
-                Type storeType = toChangeCard.type;
-                toChangeCard.type = toChangeInto;
+                int tempScore;
+                Type storeType = toChangeCard.getType();
+                toChangeCard.setType(toChangeInto);
                 tempScore = sc.countScore(copiedHand, cardsOnTable, true);
                 if (tempScore > maxScore) {
                     maxScore = tempScore;
                     suitableCard = toChangeCard;
                 }
-                toChangeCard.type = storeType;
+                toChangeCard.setType(storeType);
             }
         }
-        long elapsedTime = System.nanoTime() - startTime;
-
-        /*
-        if(worstColorCard != null) {
-            System.out.println(worstColorCard.getName() + " --> " + BigSwitches.switchTypeForName(toChangeInto) + " = " + maxScore);
-        }
-        if(suitableCard != null) {
-            System.out.println(suitableCard.getName() + " --> " + BigSwitches.switchTypeForName(toChangeInto) + " = " + maxScore);
+        if(suitableCard != null && toChangeInto != null){
+            suitableCard.setType(toChangeInto);
+            idOfCardToChange = suitableCard.getId();
+            ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
+            cardToChangeInto = HandCloner.cloneCard(suitableCard);
+            cardToChangeInto.setType(toChangeInto);
         }
 
-
-         */
         return maxScore;
     }
 
+
+    /**
+     * Returns cards of given type in hand.
+     * @param handWithoutThisCard The cards in hand without the holder of this bonus.
+     * @param minType The type of cards to be extracted.
+     * @return List of cards in hand of given type.
+     */
     private ArrayList<Card> getMinTypeCard(ArrayList<Card> handWithoutThisCard, Type minType){
         ArrayList<Card> cards = new ArrayList<>();
         for(Card c : handWithoutThisCard){
@@ -483,6 +433,11 @@ public class ChangeColor extends Interactive {
         return cards;
     }
 
+    /**
+     * Gets type with minimal gain.
+     * @param map Map of types and their awarded points for getting +1 of that type.
+     * @return Type with minimal points gain.
+     */
     private Type getMin(Map<Type, Integer> map){
         Type min = null;
         int minsco = 999;
@@ -495,6 +450,11 @@ public class ChangeColor extends Interactive {
         return min;
     }
 
+    /**
+     * Gets type of maximal gain from the map.
+     * @param map Map of types and their awarded points for getting +1 of that type.
+     * @return Type of maximal gain from the map.
+     */
     private Type getMax(Map<Type, Integer> map){
         Type max = null;
         int maxsco = -999;
@@ -507,53 +467,72 @@ public class ChangeColor extends Interactive {
         return max;
     }
 
-    private int handleFountain(ArrayList<Card> handWithoutThisCard, ArrayList<Type> deletedTypes, ArrayList<Card> table,
-                               Map<Type, Integer> typeValues, Card suitableCard ){
+    /**
+     * Computes how to use the bonus if fountain is to be used most effectively.
+     * @param hand Cards in hand.
+     * @param table Cards on table.
+     * @param typeValues Map of types and their awarded gain if the type is added +1 to hand.
+     * @param suitableCardToGet Which card is good for recoloring
+     * @return Maximal score using the fountain feature.
+     */
+    private int handleFountain(ArrayList<Card> hand, ArrayList<Card> table,
+                               Map<Type, Integer> typeValues, Card suitableCardToGet, ScoreCounterForAI sc){
         int maxScore = -999;
 
-        Type winningType = getWinningTypeForFountain(deletedTypes, typeValues);
-        int tempScore = 0;
-        ScoreCounterForAI sc = new ScoreCounterForAI();
-        for(Card c : handWithoutThisCard){
+        Type winningType = getWinningTypeForFountain( typeValues);
+        int tempScore;
+        for(Card c : hand){
             Type storeType = c.getType();
-            c.type = winningType;
-            tempScore = sc.countScore(handWithoutThisCard, table, true);
+            c.setType(winningType);
+            tempScore = sc.countScore(hand, table, true);
             if(tempScore > maxScore){
                 maxScore = tempScore;
-                suitableCard = c;
+                suitableCardToGet = c;
             }
-            c.type = storeType;
+            c.setType(storeType);
         }
 
         return maxScore;
     }
 
-    private Type getWinningTypeForFountain(ArrayList<Type> deletedTypes, Map<Type, Integer> typeValues){
+    /**
+     * Gets the most suitable type to recolor into with fountain regarding the gains from types.
+     * @param typeValues Map of types and their awarded gain if the type is added +1 to hand.
+     * @return Type to change chosen card into.
+     */
+    private Type getWinningTypeForFountain( Map<Type, Integer> typeValues){
         Type bestType = null;
+        Map<Type, Integer> typeValuesCopy = new HashMap<>(typeValues);
         ArrayList<Type> fountainColors =
-                new ArrayList<Type>(Arrays.asList(Type.FLAME, Type.FLOOD,
+                new ArrayList<>(Arrays.asList(Type.FLAME, Type.FLOOD,
                         Type.LAND, Type.WEAPON, Type.WEATHER));
         while(bestType == null){
-            if(typeValues == null || typeValues.isEmpty()){
+            if(typeValuesCopy.isEmpty()){
                 return Type.FLOOD;
             }
-            Map.Entry<Type, Integer> maxEntry = Collections.max(typeValues.entrySet(),
-                    Comparator.comparing(Map.Entry::getValue));
+            Map.Entry<Type, Integer> maxEntry = Collections.max(typeValuesCopy.entrySet(),
+                    Map.Entry.comparingByValue());
 
             if(fountainColors.contains(maxEntry.getKey()) && maxEntry.getValue() > 0){
                 bestType = maxEntry.getKey();
             } else{
-                typeValues.entrySet().remove(maxEntry);
+                typeValuesCopy.entrySet().remove(maxEntry);
             }
         }
         return bestType;
     }
 
+    /**
+     * Which cards should not be changed if there is some other better option
+     * @param originalHand Cards in hand.
+     * @param handWithoutThisCard Cards in hand without card containing this bonus.
+     * @return List of cards that should preferably not be changed unless no other option.
+     */
     private ArrayList<Card> ratherNotChange(ArrayList<Card> originalHand,ArrayList<Card> handWithoutThisCard){
         ArrayList<Card> doNotChange = new ArrayList<>();
         for(Card c : handWithoutThisCard){
-            if(c.bonuses != null){
-                for(Bonus b : c.bonuses){
+            if(c.getBonuses() != null){
+                for(Bonus b : c.getBonuses()){
                     if(b instanceof BonusOrBonus || b instanceof PlusIfYouHaveAllCardsAndAtLeastOneType ||
                             b instanceof PlusIfYouHaveAtLeastOneType){
                         Card satisfiesCondition = b.satisfiesCondition(originalHand);
@@ -580,6 +559,13 @@ public class ChangeColor extends Interactive {
         return doNotChange;
     }
 
+    /**
+     * Makes map of types and gain awarded for getting +1 card of that type to hand.
+     * @param hand Cards in hand.
+     * @param handWithoutThis Cards in hand without card containing this bonus.
+     * @param deletedTypes Cards that are deleted because of some penalties.
+     * @return Map of types and their points gain if there is one more card of that type in hand.
+     */
     private Map<Type, Integer> getTypeValues(ArrayList<Card> hand, ArrayList<Card> handWithoutThis, ArrayList<Type> deletedTypes){
         Map<Type, Integer> map = new HashMap<>();
         map.put(Type.ARMY, 0);
@@ -595,8 +581,8 @@ public class ChangeColor extends Interactive {
         map.put(Type.WILD, 0);
     // If the type isnt in the deleted types, add it to the map or get sum of bonuses you can get from it
         for(Card c : handWithoutThis){
-            if(c.bonuses != null){
-                for(Bonus b : c.bonuses){
+            if(c.getBonuses() != null){
+                for(Bonus b : c.getBonuses()){
                     if(b instanceof PlusForSameColorCards){
                         Map<Type, Integer> temp = ((PlusForSameColorCards)b).howMuchCanTypeGive(hand);
                         for(Map.Entry<Type,Integer> entry : temp.entrySet()){
@@ -614,16 +600,13 @@ public class ChangeColor extends Interactive {
                     }
                 }
             }
-            if(c.maluses != null){
+            if(c.getMaluses() != null){
                 ArrayList<Malus> copiedMaluses = new ArrayList<>(c.getMaluses());
                 for(Malus m : copiedMaluses){
                     ArrayList<Type> typesAvailable = m.getTypesAvailable(hand);
                     if(typesAvailable != null){
                         for(Type t: typesAvailable){
                             if (!map.containsKey(t)) {
-                                //System.out.println("------|||||||||------not in valueTypes ");
-                                //System.out.println(t);
-//                                System.out.println("------|||||||||------|||||||||-------------");
                                 map.put(t, 0);
                             } else{
                                 int oldValue = map.get(t);
@@ -640,13 +623,17 @@ public class ChangeColor extends Interactive {
         return map;
     }
 
-
-
+    /**
+     * Makes list of deleted types.
+     * @param hand Cards in hand.
+     * @param handWithoutThis Cards in hand without the card containing this bonus.
+     * @return List of deleted types.
+     */
     private ArrayList<Type> getDeletedTypes(ArrayList<Card> hand, ArrayList<Card> handWithoutThis){
         ArrayList<Type> types = new ArrayList<>();
         for(Card c : handWithoutThis){
-            if(c.bonuses != null){
-                for(Bonus b : c.bonuses){
+            if(c.getBonuses() != null){
+                for(Bonus b : c.getBonuses()){
                     if(b instanceof DeleteAllMaluses ||
                             b instanceof DeleteAllMalusesOnType || b instanceof DeleteSelftypeFromAllMaluses ||
                             b instanceof DeleteTypeFromAllMalusesOnType){
@@ -661,9 +648,8 @@ public class ChangeColor extends Interactive {
         List<Card> deleted4 = new ArrayList<>();
         List<Card> malusCards = new ArrayList<>();
         for(Card c : handWithoutThis){
-            if(c.maluses != null){
+            if(c.getMaluses() != null){
                 // These ones are to solely store deleted types without exceptions
-
                 for(Malus m : c.getMaluses()){
                     if(m instanceof DeletesAllType ){
                         types.addAll(m.getTypes());
@@ -688,21 +674,6 @@ public class ChangeColor extends Interactive {
                 }
             }
         }
-        /*
-        if(deleted1.stream().anyMatch(card -> card.getId() == thiscardid)){
-            System.out.println("Book of Chnages is deleted by deleted1");
-        }
-        if(deleted2.stream().anyMatch(card -> card.getId() == thiscardid)){
-            System.out.println("Book of Chnages is deleted by deleted2");
-        }
-        if(deleted3.stream().anyMatch(card -> card.getId() == thiscardid)){
-            System.out.println("Book of Chnages is deleted by deleted3");
-        }
-        if(deleted4.stream().anyMatch(card -> card.getId() == thiscardid)){
-            System.out.println("Book of Chnages is deleted by deleted4");
-        }
-
-         */
         Set<Card> set = new LinkedHashSet<>(deleted1);
         set.addAll(deleted2);
         set.addAll(deleted3);
@@ -713,35 +684,35 @@ public class ChangeColor extends Interactive {
             boolean somethingChnaged = true;
             while(somethingChnaged){
                 somethingChnaged = false;
-                List<Card> malusCards2 = new ArrayList<>();
-                ArrayList<Type> typesRenewed = new ArrayList<>();
+                finalMalusCards = new ArrayList<>(malusCards);
                 deleted1 = new ArrayList<>();
                 deleted2 = new ArrayList<>();
                 deleted3 = new ArrayList<>();
                 deleted4 = new ArrayList<>();
                 malusCards = new ArrayList<>();
-                for(Card malusCard : malusCards){
+                types.clear();
+                for(Card malusCard : finalMalusCards){
                     if(!deletedCards.contains(malusCard)) {
                         for (Malus m : malusCard.getMaluses()) {
                             if(m instanceof DeletesAllType ){
                                 types.addAll(m.getTypes());
                                 deleted1 = hand.stream().filter(card -> m.getTypes().contains(card.getType())).collect(Collectors.toList());
-                                malusCards2.add(malusCard);
+                                malusCards.add(malusCard);
                             }
                             if(m instanceof DeletesAllTypeOrOtherSelftype){
                                 types.addAll(m.getTypes());
                                 deleted2 = hand.stream().filter(card -> m.getTypes().contains(card.getType()) && card.getId() != malusCard.getId()).collect(Collectors.toList());
-                                malusCards2.add(malusCard);
+                                malusCards.add(malusCard);
                             }
                             if(m instanceof DeletesAllExceptTypeOrCard){
                                 types.addAll(m.getTypes());
                                 deleted3 = hand.stream().filter(card -> m.getTypes().contains(card.getType()) && !m.getCards().contains(card.getId())).collect(Collectors.toList());
-                                malusCards2.add(malusCard);
+                                malusCards.add(malusCard);
                             }
                             if(m instanceof DeletesAllTypeExceptCard){
                                 types.addAll(m.getTypes());
                                 deleted4 = hand.stream().filter(card -> m.getTypes().contains(card.getType()) && !m.getCards().contains(card.getId())).collect(Collectors.toList());
-                                malusCards2.add(malusCard);
+                                malusCards.add(malusCard);
                             }
                         }
                     }
@@ -751,31 +722,23 @@ public class ChangeColor extends Interactive {
                 set.addAll(deleted3);
                 set.addAll(deleted4);
                 deletedCards = new ArrayList<>(set);
-                types = typesRenewed;
             }
         }
 
         return types;
     }
 
-
-
-
     @Override
     public Interactive clone() throws CloneNotSupportedException{
         ChangeColor newi = (ChangeColor)super.clone();
         newi.priority = this.priority;
-        newi.text = this.text;
         newi.thiscardid = this.thiscardid;
         return newi;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
-
-
 }

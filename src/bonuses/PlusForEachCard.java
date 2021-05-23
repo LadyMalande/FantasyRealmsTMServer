@@ -1,58 +1,50 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives points for each of listed cards.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusForEachCard extends Bonus {
-    public long serialVersionUID = 7;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     private int how_much;
-
-
-
+    /**
+     * These cards award extra points.
+     */
     private ArrayList<Integer> idsOfCardsNeeded;
-    public final String text;
 
+    /**
+     * Constructor for this bonus.
+     * @param hm How many points are awarded for every of the listed cards.
+     * @param ids These cards award extra points.
+     */
     public PlusForEachCard(int hm, ArrayList<Integer> ids){
-        StringBuilder s = new StringBuilder();
         this.how_much = hm;
         this.idsOfCardsNeeded = ids;
-        boolean first = true;
-        for(Integer i: idsOfCardsNeeded){
-            if(!first){
-                s.append(", ");
-            }
-            s.append(BigSwitches.switchIdForName(i, "en"));
-            first = false;
-        }
-        this.text = "+" + how_much + " for each of these: " + s;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
-    public ArrayList<Integer> getIdsOfCardsNeeded() {
-        return idsOfCardsNeeded;
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
-    }
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + how_much);
+        sb.append("+").append(how_much);
         sb.append(" ");
-        sb.append(rb.getString("forEachOfThese"));
-        sb.append(giveListOfCardsWithSeparator(idsOfCardsNeeded,", ",locale,1,false));
+        sb.append(rb.getString("forEachOfThese")).append(" ");
+        sb.append(TextCreators.giveListOfCardsWithSeparator(idsOfCardsNeeded,", ",locale,1));
         return sb.toString();
     }
 
@@ -61,7 +53,7 @@ public class PlusForEachCard extends Bonus {
         int sum = 0;
         for(Card c: hand){
             for(int id: idsOfCardsNeeded) {
-                if (BigSwitches.switchIdForName(id, "en").equals(c.name)) {
+                if (BigSwitches.switchIdForName(id, "en").equals(c.getName())) {
                     sum += how_much;
                 }
             }
@@ -71,9 +63,8 @@ public class PlusForEachCard extends Bonus {
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override

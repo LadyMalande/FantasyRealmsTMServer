@@ -1,42 +1,48 @@
 package bonuses;
 
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives one time points if all the cards are in the hand.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfYouHaveAll extends Bonus{
-    public long serialVersionUID = 19;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     private int how_much;
+    /**
+     * All of those cards are needed.
+     */
     public ArrayList<Integer> idsOfCardsNeeded;
 
+    /**
+     * Constructor of the bonus.
+     * @param hm How much will the player get when he has all the needed cards in hand.
+     * @param cards All cards needed for getting the bonus.
+     */
     public PlusIfYouHaveAll(int hm, ArrayList<Integer> cards){
-        this.text = "+" + hm + " if with " + giveListOfCardsWithSeparator(cards, " and ","en",1,false);
         this.how_much = hm;
         this.idsOfCardsNeeded = cards;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
-        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
         ResourceBundle rbbonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + how_much);
+        sb.append("+").append(how_much);
         sb.append(rbbonuses.getString("ifYouHave"));
         sb.append(" ");
-            sb.append(giveListOfCardsWithSeparator(idsOfCardsNeeded, "and",locale,4,false));
+            sb.append(TextCreators.giveListOfCardsWithSeparator(idsOfCardsNeeded, "and",locale,4));
         sb.append(".");
         return sb.toString();
     }
@@ -46,7 +52,7 @@ public class PlusIfYouHaveAll extends Bonus{
         int completed = 0;
         for(int id: idsOfCardsNeeded){
             for(Card card: hand){
-                if(BigSwitches.switchIdForName(id).equals(card.name)){
+                if(BigSwitches.switchIdForName(id).equals(card.getName())){
                     completed++;
                 }
             }
@@ -93,7 +99,7 @@ public class PlusIfYouHaveAll extends Bonus{
         ArrayList<Integer> notcompleted = new ArrayList<>(idsOfCardsNeeded);
         for(int id: idsOfCardsNeeded){
             for(Card card: hand){
-                if(BigSwitches.switchIdForName(id).equals(card.name)){
+                if(BigSwitches.switchIdForName(id).equals(card.getName())){
                     completed++;
                     notcompleted.remove(card.getId());
                 }

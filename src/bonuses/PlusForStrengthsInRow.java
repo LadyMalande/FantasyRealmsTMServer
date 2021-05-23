@@ -3,22 +3,21 @@ package bonuses;
 import artificialintelligence.State;
 import server.Card;
 import server.Type;
+import util.HandCloner;
 
 import java.util.*;
 
+/**
+ * Bonus that represents bonus which gives increasing points for cards with strengths in a row.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusForStrengthsInRow extends Bonus  {
-    public long serialVersionUID = 15;
-    public final String text;
 
+    /**
+     * Constructor for the bonus.
+     */
     public PlusForStrengthsInRow() {
-        this.text = "+10 for 3 SIR, +30 for 4 SIR, +60 for 5 SIR, +100 for 6 SIR or +150 for 7 SIR\n*SIR = strengths in a row";
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -32,39 +31,41 @@ public class PlusForStrengthsInRow extends Bonus  {
 
     @Override
     public int count(ArrayList<Card> hand) {
-        hand.sort(Comparator.comparingInt((Card c) -> c.strength));
-        int howMuchInARow = 1;
-        int laststrength = -100;
-        ArrayList<Integer> allrows = new ArrayList<>();
-        for(Card c: hand ){
-            if(laststrength + 1 == c.strength){
-                howMuchInARow++;
+        try {
+            ArrayList<Card> toIterate = HandCloner.cloneHand(null, hand);
+
+            toIterate.sort(Comparator.comparingInt((Card c) -> c.getStrength()));
+            int howMuchInARow = 1;
+            int laststrength = -100;
+            ArrayList<Integer> allrows = new ArrayList<>();
+            for(Card c: toIterate ){
+                if(laststrength + 1 == c.getStrength()){
+                    howMuchInARow++;
+                } else{
+                    allrows.add(howMuchInARow);
+                    howMuchInARow = 1;
+                }
+                laststrength = c.getStrength();
             }
-            else if(laststrength == c.strength){
-                // nothing happens
+            allrows.add(howMuchInARow);
+            switch (Collections.max(allrows)){
+                case 3:return 10;
+                case 4: return 30;
+                case 5: return 60;
+                case 6: return 100;
+                case 7: return 150;
+                default: return 0;
             }
-            else{
-                allrows.add(howMuchInARow);
-                howMuchInARow = 1;
-            }
-            laststrength = c.strength;
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
         }
-        allrows.add(howMuchInARow);
-        switch (Collections.max(allrows)){
-            case 3:return 10;
-            case 4: return 30;
-            case 5: return 60;
-            case 6: return 100;
-            case 7: return 150;
-            default: return 0;
-        }
+        return 0;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override

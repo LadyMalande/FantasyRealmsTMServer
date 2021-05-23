@@ -1,35 +1,49 @@
 package maluses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
+/**
+ * Implements the penalty that deletes all cards of given types or all other cards except this one of this card's type.
+ * @author Tereza Miklóšová
+ */
 public class DeletesAllTypeOrOtherSelftype  extends Malus{
-    public String text;
+    /**
+     * Cards of these types will be deleted from hand.
+     */
     public ArrayList<Type> types;
+    /**
+     * Other cards of this type except this one will be deleted from hand.
+     */
     public Type selftype;
+    /**
+     * Id of the card that contains this penalty.
+     */
     private int thiscardid;
 
+    /**
+     * Constructor for this penalty.
+     * @param types Cards of these types will be deleted from hand.
+     * @param type Other cards of this type except this one will be deleted from hand.
+     * @param thiscardid Id of the card that contains this penalty.
+     */
     public DeletesAllTypeOrOtherSelftype(ArrayList<Type> types, Type type, int thiscardid) {
-        this.text = "Blanks all " + giveListOfTypesWithSeparator(types, ", ") + " or other " + BigSwitches.switchTypeForName(type);
         this.types = types;
         this.selftype = type;
         this.thiscardid = thiscardid;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-    @Override
     public  ArrayList<Type> getTypes(){ return this.types; }
+
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
@@ -41,7 +55,7 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
         if(types != null){
             sb.append(rb.getString("each4" + BigSwitches.switchTypeForGender(types.get(0))));
             sb.append(" ");
-            sb.append(giveListOfTypesWithSeparator(types, "or",locale,4,false));
+            sb.append(TextCreators.giveListOfTypesWithSeparator(types, "or",locale,4,false));
             sb.append(" ");
             sb.append(rb.getString("or"));
             sb.append(" ");
@@ -55,10 +69,9 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
 
     @Override
     public int count(ArrayList<Card> hand, ArrayList<Card> whatToDelete) {
-        ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
-        copyDeckToMakeChanges.addAll(hand);
+        ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(hand);
         for(Card c: copyDeckToMakeChanges){
-            if(types.contains(c.type) || (selftype.equals(c.type) && thiscardid != c.id)){
+            if(types.contains(c.getType()) || (selftype.equals(c.getType()) && thiscardid != c.getId())){
 
                 if(!whatToDelete.contains(c)) {
                     whatToDelete.add(c);
@@ -69,41 +82,24 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
     }
     @Override
     public int count(ArrayList<Card> hand) {
-        /*
-        ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>();
-        copyDeckToMakeChanges.addAll(hand);
-        for(Card c: copyDeckToMakeChanges){
-            if(types.contains(c.type) || (selftype.equals(c.type) && thiscardid != c.id)){
-                hand.remove(c);
-
-            }
-        }
-
-         */
         return 0;
     }
 
     @Override
-    public Malus clone() throws CloneNotSupportedException{
-        ArrayList<Type> newtypes = new ArrayList<Type>();
-        for(Type t: types){
-            newtypes.add(t);
-        }
-        DeletesAllTypeOrOtherSelftype newm = new DeletesAllTypeOrOtherSelftype(newtypes,this.selftype,this.thiscardid);
-        //System.out.println("In cloning DeletesAllTypeOrOtherSelftype: The new types and old types are equal = " + (newm.types == this.types));
-        return newm;
+    public Malus clone(){
+        ArrayList<Type> newtypes = new ArrayList<>(types);
+        return new DeletesAllTypeOrOtherSelftype(newtypes, this.selftype, this.thiscardid);
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        return this.types.stream().anyMatch(type -> types.contains(type))
+        return this.types.stream().anyMatch(types::contains)
                 || types.contains(selftype);
     }
     @Override
@@ -115,9 +111,9 @@ public class DeletesAllTypeOrOtherSelftype  extends Malus{
     public ArrayList<Integer> returnWillBeDeleted(){
         ArrayList<Integer> willBeDeleted = new ArrayList<>();
         for(Type t: types){
-            willBeDeleted.addAll(BigSwitches.switchTypeForIds(t));
+            willBeDeleted.addAll(Objects.requireNonNull(BigSwitches.switchTypeForIds(t)));
         }
-        willBeDeleted.addAll(BigSwitches.switchTypeForIds(selftype));
+        willBeDeleted.addAll(Objects.requireNonNull(BigSwitches.switchTypeForIds(selftype)));
         return willBeDeleted;
     }
 

@@ -1,4 +1,6 @@
-package server;
+package util;
+
+import server.Type;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,8 +9,17 @@ import java.util.ResourceBundle;
 
 import static server.Type.*;
 
+/**
+ * Class providing static data by various queries.
+ * @author Tereza Miklóšová
+ */
 public class BigSwitches {
 
+    /**
+     * Get default name by card's id.
+     * @param id Id of the card.
+     * @return Default name of the card.
+     */
     public static String switchIdForName(int id){
         Locale loc = new Locale("en");
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames", loc);
@@ -72,6 +83,12 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Get localized name.
+     * @param name Default name of the card.
+     * @param locale Target language.
+     * @return localized name of the card.
+     */
     public static String switchNameForOriginalName(String name, Locale locale){
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames", locale);
         ResourceBundle rben = ResourceBundle.getBundle("server.CardNames", new Locale("en"));
@@ -83,6 +100,26 @@ public class BigSwitches {
         return "FAIL";
     }
 
+    public static String switchNameForSimplifiedlName(String name){
+        ResourceBundle rb = ResourceBundle.getBundle("server.CardNames", new Locale("en"));
+        for(String key : rb.keySet()){
+            if(rb.getString(key).equals(name)){
+                char lastLetter = key.charAt(key.length()-1);
+                if(!Character.isDigit(lastLetter)) {
+                    return key;
+                }
+            }
+        }
+        System.out.println("switchNameForSimplifiedName failed on string: " + name);
+        return "FAIL";
+    }
+
+    /**
+     * Get localized name of the card by given id.
+     * @param id Id of the card.
+     * @param locale Target language.
+     * @return Localized name of the card.
+     */
     public static String switchIdForName(int id, String locale){
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames", loc);
@@ -146,6 +183,11 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Get name of the card without capitals how the name is stored in resource bundle by given id of the card.
+     * @param id Id of the card.
+     * @return Name of the card without capitals how the name is stored in resource bundle.
+     */
     public static String switchIdForSimplifiedName(int id){
         switch(id){
             case 1: return "unicorn";
@@ -207,11 +249,15 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Gets localized name of the type by given enum Type.
+     * @param type Type to translate.
+     * @param locale Target language.
+     * @return Localized name of the type.
+     */
     public static String switchTypeForName(Type type, String locale){
         if (type == null) {
-            //System.out.println("Null pointer v switchTypeForName");
             return null;
-
         }
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes", loc);
@@ -231,11 +277,14 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Gets default name of the type by given enum Type.
+     * @param type Type to translate to default value.
+     * @return Default name of the type.
+     */
     public static String switchTypeForName(Type type){
         if (type == null) {
-            //System.out.println("Null pointer v switchTypeForName");
             return null;
-
         }
         switch(type){
             case ARMY: return "Army";
@@ -253,6 +302,11 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Get the gender of the word of the given type.
+     * @param type Type in question.
+     * @return Gender of the word in Czech language.
+     */
     public static String switchTypeForGender(Type type){
         switch(type){
             case WEATHER: return "S";
@@ -267,11 +321,14 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Get Type for given localized name of the type.
+     * @param name Localized name of the type.
+     * @return Enum Type of the localized name of the type.
+     */
     public static Type switchNameForType(String name){
         if (name == null) {
-            System.out.println("Null pointer v switchNameForType");
             return null;
-
         }
         switch(name){
             case "Army":
@@ -300,19 +357,21 @@ public class BigSwitches {
         }
     }
 
-
+    /**
+     * Get type of the card by given default name.
+     * @param name Default name of the card.
+     * @return Enum Type of the name.
+     */
     public static Type switchCardNameForType(String name){
         if (name == null) {
-            System.out.println("Null pointer v switchCardNameForType");
             return null;
-
         }
         switch(name){
             case "Knights":
             case "Rangers":
-            case "Dwarf Infantry":
-            case "Archers":
-            case "Cavalry":
+            case "Dwarvish Infantry":
+            case "Elven Archers":
+            case "Light Cavalry":
                 return ARMY ;
 
             case "Unicorn":
@@ -323,7 +382,7 @@ public class BigSwitches {
                 return BEAST;
 
             case "Princess":
-            case "Commander":
+            case "Warlord":
             case "Queen":
             case "Empress":
             case "King":
@@ -334,7 +393,7 @@ public class BigSwitches {
             case "Jester":
             case "Warlock Lord":
             case "Enchantress":
-            case "Necromant":
+            case "Necromancer":
                 return WIZARD;
 
             case "Fountain of Life":
@@ -344,10 +403,10 @@ public class BigSwitches {
             case "Water Elemental":
                 return FLOOD;
 
-            case "Belfry":
+            case "Bell Tower":
             case "Earth Elemental":
             case "Mountain":
-            case "Cave":
+            case "Cavern":
             case "Forest":
                 return LAND;
 
@@ -369,24 +428,30 @@ public class BigSwitches {
             case "Protection Rune":
             case "Gem of Order":
             case "World Tree":
-            case "Spellbook":
+            case "Book of Changes":
                 return ARTIFACT;
 
             case "Air Elemental":
             case "Smoke":
             case "Blizzard":
-            case "Storm":
-            case "Tornado":
+            case "Rainstorm":
+            case "Whirlwind":
                 return WEATHER;
 
-            case "Skinchanger":
-            case "Doppleganger":
+            case "Shapeshifter":
+            case "Dopplegänger":
             case "Mirage":
                 return WILD;
             default: return null;
         }
     }
 
+    /**
+     * Get localized names of cards belonging to the given type.
+     * @param type Cards in this type will be added to list.
+     * @param locale Target language.
+     * @return List of localized names of the cards of given type.
+     */
     public static ArrayList<String> switchTypeForNames(Type type, String locale){
         Locale loc = new Locale(locale);
         ResourceBundle rs = ResourceBundle.getBundle("CardNames",loc);
@@ -419,6 +484,11 @@ public class BigSwitches {
 
     }
 
+    /**
+     * Gets identifiers of cards of given type.
+     * @param type Cards of this type we want the ids of.
+     * @return List of ids of the cards of given type.
+     */
     public static ArrayList<Integer> switchTypeForIds(Type type){
         switch(type){
             case FLAME: return new ArrayList<>(
@@ -447,6 +517,11 @@ public class BigSwitches {
         }
     }
 
+    /**
+     * Get default names of the cards of given type.
+     * @param type Cards of this type will be added to the resulting list.
+     * @return List of default names of cards of given type.
+     */
     public static ArrayList<String> switchTypeForNames(Type type){
         switch(type){
             case FLAME: return new ArrayList<>(
@@ -464,9 +539,9 @@ public class BigSwitches {
             case WEAPON: return new ArrayList<>(
                     Arrays.asList("Magic Wand", "War Dirigible", "Warship", "Elven Longbow", "Sword"));
             case WIZARD: return new ArrayList<>(
-                    Arrays.asList("Necromant", "Enchantress", "Warlock Lord", "Collector", "Jester", "Beastmaster"));
+                    Arrays.asList("Necromancer", "Enchantress", "Warlock Lord", "Collector", "Jester", "Beastmaster"));
             case WEATHER: return new ArrayList<>(
-                    Arrays.asList("Tornado", "Storm", "Blizzard", "Smoke", "Air Elemental"));
+                    Arrays.asList("Whirlwind", "Storm", "Blizzard", "Smoke", "Air Elemental"));
             case ARTIFACT: return new ArrayList<>(
                     Arrays.asList("Shield", "Protection Rune", "World Tree", "Spellbook", "Gem of Order"));
             case BEAST: return new ArrayList<>(
@@ -476,5 +551,4 @@ public class BigSwitches {
 
 
     }
-
 }

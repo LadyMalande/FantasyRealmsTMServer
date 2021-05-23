@@ -2,17 +2,15 @@ package test;
 
 import bonuses.*;
 import maluses.DeletesAllTypeExceptCard;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.Card;
-import server.Deck;
 import server.Type;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlusIfYouHaveCardAndAtLeastOneFromTest {
     ArrayList<Card> cardsInHands;
@@ -35,7 +33,7 @@ class PlusIfYouHaveCardAndAtLeastOneFromTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(new Card(33, rb.getString("greatflood"),32, Type.FLOOD, null, new ArrayList<>() {{add(new DeletesAllTypeExceptCard(33,new ArrayList<>() {{add(Type.ARMY);add(Type.LAND);add(Type.FLAME);}},new ArrayList<>() {{add(38);add(45);}}));}}, null));
         cardsInHands.add(new Card(50, rb.getString("storm"),8, Type.WEATHER, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.FLOOD);}},10));}}, new ArrayList<>() {{add(new DeletesAllTypeExceptCard(50,new ArrayList<>() {{add(Type.FLAME);}},new ArrayList<>() {{add(38);}}));}}, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 40);
     }
 
@@ -44,7 +42,7 @@ class PlusIfYouHaveCardAndAtLeastOneFromTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(new Card(50, rb.getString("storm"),8, Type.WEATHER, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.FLOOD);}},10));}}, new ArrayList<>() {{add(new DeletesAllTypeExceptCard(50,new ArrayList<>() {{add(Type.FLAME);}},new ArrayList<>() {{add(38);}}));}}, null));
         cardsInHands.add(new Card(39, rb.getString("candle"),2, Type.FLAME, new ArrayList<>() {{add(new PlusIfYouHaveAllCardsAndAtLeastOneType(100, new ArrayList<>() {{add(31);add(42);}},new ArrayList<>() {{add(Type.WIZARD);}}));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 
@@ -53,7 +51,7 @@ class PlusIfYouHaveCardAndAtLeastOneFromTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(new Card(33, rb.getString("greatflood"),32, Type.FLOOD, null, new ArrayList<>() {{add(new DeletesAllTypeExceptCard(33,new ArrayList<>() {{add(Type.ARMY);add(Type.LAND);add(Type.FLAME);}},new ArrayList<>() {{add(38);add(45);}}));}}, null));
         cardsInHands.add(new Card(39, rb.getString("candle"),2, Type.FLAME, new ArrayList<>() {{add(new PlusIfYouHaveAllCardsAndAtLeastOneType(100, new ArrayList<>() {{add(31);add(42);}},new ArrayList<>() {{add(Type.WIZARD);}}));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 }

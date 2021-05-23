@@ -1,62 +1,77 @@
 package maluses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
+/**
+ * Implements the penalty that deletes all given types with the exception of named cards.
+ * @author Tereza Miklóšová
+ */
 public class DeletesAllTypeExceptCard extends Malus {
-    public String text;
+    /**
+     * Id of the card that contains this penalty.
+     */
     public int thiscardid;
+
+    /**
+     * All cards of these types will be deleted from hand.
+     */
     public ArrayList<Type> types;
+
+    /**
+     * All those cards won't be deleted from hand even if they are of type from {@link DeletesAllTypeExceptCard#types}.
+     */
     public ArrayList<Integer> cards;
 
+    /**
+     * Constructor for this penalty.
+     * @param thiscardid Id of the card that contains this penalty.
+     * @param types All cards of these types will be deleted from hand.
+     * @param cards All those cards won't be deleted from hand even if they are of type from {@link DeletesAllTypeExceptCard#types}.
+     */
     public DeletesAllTypeExceptCard( int thiscardid, ArrayList<Type> types, ArrayList<Integer> cards) {
         this.thiscardid = thiscardid;
-        this.text = "Blanks all "+ giveListOfTypesWithSeparator(types, ", ")+" except " + giveListOfCardsWithSeparator(cards, ", ","en",1,false);
         this.types = types;
         this.cards = cards;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
     @Override
     public ArrayList<Integer> getCards(){ return cards;}
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-    @Override
     public  ArrayList<Type> getTypes(){ return this.types; }
+
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle maluses = ResourceBundle.getBundle("maluses.CardMaluses",loc);
-        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
         sb.append(maluses.getString("blanks"));
         sb.append(" ");
         sb.append(maluses.getString("all"));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, ", ",locale,4,true));
+        sb.append(TextCreators.giveListOfTypesWithSeparator(types, ", ",locale,4,true));
         sb.append(" ");
         sb.append(maluses.getString("except"));
         sb.append(" ");
-        sb.append(giveListOfCardsWithSeparator(cards, ", ",locale,2, false));
+        sb.append(TextCreators.giveListOfCardsWithSeparator(cards, locale,2));
         sb.append(".");
         return sb.toString();
     }
 
     @Override
     public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove) {
-        if(hand.stream().anyMatch(card -> card.id == this.thiscardid)) {
+        if(hand.stream().anyMatch(card -> card.getId() == this.thiscardid)) {
             ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(hand);
             for (Card c : copyDeckToMakeChanges) {
-                if (types.contains(c.type) && !cards.contains(c.id)) {
+                if (types.contains(c.getType()) && !cards.contains(c.getId())) {
                     if(!whatToRemove.contains(c)){
                         whatToRemove.add(c);
                     }
@@ -68,41 +83,24 @@ public class DeletesAllTypeExceptCard extends Malus {
 
     @Override
     public int count(ArrayList<Card> hand) {
-        /*
-        if(hand.stream().anyMatch(card -> card.id == this.thiscardid)) {
-            ArrayList<Card> copyDeckToMakeChanges = new ArrayList<>(hand);
-            for (Card c : copyDeckToMakeChanges) {
-                if (types.contains(c.type) && !cards.contains(c.id)) {
-                    hand.remove(c);
-                }
-            }
-        }
-
-         */
         return 0;
     }
 
     @Override
-    public Malus clone() throws CloneNotSupportedException{
-        ArrayList<Type> newtypes = new ArrayList<Type>();
-        for(Type t: types){
-            newtypes.add(t);
-        }
-        DeletesAllTypeExceptCard newm = new DeletesAllTypeExceptCard(this.thiscardid,newtypes,this.cards);
-        //System.out.println("In cloning DeletesAllTypeExceptCard: The new types and old types are equal = " + (newm.types == this.types));
-        return newm;
+    public Malus clone(){
+        ArrayList<Type> newtypes = new ArrayList<>(types);
+        return new DeletesAllTypeExceptCard(this.thiscardid,newtypes, this.cards);
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        return this.types.stream().anyMatch(type -> types.contains(type)) ||
+        return this.types.stream().anyMatch(types::contains) ||
                 cards.stream().anyMatch( id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id)))));
     }
     @Override
@@ -114,7 +112,7 @@ public class DeletesAllTypeExceptCard extends Malus {
     public ArrayList<Integer> returnWillBeDeleted(){
         ArrayList<Integer> willBeDeleted = new ArrayList<>();
         for(Type t: types){
-            willBeDeleted.addAll(BigSwitches.switchTypeForIds(t));
+            willBeDeleted.addAll(Objects.requireNonNull(BigSwitches.switchTypeForIds(t)));
         }
         willBeDeleted.removeAll(cards);
         return willBeDeleted;

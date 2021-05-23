@@ -7,9 +7,8 @@ import server.Card;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlusForEachCardTest {
     ArrayList<Card> deck;
@@ -26,7 +25,7 @@ class PlusForEachCardTest {
         //String size = String.valueOf(deck.size());
         //String msg = "Size of deck" + size;
         //log.info(msg);
-        cardsInHands = new ArrayList<Card>();
+        cardsInHands = new ArrayList<>();
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Fontána života")).findAny().get();
         cardsInHands.add(cardToBeTested);
@@ -41,7 +40,7 @@ class PlusForEachCardTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Princezna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 3);
     }
 
@@ -53,7 +52,7 @@ class PlusForEachCardTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Svíčka")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Jednorožec")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 35);
     }
 
@@ -65,7 +64,7 @@ class PlusForEachCardTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Požár")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Jednorožec")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 40);
     }
 
@@ -78,7 +77,7 @@ class PlusForEachCardTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Jednorožec")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 9);
     }
 
@@ -91,7 +90,7 @@ class PlusForEachCardTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Jednorožec")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 27);
     }
 
@@ -104,7 +103,7 @@ class PlusForEachCardTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Jednorožec")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 1);
     }
 }

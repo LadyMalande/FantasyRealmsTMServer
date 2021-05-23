@@ -1,313 +1,418 @@
 package server;
 
 import artificialintelligence.ArtificialIntelligenceInterface;
-import artificialintelligence.CacheMap;
 import artificialintelligence.GreedyPlayer;
+import artificialintelligence.GreedyStopPlanning;
 import artificialintelligence.LearningPlayer;
-import interactive.Interactive;
-import interactive.TakeCardOfTypeAtTheEnd;
+import util.BufferForExperimentalResults;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+/**
+ * The main logic class for the server. Directs the flow of the game. Holds information about the game.
+ * @author Tereza Miklóšová
+ */
+public class Server extends Thread {
+    /**
+     * AI types known to the server.
+     */
+    private final String[] AITypes = {"GREEDY", "LEARNING","PLANNING", "PAIRS"};
+    /**
+     * Number of the cards on the table that triggers the end of the game and score counting.
+     */
+    public static int END_GAME_NUMBER_OF_CARDS = 10;
+    /**
+     * Number of cards player has in his hand when its not his turn.
+     */
+    public static int CARDS_ON_HAND = 7;
 
-// server.Server class
-public class
-Server extends Thread
-{
-    private final String[] AITypes = {"GREEDY", "MC"};
-    public int END_GAME_NUMBER_OF_CARDS = 10;
-    public final int CARDS_ON_HAND = 7;
-
+    /**
+     * Arguments passed by the command line.
+     */
     private String[] args;
+
+    /**
+     * Cards on the table.
+     */
     public ArrayList<Card> cardsOnTable;
-    boolean gameOver = false;
-    boolean allPlayersInitialized = false;
+
+    /**
+     * True if there are players so the AI needs to pause between making decisions so the player can notice the changes.
+     */
     boolean needDelay;
-    PlayerOrAI currentPlayer;
-    public Deck deck;
+
+    /**
+     * Deck full of cards for the game.
+     */
+    private Deck deck;
+
+    /**
+     * Server socket on which to listen to.
+     */
     ServerSocket ss;
+
+    /**
+     * Socket on which the communication is going on.
+     */
     public Socket s;
-    String experimentOutputName;
+
+    /**
+     * Text with abbreviations of the AI types to form the name for the experimential file.
+     */
     StringBuilder varietyOfPlayersAI;
+    /**
+     * True if the player wants to play with random deck.
+     */
     String randomOrNot;
-    Random randomGenerator;
-    public AtomicInteger maxClients = new AtomicInteger(6);
-    // Vector to store active clients
+    /**
+     * Tells the number of players that the server is waiting for.
+     */
+    public final AtomicInteger maxClients = new AtomicInteger(6);
+    /**
+     * Players that joined the game.
+      */
     Vector<PlayerOrAI> players = new Vector<>();
+    /**
+     * Number of already counted scores at the end of the game.
+     */
     public AtomicInteger numberOfCountedScores = new AtomicInteger(0);
+
+    /**
+     * Holds card that real player is trying to put on the table. If null the server waits for the players answer.
+     */
+    public AtomicReference<Card> cardToTableFromClient = new AtomicReference<>();
+    /**
+     * Number of AI to play the game.
+     */
     int numberOfAI = 0;
-    public Vector<PlayerOrAI> getPlayers(){
-        return players;
-    }
+    /**
+     * Counter of played rounds of the game in one game.
+     */
     int numberOfRounds = 0;
+    /**
+     * Number of games to play if only AI is playing.
+     */
     int numberOfGamesToPlay = 0;
-    StringBuilder startingDeck;
-    ArrayList<Card> mightBeInDeck = new ArrayList<>();
+    /**
+     * Cards that still might be in the deck.
+     */
+    private ArrayList<Card> mightBeInDeck = new ArrayList<>();
+    /**
+     * Counter of the games played for the output to file flush.
+     */
     public int ithRound = 0;
-    CacheMap cacheMap;
-    StringBuilder bufferForResults;
-    public StringBuilder timeSpentInChangeColor = new StringBuilder();
-    public StringBuilder timeSpentInMakeMoveGrredyPlayer = new StringBuilder();
-    public StringBuilder timeSpentInCopyNameAndType = new StringBuilder();
-    public StringBuilder timeSpentRound = new StringBuilder();
-    public StringBuilder scoreInRound = new StringBuilder();
-    // counter for clients
 
 
+    private boolean running = true;
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    private AtomicBoolean sentAllScore = new AtomicBoolean(true);
+
+    /**
+     * Buffers for experimental results.
+     */
+    private BufferForExperimentalResults bufferForResult;
+
+    /**
+     * Gets {@link Server#mightBeInDeck}.
+     * @return {@link Server#mightBeInDeck}
+     */
     public ArrayList<Card> getMightBeInDeck(){
         return this.mightBeInDeck;
     }
 
+    /**
+     * Gets {@link Server#needDelay}.
+     * @return {@link Server#needDelay}
+     */
     public boolean getNeedDelay(){
         return needDelay;
     }
 
-    private void decideNeedDelay() {
-        if (players.size() > 2) {
-            if (numberOfAI > 1 && (players.size() - numberOfAI) > 0) {
-                // There is at least 1 real player playing against more than 1 AI and needs to slow down their processing
-                // to see what is happening on the table
-                needDelay = true;
-            } else {
-                needDelay = false;
-            }
-        }else{
-                needDelay = false;
-            }
+    /**
+     * Gets {@link Server#deck}.
+     * @return {@link Server#deck}
+     */
+    public Deck getDeck() {
+        return deck;
     }
 
+    /**
+     * Sets {@link Server#deck}.
+     * @param random True if the player wants to play with random deck. False if he wants to play with the original one.
+     */
+    public void setDeck(boolean random){
+        deck.setDeck(random);
+    }
+
+    /**
+     * Sets {@link Server#numberOfAI}.
+     * @param number {@link Server#numberOfAI}
+     */
+    public void setAI(int number){
+        for(int i = 0; i < number; i++){
+            try {
+                varietyOfPlayersAI.append("G");
+                int parameterOfGreedy = 0;
+                GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, parameterOfGreedy + "_GREEDY_" + i);
+                players.add(ai);
+            } catch(CloneNotSupportedException ex){
+                ex.printStackTrace();
+            }
+        }
+        numberOfAI = number;
+        int newMaxPlayers = maxClients.get() - number;
+        maxClients.getAndSet(newMaxPlayers);
+    }
+
+    /**
+     * Gets {@link Server#players}.
+     * @return {@link Server#players}
+     */
+    public Vector<PlayerOrAI> getPlayers(){
+        return players;
+    }
+
+    /**
+     * Decides if there are only AI players or not. If there are only AI pllayers there is no delay between
+     * agent's decision and the executing of counted move.
+     */
+    private void decideNeedDelay() {
+        if (players.size() > 2) {
+            // There is at least 1 real player playing against more than 1 AI and needs to slow down their processing
+            // to see what is happening on the table
+            needDelay = numberOfAI > 1 && (players.size() - numberOfAI) > 0;
+        }else{
+                needDelay = false;
+        }
+    }
+
+    /**
+     * Gets {@link Server#bufferForResult}.
+     * @return {@link Server#bufferForResult}
+     */
+    public BufferForExperimentalResults getBufferForResult() {
+        return bufferForResult;
+    }
+
+    /**
+     * Constructor for the server.
+     * @param ss Server socket for the server.
+     * @param args Arguments passed in the command line.
+     */
     public Server(ServerSocket ss, String[] args){
         this.ss = ss;
         this.args = args;
+
         varietyOfPlayersAI = new StringBuilder();
-        bufferForResults = new StringBuilder();
     }
+
+    /**
+     * The server starts listening to new-coming clients. Or reads the command line arguments and does experiment with AI.
+     */
     public void run()
     {
-        deck = new Deck();
-        deck.initializeOriginal();
-    startingDeck = new StringBuilder();
 
-        //deck.initializeRandom();
-        cardsOnTable = new ArrayList<>();
+        while(running) {
+            if(sentAllScore.get()){
 
-        try {
-            readArgs(args);
-        } catch(NotAIType exception){
-            System.out.println("Error with AI types in parameters of program.");
-        }
+                players.clear();
+                deck = new Deck();
+                deck.initializeOriginal();
 
-        // NOT an AI experiment
-        if(args.length == 0){
-            int i = 0;
-            System.out.println("Waiting for clients...");
-            // running infinite loop for getting
-            // client request
-            while (true)
-            {
-                synchronized (maxClients) {
-                    if (maxClients.get() == i) {
-                        System.out.println("Max Clients == "+ i + " , so we break from while(true) in Server.run()");
-                        break;
-                    }
-                    System.out.println(maxClients);
-                    // Accept the incoming request
-                    try {
-
-                        s = ss.accept();
-
-                        //System.out.println("New client request received : " + s);
-
-                        // obtain input and output streams
-                        ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
-                        ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
-
-                        //System.out.println("Creating a new handler for this client...");
-
-                        // Create a new handler object for handling this request.
-                        ClientHandler mtch = new ClientHandler(s, "client " + i, dis, dos, this);
-
-                        // Create a new Thread with this object.
-                        Thread t = new Thread(mtch);
-
-                        //System.out.println("Adding this client to active client list");
-
-                        // add this client to active clients list
-                        players.add(mtch);
-                        // Generate starting hand
-                        varietyOfPlayersAI.append("P");
+                cardsOnTable = new ArrayList<>();
 
 
-
-                        // start the thread.
-                        t.start();
-                        //System.out.println("Max clients can be: " + maxClients);
-                        i++;
-                        //System.out.println("We just increased player number with i++, now its: " + i);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                // Read the arguments from the command line
+                try {
+                    readArgs(args);
+                } catch (NotAIType exception) {
+                    System.out.println("Error with AI types in parameters of program.");
+                }
 
 
-                    try {
-                        //System.out.println("Before maxClients.wait() in Server.run()");
-                        maxClients.wait();
-                        //System.out.println("After maxClients.wait() in Server.run()");
-                    } catch (InterruptedException e) {
-                        System.out.println("InterruptedException while waiting");
-                        e.printStackTrace();
-                    }
+                // NOT an AI experiment
+                if (args.length == 0) {
+                    waitForTheClients();
+                }
+                bufferForResult = new BufferForExperimentalResults(0, players, varietyOfPlayersAI, randomOrNot, this);
+
+                decideNeedDelay();
+
+                sentAllScore.set(false);
+                // There are only AI players. Itearate through all the games.
+                if (numberOfGamesToPlay != 0) {
+                    System.out.println("Experimenty s AI");
+                    experimentWithAI();
+
+                } else {
+                    // There is also a real player
+                    decideStartingPlayer();
+                    startTheGame();
                 }
             }
         }
-        if(numberOfGamesToPlay != 0){
-            decideNeedDelay();
-            experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
-            ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
-            //FileWriter writer = eoc.createFileWriter(experimentOutputName);
-            FileWriter timeInRoundWriter = eoc.createFileWriter(experimentOutputName + "_timeInRound_ms");
-            FileWriter timeInCopyNameWriter = eoc.createFileWriter(experimentOutputName + "_InCopyName_ms");
-            FileWriter timeInChangeColorWriter = eoc.createFileWriter(experimentOutputName + "_timeInChangeColor_ms");
-            FileWriter timeInMakeMoveGreedyWriter = eoc.createFileWriter(experimentOutputName + "_timeInMakeMoveGreedy_ms");
-            //FileWriter scoreInRoundWriter = eoc.createFileWriter(experimentOutputName + "_scoresInRound;");
-            for(ithRound = 0; ithRound < numberOfGamesToPlay; ithRound++){
-                if(ithRound % 50 == 0){
-                    //writer = eoc.createFileWriter(experimentOutputName);
-                    timeInRoundWriter = eoc.createFileWriter(experimentOutputName + "_timeInRound_ms");
-                    timeInCopyNameWriter = eoc.createFileWriter(experimentOutputName + "_InCopyName_ms");
-                    timeInChangeColorWriter = eoc.createFileWriter(experimentOutputName + "_timeInChangeColor_ms");
-                    timeInMakeMoveGreedyWriter = eoc.createFileWriter(experimentOutputName + "_timeInMakeMoveGreedy_ms");
-                    //scoreInRoundWriter = eoc.createFileWriter(experimentOutputName + "_scoresInRound");
-                }
-                System.out.println("Starting game number " + ithRound + "---------------------------------------------------------");
-                long startTime = System.nanoTime();
-                deck = new Deck();
-                deck.initializeOriginal();
-                cardsOnTable.clear();
-                if(randomOrNot.equals("1")){
-                    deck.setDeck(true);
-                } else{
-                    deck.setDeck(false);
-                }
-                mightBeInDeck = deck.getDeck();
-                startingDeck = new StringBuilder();
-                Collections.shuffle(deck.getDeck());
-                for(Card c : deck.getDeck()){
-                    startingDeck.append(c.getName() + ";");
-                }
-                //System.out.println("Number of cards in deck " + deck.getDeck().size());
-                for(PlayerOrAI ai : players){
-                    try {
-                        ai.getInitCards();
-                    } catch (CloneNotSupportedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                numberOfRounds = 0;
-                //System.out.println("Number of cards in deck after init give cards" + deck.getDeck().size());
+    }
 
-                Random randomGeneratorForPlayers = new Random();
-                int index2 = randomGeneratorForPlayers.nextInt(players.size());
-                players.elementAt(index2).setPlaying(true);
-                currentPlayer = players.elementAt(index2);
-                //for(PlayerOrAI pl:players){System.out.print(pl.getName());}
-                rotateRight(players, players.size() - index2);
-                //for(PlayerOrAI pl:players){System.out.print(">" + pl.getName());}
+    /**
+     * Picks a starting player and rotates the players in the vector so that the starting player is at position 0.
+     */
+    private void decideStartingPlayer(){
+        Random randomGeneratorForPlayers = new Random();
+        //System.out.println("Number of players " + players.size());
+        int index2 = randomGeneratorForPlayers.nextInt(players.size());
+        players.elementAt(index2).setPlaying(true);
+        rotateRight(players, players.size() - index2);
+    }
 
+    /**
+     * Executes a loop of games with AI. Writes scores to files if requested.
+     */
+    private void experimentWithAI(){
+        bufferForResult = new BufferForExperimentalResults(0,players, varietyOfPlayersAI, randomOrNot, this);
+        for(ithRound = 0; ithRound < numberOfGamesToPlay; ithRound++){
+            System.out.println("Starting game number " + ithRound + "---------------------------------------------------------");
+            long startTime = System.nanoTime();
+            deck = new Deck();
+            deck.initializeOriginal();
+            cardsOnTable.clear();
+            if(randomOrNot.equals("1")){
+                deck.setDeck(true);
+            } else{
+                deck.setDeck(false);
+            }
+            mightBeInDeck = deck.getDeck();
+            Collections.shuffle(deck.getDeck());
+            for(PlayerOrAI ai : players){
+                try {
+                    ai.getInitCards();
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+            }
+            numberOfRounds = 0;
 
-                numberOfCountedScores = new AtomicInteger(0);
-                while(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
-                    for(PlayerOrAI player : players){
+            decideStartingPlayer();
+
+            numberOfCountedScores = new AtomicInteger(0);
+            while(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
+                for(PlayerOrAI player : players){
+                    if(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS) {
                         try {
-                            putCardOnTable(((ArtificialIntelligenceInterface)player).performMove(cardsOnTable));
+                            putCardOnTable(((ArtificialIntelligenceInterface) player).performMove(cardsOnTable));
                         } catch (CloneNotSupportedException e) {
                             e.printStackTrace();
                         }
                     }
                 }
-                while(players.size() > numberOfCountedScores.get()){
-                    System.out.println(players.size() + " != " + numberOfCountedScores.get());
-                }
-
-                long elapsedTime = (System.nanoTime() - startTime) / 1000000;
-
-                System.out.println("Execution time for this game: "
-                        + elapsedTime);
-                timeSpentRound.append(elapsedTime);
-                timeSpentRound.append("\n");
-                long startTimeForEndCountings = System.nanoTime();
-                //countBetterHandFromState();
-                long elapsedTimeForEndCountings = (System.nanoTime() - startTimeForEndCountings) / 1000000;
-                System.out.println("Execution time for aftergame: " + elapsedTimeForEndCountings);
-
-                //startTheGame();
-               //System.out.println("End of Server game number " + i);
-                //System.out.println(this.cacheMap.size());
-                this.cacheMap.clear();
-                writeToBuffer();
-                if(ithRound % 100 ==49){
-                    //System.out.println("Round times: ");
-                    //System.out.println(timeSpentRound);
-                    //System.out.println("Greedy player move times: ");
-                    //System.out.println(timeSpentInMakeMoveGrredyPlayer);
-                    //writeToFileWriter(writer, eoc, bufferForResults);
-                    writeToFileWriter(timeInChangeColorWriter, eoc, timeSpentInChangeColor);
-                    writeToFileWriter(timeInRoundWriter, eoc, timeSpentRound);
-                    writeToFileWriter(timeInCopyNameWriter, eoc, timeSpentInCopyNameAndType);
-                    writeToFileWriter(timeInMakeMoveGreedyWriter, eoc, timeSpentInMakeMoveGrredyPlayer);
-                    //writeToFileWriter(scoreInRoundWriter, eoc, scoreInRound);
-
-                    timeSpentRound = new StringBuilder();
-                    timeSpentInChangeColor = new StringBuilder();
-                    timeSpentInCopyNameAndType = new StringBuilder();
-                    timeSpentInMakeMoveGrredyPlayer = new StringBuilder();
-                    //bufferForResults = new StringBuilder();
-                    //scoreInRound = new StringBuilder();
-                }
             }
-            //eoc.flushFileWriter(writer);
-        } else {
-            //System.out.println("After end of while players < maxplayers, BEFORE RANDOM STARTING PLAYER");
-            Random randomGeneratorForPlayers = new Random();
-            //System.out.println("players.size() == " + players.size() );
-            int index2 = randomGeneratorForPlayers.nextInt(players.size());
-            players.elementAt(index2).setPlaying(true);
-            currentPlayer = players.elementAt(index2);
-            for(PlayerOrAI p: players){
-                //System.out.println("Player name in initialize " + p.getName() + " is playing " + p.getPlaying());
+            while(players.size() > numberOfCountedScores.get()){
+                System.out.println(players.size() + " != " + numberOfCountedScores.get());
             }
-            //System.out.println("Starting player is player <" + players.elementAt(index2).getName() + ">");
 
-            experimentOutputName = players.size() + varietyOfPlayersAI.toString() + randomOrNot;
-            decideNeedDelay();
+            long elapsedTime = (System.nanoTime() - startTime) / 1000000;
 
-            //TuplesMapCreator tmc = new TuplesMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54});
-            //tmc.makeStateMap();
-            //StateMapCreator smc = new StateMapCreator(new int[]{1, 2, 3, 4, 5, 6,7,8,9},3,2);
-            //smc.makeStateMap();
+            System.out.println("Execution time for this game: " + elapsedTime);
+            bufferForResult.appendToTimeSpentRound(String.valueOf(elapsedTime));
 
-            startTheGame();
 
-            //System.out.println("Players size" + players.size());
-            //System.out.println("End of Server");
-            writeToFile();
+            long startTimeForEndCountings = System.nanoTime();
+            //countBetterHandFromState();
+            long elapsedTimeForEndCountings = (System.nanoTime() - startTimeForEndCountings) / 1000000;
+            //System.out.println("Execution time for aftergame: " + elapsedTimeForEndCountings);
 
+            // Write the results of the round to the buffer
+            bufferForResult.writeToBuffer(cardsOnTable);
+            // Once in a while flush those buffers to their output files.
+            if(ithRound % 100 == 49){
+                bufferForResult.writeToFiles();
+            }
         }
-
     }
 
+    /**
+     * Listen to new-coming players on the socket. Create new ClientHandlers for those that come.
+     */
+    private void waitForTheClients(){
+        int i = 0;
+        System.out.println("Waiting for clients...");
+        // running infinite loop for getting
+        // client request
+        while (true)
+        {
+            synchronized (maxClients) {
+                if (maxClients.get() == i) {
+                    System.out.println("Max Clients == "+ i + " , so we break from while(true) in Server.run()");
+                    break;
+                }
+                System.out.println("max clients : " + maxClients);
+                // Accept the incoming request
+                try {
+
+                    s = ss.accept();
+
+                    // obtain input and output streams
+                    ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
+                    ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
+
+                    // Create a new handler object for handling this request.
+                    ClientHandler mtch = new ClientHandler(s, "client " + i, dis, dos, this);
+
+                    // Create a new Thread with this object.
+                    Thread t = new Thread(mtch);
+
+                    // add this client to active clients list
+                    players.add(mtch);
+                    System.out.println("players size in acceptClients: " + players.size());
+                    // Generate starting hand
+                    varietyOfPlayersAI.append("P");
+
+                    // start the thread.
+                    t.start();
+                    i++;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    System.out.println("Before maxClients.wait() in Server.run()");
+                    maxClients.wait();
+                    System.out.println("After maxClients.wait() in Server.run()");
+                } catch (InterruptedException e) {
+                    System.out.println("InterruptedException while waiting");
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Rotates the Vector right by given shift.
+     * @param tArrayList Vector of players to shift.
+     * @param shift How much to shift.
+     */
     private void rotateRight(Vector<PlayerOrAI> tArrayList, int shift){
         if(!tArrayList.isEmpty()){
-            PlayerOrAI item = null;
+            PlayerOrAI item;
             for(int i = 0; i < shift; i++){
                 item = tArrayList.remove(tArrayList.size()-1);
                 tArrayList.add(0, item);
@@ -315,175 +420,50 @@ Server extends Thread
         }
     }
 
-    private void writeToBuffer(){
-        double totalNumberOfRounds = 0;
-
-        for(PlayerOrAI player : players) {
-            totalNumberOfRounds += player.getNumberOfRoundsPlayed();
-        }
-        bufferForResults.append(totalNumberOfRounds + ";");
-
-        ArrayList<Integer> allEndingCardsOfAllPlayers = new ArrayList<>();
-        Set<Integer> setOfCards = new HashSet<>();
-        for(PlayerOrAI player : players){
-            if(player instanceof GreedyPlayer){
-                List<Integer> listIds = ((GreedyPlayer)player).getBestHandAfterTheEnd().stream().map(Card::getId).collect(Collectors.toList());
-                allEndingCardsOfAllPlayers.addAll(listIds);
-                setOfCards.addAll(listIds);
-            }
-        }
-        if(allEndingCardsOfAllPlayers.size() == setOfCards.size()){
-            bufferForResults.append("UNIKATNI;");
-        } else{
-            bufferForResults.append("DUPLIKATY;");
-        }
-
-        for(PlayerOrAI player : players){
-
-            scoreInRound.append(player.getName() + ";");
-            for(Integer score : player.getScoresInRound()){
-                scoreInRound.append( score + ";");
-            }
-            scoreInRound.append("\n");
-
-
-            bufferForResults.append(player.getName() + ";" + player.getNumberOfRoundsPlayed() + ";"+ player.score + ";" );
-            Card fromNecromancer = null;
-            for(Card c: player.getHand()){
-                if(c.getId() == 13){
-                    ArrayList<Interactive> toIterate = new ArrayList<>(c.interactives);
-                    for(Interactive interactive : toIterate){
-                        if(interactive instanceof TakeCardOfTypeAtTheEnd){
-                            fromNecromancer = ((TakeCardOfTypeAtTheEnd)interactive).giveCardToTakeFromTable(player.getHand(),
-                                    cardsOnTable).getKey();
-
-                        }
-                    }
-                }
-                bufferForResults.append(c.name + ";");
-            }
-            if(fromNecromancer == null){
-                bufferForResults.append("-;");
-            } else{
-                bufferForResults.append(fromNecromancer.name + ";");
-            }
-            /*
-            if(player.getHand().size() < 8){
-                for(int i = player.getHand().size(); i < 8; i++){
-                    bufferForResults.append("-;");
-                }
-            }
-
-             */
-            Card fromNecromancer2 = null;
-            if(player instanceof GreedyPlayer) {
-                bufferForResults.append(((GreedyPlayer) player).getNumberOfChangedCardsInIdealHand() + ";");
-                bufferForResults.append(((GreedyPlayer) player).getBestScoreAfterTheEnd() + ";");
-                for (Card c : ((GreedyPlayer) player).getBestHandAfterTheEnd()) {
-                    if (c.getId() == 13) {
-                        ArrayList<Interactive> toIterate = new ArrayList<>(c.interactives);
-                        for (Interactive interactive : toIterate) {
-                            if (interactive instanceof TakeCardOfTypeAtTheEnd) {
-                                fromNecromancer2 = ((TakeCardOfTypeAtTheEnd) interactive).giveCardToTakeFromTable(player.getHand(),
-                                        cardsOnTable).getKey();
-                            }
-                        }
-                    }
-                    bufferForResults.append(c.name + ";");
-                }
-                if (fromNecromancer2 == null) {
-                    bufferForResults.append("-;");
-                } else {
-                    bufferForResults.append(fromNecromancer2.name + ";");
-                }
-            }
-        }
-
-        bufferForResults.append("Table:;");
-        for(Card c : cardsOnTable){
-            bufferForResults.append(c.name + ";");
-        }
-        // Writes the content to the file
-        bufferForResults.append("\n");
-    }
-
-    private void countBetterHandFromState(){
-        ArrayList<CountBestFromTableAndHandThread> threads = new ArrayList<>();
-        for(PlayerOrAI player : players){
-            if(player instanceof GreedyPlayer){
-                    CountBestFromTableAndHandThread t = new CountBestFromTableAndHandThread(player,cardsOnTable);
-                    threads.add(t);
-                    t.start();
-
-
-                for(CountBestFromTableAndHandThread thread : threads){
-                    try {
-                        thread.join();
-                        //System.out.println("Syncing thread of type " + thread.typeToTry);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    private void writeToFileWriter(FileWriter writer, ExperimentOutputCreator eoc, StringBuilder sb){
-        players.sort(Comparator.comparing(PlayerOrAI::getName));
-        eoc.writeToFileWriter(writer, sb);
-    }
-
-    private void writeToFile(){
-        players.sort(Comparator.comparing(PlayerOrAI::getName));
-        ExperimentOutputCreator eoc = new ExperimentOutputCreator(players, startingDeck);
-
-        eoc.createOutput(experimentOutputName);
-    }
-
+    /**
+     * Read the command line arguments and set the variables.
+     * @param args Command line arguments.
+     * @throws NotAIType If there are unknown AI types this exception is thrown.
+     */
     private void readArgs(String[] args) throws NotAIType{
-        if(args.length != 0){
+        if(args.length != 0) {
             // recognize arguents: number of players, type of AI (number of names of AI as number of players)
-
-            for(int ar = 0; ar < args.length; ar++){
-                if(ar == 0) {
+            for (int ar = 0; ar < args.length; ar++) {
+                if (ar == 0) {
                     try {
                         numberOfAI = Integer.parseInt(args[ar]);
-                        //System.out.println("Number of AI players: " + numberOfAI);
                         maxClients.getAndSet(numberOfAI);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid arguments format. Run the program again with proper arguments in following format: numberOfPlayers, nameOfAI (times numberOfPlayers). Terminating the program.");
-
                     }
                 }
 
-                if(ar == 1){
+                if (ar == 1) {
                     // read what deck should be used for the experiment
                     if ("RANDOM".equals(args[ar])) {
-                        deck.setDeck(true);
-                        randomOrNot= "1";
+                        setDeck(true);
+                        randomOrNot = "1";
                     } else {
-                        deck.setDeck(false);
+                        setDeck(false);
                         randomOrNot = "0";
 
                     }
-                    //System.out.println(args[ar]);
                     mightBeInDeck = deck.getDeck();
                 }
 
-                if(ar > 1 && ar < 1 + numberOfAI + 1){
-                    if (Stream.of(AITypes).anyMatch(args[ar]::startsWith)){
-                        if(args[ar].startsWith("GREEDY_")){
-                            cacheMap = new CacheMap();
+                if (ar > 1 && ar < 1 + numberOfAI + 1) {
+                    if (Stream.of(AITypes).anyMatch(args[ar]::startsWith)) {
+                        if (args[ar].startsWith("GREEDY_")) {
                             try {
                                 varietyOfPlayersAI.append("G");
                                 int parameterOfGreedy = Integer.parseInt(args[ar].substring(7));
                                 GreedyPlayer ai;
-                                if(parameterOfGreedy != 0 && parameterOfGreedy != 1){
+                                if (parameterOfGreedy != 0 && parameterOfGreedy != 1) {
                                     varietyOfPlayersAI.append(parameterOfGreedy);
-                                    ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY_insight" + parameterOfGreedy, cacheMap);
+                                    ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY_insight" + parameterOfGreedy);
 
-                                } else{
-                                    ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY", cacheMap);
+                                } else {
+                                    ai = new GreedyPlayer(this, parameterOfGreedy, ar + "_GREEDY");
 
                                 }
                                 players.add(ai);
@@ -492,22 +472,40 @@ Server extends Thread
 
                             }
 
-                        } else if(args[ar].startsWith("MC")){
+                        } else if (args[ar].startsWith("LEARNING")) {
                             varietyOfPlayersAI.append("M");
                             try {
-                                LearningPlayer ai = new LearningPlayer(this, ar + "_MonteCarlo", 0.2, 0.05);
+                                LearningPlayer ai = new LearningPlayer(this, ar + "_PairLearning", 0.2, 0.4);
                                 players.add(ai);
-                            } catch (CloneNotSupportedException e) {
+                                System.out.println("Size of players: " + players.size());
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                        } else if (args[ar].startsWith("PLANNING")) {
+                            varietyOfPlayersAI.append("L");
+                            try {
+                                GreedyStopPlanning ai = new GreedyStopPlanning(this, ar + "_Planning", 2, 0.2, 0.05);
+                                players.add(ai);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                        } else if (args[ar].startsWith("PAIRS")) {
+                            varietyOfPlayersAI.append("R");
+                            try {
+                                LearningPlayer ai = new LearningPlayer(this, ar + "_PairAgent", 0.2, 0.4);
+                                players.add(ai);
+                                System.out.println("Size of players: " + players.size());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }else {
+                            throw new NotAIType("Argument of index " + ar + " is not a type of AI. Make right input and restart program.");
                         }
-                    } else{
-                        throw new NotAIType("Argument of index " + ar + " is not a type of AI. Make right input and restart program.");
                     }
-                } else{
-                    //TODO insert other types of AI to recognize on args input here
+
                 }
-                if(ar == 1+numberOfAI +1){
+                if (ar == 1 + numberOfAI + 1) {
                     numberOfGamesToPlay = Integer.parseInt(args[ar]);
                 }
             }
@@ -515,6 +513,10 @@ Server extends Thread
     }
 
 
+    /**
+     * Puts the card to table. Informs the clients about this event.
+     * @param c Card that is being put on the table. (To the table array.)
+     */
     public void putCardOnTable(Card c){
         // Tell all clients to put this card on tables
         mightBeInDeck.remove(c);
@@ -529,68 +531,127 @@ Server extends Thread
                 }
             });
         }
-        //System.out.println("Cards on table: " + cardsOnTable.size());
         if(cardsOnTable.size() == END_GAME_NUMBER_OF_CARDS){
-            //System.out.println("Ending game, 10 cards on table");
+            //System.out.println("Before sendEndGame in putCardOnTable");
             sendEndGame();
         }
-        /*
-        else if(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
-            //System.out.println("-----Telling all clients to put this card on table: " + c.name + " NOW cards on table: " + cardsOnTable.size());
-            try{
-                setNextPlayer();
-            } catch(CloneNotSupportedException ex){
-                ex.printStackTrace();
-            }
-        }
-*/
-
-        //System.out.println("????__________________________________________>>>><<<???");
-        //System.out.println("????__________________________________________>>>><<<???");
-        //System.out.println("????__________________________________________>>>><<<???");
     }
 
+    /**
+     * Starts the game with the real players. Or mixed with real and AI ones.
+     */
     private void startTheGame(){
+        System.out.println("NumberOfPlayers " + players.size());
         cardsOnTable.clear();
         // Tell all the clients who is the starting player and set the playing player, give all player names
         players.forEach(p -> p.sendNamesInOrder(giveNamesInOrder(p)));
+        numberOfCountedScores.set(0);
+        while(cardsOnTable.size() < 10){
+
+            for(PlayerOrAI player : players){
+                if(cardsOnTable.size() < 10) {
+                    cardToTableFromClient.set(null);
+                    try {
+                        if (player instanceof ArtificialIntelligenceInterface) {
+                            System.out.println("Hraje agent");
+                            putCardOnTable(((ArtificialIntelligenceInterface) player).performMove(cardsOnTable));
+                        } else if (player instanceof ClientHandler) {
+
+                            //noinspection StatementWithEmptyBody
+                            while (cardToTableFromClient.get() == null) {
+                            }
+                            System.out.println("Hraje clovek");
+                            putCardOnTable(cardToTableFromClient.get());
+                        }
+                    } catch (CloneNotSupportedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        System.out.println("End of server startTheGame() cards on table " +  cardsOnTable.size());
     }
 
+    /**
+     * Give first card from the top of the deck.
+     * @return Card from the deck.
+     */
     public Card drawCardFromDeck(){
-        return deck.getDeck().remove(0);
+        try {
+            return deck.getDeck().remove(0);
+        } catch(IndexOutOfBoundsException ex){
+            System.out.println("Stul ("+ cardsOnTable.size() + "): ");
+            for(Card c : cardsOnTable){
+                System.out.println(c.getName() + ",");
+            }
+            System.out.println();
+            for(PlayerOrAI pl : players){
+                System.out.println("Agentova ruka ("+ pl.getHand().size() + "): ");
+                for(Card c : pl.getHand()){
+                    System.out.println(c.getName() + ",");
+                }
+                System.out.println();
+
+            }
+            System.exit(-1);
+        }
+        return null;
     }
 
+    /**
+     * Takes the card from the table. Informs the clients about this event.
+     * @param c The card that is being taken from the table.
+     */
     public void takeCardFromTable(Card c){
         // Tell all clients to erase this card from tables
         cardsOnTable.remove(c);
         players.forEach(p -> p.eraseCardFromTable(c));
-        //System.out.println("Telling all clients to erase this card from table: " + c.name);
     }
 
+    /**
+     * Sends command to clients to disable all their controls so none can play anymore.
+     */
     private void sendEndGame(){
         //Tell all clients to disable all buttons, end of the game, start counting hand
-
-        players.forEach(p -> p.endGame());
-
+        players.forEach(PlayerOrAI::endGame);
     }
 
-
+    /**
+     * When another score is done counting at the end of the game this method is called to track the progression.
+     */
     public void increaseCountedScoreNumber(){
         int nowCounted = numberOfCountedScores.incrementAndGet();
-        //System.out.println("nowCounted incremented in increaseCountedScoreNumber");
+        System.out.println("increaseCountedScore now counted = " + nowCounted +" players size = " + players.size());
         if(players.size() == nowCounted){
-            //System.out.println("Sending counted score in increaseCountedScoreNumber");
+            System.out.println("increaseCountedScore now counted = " + nowCounted +" players size = " + players.size());
+
+            while(players.stream().anyMatch(player -> player.getScore() < -666)){
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             sendCountedScore();
+            sentAllScore.set(true);
+            System.out.println("sentAllScore = true " + nowCounted +" players size = " + players.size());
         }
     }
 
+    /**
+     * Sends the details of the counted scores to players.
+     */
     private void sendCountedScore(){
-        //System.out.println("inside sendCOuntedScore");
         players.forEach(p -> p.sendScore(gatherScores(p)));
-
-        //System.out.println("Telling all clients about final score");
     }
 
+    /**
+     * Makes a text of player names and tags the one that begins the game.
+     * @param client Which client receives the text.
+     * @return The text of player names, the beginning player is tagged. First element
+     * is the client that is receiving the text.
+     */
     public String giveNamesInOrder(PlayerOrAI client){
         StringBuilder names = new StringBuilder();
         int indexOfClient = players.indexOf(client);
@@ -611,15 +672,19 @@ Server extends Thread
         return names.toString();
     }
 
+    /**
+     * Makes a text containing all counted scores from all clients and agents in regard to the client that
+     * is receiving the text.
+     * @param client Target client of the made text.
+     * @return Text with ladder at the end of the game.
+     */
     public String gatherScores(PlayerOrAI client){
-        //System.out.println("Inside gatherScores at start");
         StringBuilder text = new StringBuilder();
         int indexOfClient = players.indexOf(client);
         countRanks();
         boolean putTable = true;
         int gotScores = 0;
         while(gotScores != players.size()){
-            //System.out.println("Inside gatherScores loop while");
             if(players.size() <= indexOfClient){
                 indexOfClient = 0;
             }
@@ -629,41 +694,32 @@ Server extends Thread
             text.append(players.elementAt(indexOfClient).getRank()).append(") ").append(players.elementAt(indexOfClient).getScore()).append("#");
             gotScores++;
             indexOfClient++;
-            putTable = false;
+            putTable = true;
         }
         text.deleteCharAt(text.length()-1);
 
         return text.toString();
     }
 
+    /**
+     * Decides the ladder at the end of the game. Sets ranks of all players and agents.
+     */
     private void countRanks(){
-        //System.out.println("maxClients.get() = " + maxClients.get());
         PlayerOrAI[] playerScore = new PlayerOrAI[players.size()];
-        //System.out.println("player.size() = " + players.size());
         for(int i = 0; i < players.size();i++){
             for(int j = 0; j <= i; j++ ) {
                 if(playerScore[j] == null) {
                     playerScore[j] = players.elementAt(i);
-                }else {
-                    //System.out.println("Player name: " + players.elementAt(i).name + " Score: " + players.elementAt(i).score + " <? " + playerScore[j].score + " j = " + j);
-                    if (players.elementAt(i).getScore() > playerScore[j].getScore()) {
-                        for (int k = players.size() - 1; k > j; k--) {
-                            playerScore[k] = playerScore[k - 1];
-                            //if(playerScore[k]!=null)
-                            //System.out.println("playerScore[" + k + "]=" + playerScore[k].name);
-                        }
-                        playerScore[j] = players.elementAt(i);
-                        //System.out.println("playerScore[" + j + "]=" + playerScore[j].name);
-                        break;
-                    }
+                }else if (players.elementAt(i).getScore() > playerScore[j].getScore()) {
+                    if (players.size() - 1 - j >= 0)
+                        System.arraycopy(playerScore, j, playerScore, j + 1, players.size() - 1 - j);
+                    playerScore[j] = players.elementAt(i);
+                    break;
                 }
             }
-            //System.out.println("i = " + i + " a playerScore[i] = " + playerScore[i].name);
         }
         int rank = 1;
         for(int i = 0; i < players.size();i++){
-            String name = playerScore[i].getName();
-            //System.out.println("Prave se bude nastavovat rank " + rank + " hráči " + name + " i=" + i + " {" +  playerScore[i].getScore() + "}");
             playerScore[i].setRank(rank);
             if(i < players.size()-1){
                 if(playerScore[i].getScore() == playerScore[i+1].getScore()){
@@ -673,42 +729,6 @@ Server extends Thread
                 }
             }
         }
-
     }
 
-    public void setNextPlayer() throws CloneNotSupportedException {
-        if(cardsOnTable.size() < END_GAME_NUMBER_OF_CARDS){
-            int currentIndex = players.indexOf(currentPlayer);
-            currentPlayer.playing = false;
-            currentIndex++;
-            if(currentIndex >= players.size()){
-                currentIndex = 0;
-            }
-            currentPlayer = players.elementAt(currentIndex);
-            //System.out.println("Current playing is " + currentPlayer.getName() + " at index in players " + currentIndex);
-            currentPlayer.playing = true;
-            // If the player is AI, tell it to perform its move. Player has its own way how to determine if they are playing or not.
-            if (currentPlayer instanceof GreedyPlayer){
-                //System.out.println("Current player before putcardOnTable");
-                putCardOnTable(((ArtificialIntelligenceInterface) currentPlayer).performMove(cardsOnTable));
-
-            }
-        }
-
-    }
-
-    public void setAI(int number){
-        for(int i = 0; i < number; i++){
-            try {
-                varietyOfPlayersAI.append("G");
-                int parameterOfGreedy = 0;
-                GreedyPlayer ai = new GreedyPlayer(this, parameterOfGreedy, parameterOfGreedy + "_GREEDY_" + i);
-                players.add(ai);
-            } catch(CloneNotSupportedException ex){
-                ex.printStackTrace();
-            }
-        }
-        int newMaxPlayers = maxClients.get() - number;
-        maxClients.getAndSet(newMaxPlayers);
-    }
 }

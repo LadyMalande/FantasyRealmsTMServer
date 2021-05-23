@@ -1,7 +1,7 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -9,18 +9,29 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives the bigger gain out of the two.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class BonusOrBonus extends Bonus {
-    public long serialVersionUID = 2;
-    private String text;
+    /**
+     * The first bonus.
+     */
     private Bonus b1;
+    /**
+     * The second bonus.
+     */
     private Bonus b2;
 
+    /**
+     * Constructor for bonus or bonus type of bonus.
+     * @param b1 The first bonus.
+     * @param b2 The second bonus.
+     */
     public BonusOrBonus(Bonus b1, Bonus b2) {
-        this.text = b1.getText() + "\n----- OR -----\n" + b2.getText();
         this.b1 = b1;
         this.b2 = b2;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
@@ -42,10 +53,7 @@ public class BonusOrBonus extends Bonus {
         if(b2Types != null){
             return  b2Types;
         }
-        if(b1Types != null){
-            return b1Types;
-        }
-        return null;
+        return b1Types;
 
     }
     @Override
@@ -77,11 +85,6 @@ public class BonusOrBonus extends Bonus {
     }
 
     @Override
-    public String getText() {
-        return this.text;
-    }
-
-    @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
@@ -96,7 +99,6 @@ public class BonusOrBonus extends Bonus {
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         double p1 = b1.getPotential(hand, table, deckSize, unknownCards, state);
         double p2 = b2.getPotential(hand, table, deckSize, unknownCards, state);
         return Math.max(p1,p2);
@@ -105,36 +107,37 @@ public class BonusOrBonus extends Bonus {
     @Override
     public Bonus clone() throws CloneNotSupportedException{
         BonusOrBonus newb = (BonusOrBonus)super.clone();
-        newb.text = this.text;
-        newb.priority = this.priority;
-        newb.serialVersionUID = this.serialVersionUID;
         newb.b1 = this.b1.clone();
         newb.b2 = this.b1.clone();
         return newb;
     }
 
+    @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        if(reactsBonusWithTypes(b1, types) || reactsBonusWithTypes(b2, types)){
-            return true;
-        }
-        return false;
+        return reactsBonusWithTypes(b1, types) || reactsBonusWithTypes(b2, types);
     }
 
+    /**
+     * Counts if one of the two bonuses react with at least one of the given types.
+     * @param b Bonus to measure.
+     * @param types Types that can react.
+     * @return True if any of the given types react with the bonus.
+     */
     public boolean reactsBonusWithTypes(Bonus b, ArrayList<Type> types){
 
         if(b instanceof PlusForEachType){
-            return ((PlusForEachType) b).types.stream().anyMatch(type -> types.contains(type));
+            return ((PlusForEachType) b).types.stream().anyMatch(types::contains);
         }
         if(b instanceof PlusForEachTypeIfYouHaveCard){
             String name = BigSwitches.switchIdForSimplifiedName(((PlusForEachTypeIfYouHaveCard) b).cardid);
-            return ((PlusForEachTypeIfYouHaveCard) b).types.stream().anyMatch(type -> types.contains(type)) ||
+            return ((PlusForEachTypeIfYouHaveCard) b).types.stream().anyMatch(types::contains) ||
                     types.contains(BigSwitches.switchNameForType(name));
         }
         if(b instanceof PlusIfYouHaveAtLeastOneType){
-            return ((PlusIfYouHaveAtLeastOneType) b).types.stream().anyMatch(type -> types.contains(type));
+            return ((PlusIfYouHaveAtLeastOneType) b).types.stream().anyMatch(types::contains);
         }
         if(b instanceof PlusIfYouHaveAllCardsAndAtLeastOneType){
-            return ((PlusIfYouHaveAllCardsAndAtLeastOneType) b).types.stream().anyMatch(type -> types.contains(type)) ||
+            return ((PlusIfYouHaveAllCardsAndAtLeastOneType) b).types.stream().anyMatch(types::contains) ||
                     ((PlusIfYouHaveAllCardsAndAtLeastOneType) b).idCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ;
         }
         if(b instanceof PlusIfYouHaveAll){

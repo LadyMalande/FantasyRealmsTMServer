@@ -1,17 +1,14 @@
 package test;
 
 import bonuses.Bonus;
-import maluses.Malus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import server.BigSwitches;
 import server.Card;
 import server.Deck;
 import server.Type;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,7 +45,7 @@ class DeleteSelftypeFromAllMalusesTest {
         cardsInHands.add(toBeEnhanced);
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertTrue(toBeEnhanced.getMaluses().get(0).getTypes().size() == 2);
         bonus.count(cardsInHands);
 
@@ -64,9 +61,9 @@ class DeleteSelftypeFromAllMalusesTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         bonus.count(cardsInHands);
-        assertNotNull(toBeEnhanced.maluses.get(0).getTypes());
-        assertFalse(toBeEnhanced.maluses.get(0).getTypes().contains(Type.ARMY));
+        assertNotNull(toBeEnhanced.getMaluses().get(0).getTypes());
+        assertFalse(toBeEnhanced.getMaluses().get(0).getTypes().contains(Type.ARMY));
     }
 }

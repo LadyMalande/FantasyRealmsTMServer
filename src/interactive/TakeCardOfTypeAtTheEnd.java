@@ -3,33 +3,46 @@ package interactive;
 
 import artificialintelligence.ScoreCounterForAI;
 import artificialintelligence.State;
-import server.BigSwitches;
 import server.Card;
 import server.ClientHandler;
+import server.Server;
 import server.Type;
+import util.BigSwitches;
 import util.HandCloner;
 import util.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
+/**
+ * The interactive bonus that implements the possibility of taking a card of given type from the table
+ * at the end of the game.
+ * @author Tereza Miklóšová
+ */
 public class TakeCardOfTypeAtTheEnd extends Interactive  {
+    /**
+     * This card is resolved first.
+     */
     public int priority = 0;
-    public String text;
+    /**
+     * Types of cards that can be taken from the table.
+     */
     public ArrayList<Type> types;
+    /**
+     * Id of the card containing this bonus.
+     */
     private int thiscardid;
 
+    /**
+     * Constructor for this interactive bonus.
+     * @param id Id of the card containing this bonus.
+     * @param types Types of cards that can be taken from the table.
+     */
     public TakeCardOfTypeAtTheEnd(int id,ArrayList<Type> types) {
         this.thiscardid = id;
-        this.text = "At the end of the game, you can take one card from the table which is of type " + giveListOfTypesWithSeparator(types, " or ") + " as your eighth card";
         this.types = types;
-        //System.out.println("Card INIT: Text: " + getText());
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -38,10 +51,10 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("interactive.CardInteractives",loc);
         ResourceBundle typ = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append(rb.getString("takeCardOfTypeAtTheEnd"));
+        sb.append(rb.getString("takeCardOfTypeAtTheEnd")).append(" ");
         sb.append(typ.getString("any4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, "or",locale,4));
+        sb.append(giveListOfTypesWithSeparator(types, locale,4));
         sb.append(rb.getString("takeCardOfTypeAtTheEnd2"));
         return sb.toString();
     }
@@ -54,30 +67,34 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
 
         for(Type t: types){
             for(Card c: client.hostingServer.cardsOnTable){
-                if(c.type.equals(t)){
+                if(c.getType().equals(t)){
                     str.append(c.getNameLoc(client.locale.getLanguage())).append(",");
                 }
             }
         }
-
         return str.toString();
     }
 
     @Override
-    public boolean askPlayer(ClientHandler client) {
+    public void askPlayer(ClientHandler client) {
 
-        return client.sendInteractive("TakeCardOfType#" + thiscardid + "#" + getNamesOfTypeCardsOnTable(client));
+        client.sendMessage("TakeCardOfType#" + thiscardid + "#" + getNamesOfTypeCardsOnTable(client));
     }
 
-    public Pair<Card, Integer> giveCardToTakeFromTable(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable){
-        int bestScore = 0;
-        Card thisInteractivesCard = null;
+    /**
+     * Computes which card is the most suitable to get from the table.
+     * @param originalHand Cards in hand.
+     * @param cardsOnTable Cards on table to choose from.
+     * @return Pair of the best card to take and the score it gives.
+     */
+    public Pair<Card, Integer> giveCardToTakeFromTable(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable, Server server){
+        int bestScore;
         Card bestCardToTake = null;
-        ScoreCounterForAI sc = new ScoreCounterForAI();
+        ScoreCounterForAI sc = new ScoreCounterForAI(server);
         // Remove this interactive from card to not get stuck in loop
         for (Card original : originalHand) {
-            if (thiscardid == original.id) {
-                original.interactives.remove(this);
+            if (thiscardid == original.getId()) {
+                original.getInteractives().remove(this);
             }
         }
         HandCloner hc = new HandCloner();
@@ -88,61 +105,48 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
-
-
+        // Count the best beginning score without any other card from the table
         bestScore = sc.countScore(newHand, cardsOnTable, true);
-        int scoreBefore = bestScore;
+
         ArrayList<Card> newCardsOnTableToIterate = null;
         try {
             newCardsOnTableToIterate = hc.cloneHand(null, cardsOnTable);
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
-        for(Card cardOnTable : newCardsOnTableToIterate) {
-            //the card is of appropriate type, try to take it
-            if (types.contains(cardOnTable.type)) {
-                //System.out.println("Card was considered by Necro");
-                // Make new hand and try to count the score
+        // If there are any cards on the table, try to take any of suitable type and see if the score is greater.
+        if(newCardsOnTableToIterate != null) {
+            for (Card cardOnTable : newCardsOnTableToIterate) {
+                //the card is of appropriate type, try to take it
+                if (types.contains(cardOnTable.getType())) {
+                    // Make new hand and try to count the score
+                    try {
+                        ArrayList<Card> newHand2 = hc.cloneHand(null, originalHand);
+                        ArrayList<Card> newCardsOnTable = hc.cloneHand(null, cardsOnTable);
+                        newCardsOnTable.remove(cardOnTable);
+                        newHand2.add(cardOnTable);
+                        int currentScore = sc.countScore(newHand2, newCardsOnTable, true);
+                        // The score is greater than without the card, so its good to take this one.
+                        if (currentScore > bestScore) {
+                            bestScore = currentScore;
+                            bestCardToTake = cardOnTable;
+                        }
 
-                try {
-                    ArrayList<Card> newHand2 = hc.cloneHand(null, originalHand);
-                    ArrayList<Card> newCardsOnTable = hc.cloneHand(null, cardsOnTable);
-                    newCardsOnTable.remove(cardOnTable);
-                    newHand2.add(cardOnTable);
-                    //System.out.println("////Pocitam skore pro novou ruku s 8. kartou z nekromancerskeho interactive: ");
-                    //super.writeAllCardsAndTheirAttributes(newHand2);
-                    int currentScore = sc.countScore(newHand2, newCardsOnTable, true);
-                    if (currentScore > bestScore) {
-                        bestScore = currentScore;
-                        bestCardToTake = cardOnTable;
+
+                    } catch (CloneNotSupportedException e) {
+                        e.printStackTrace();
                     }
-
-
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
                 }
-
-
-
             }
         }
-        /*
-        if(bestCardToTake != null){
-            System.out.println("Necromancer chose to take " + bestCardToTake.name + " from table.");
-
-        } else{
-            System.out.println("Necromancers chosen card is null, before=" + scoreBefore + " after=" + bestScore);
-        }
-
-         */
-        return new Pair<Card, Integer>(bestCardToTake, bestScore);
+        return new Pair<>(bestCardToTake, bestScore);
     }
 
     @Override
-    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
-        long startTime = System.nanoTime();
-        Pair<Card,Integer> bestToTake =  giveCardToTakeFromTable(originalHand, cardsOnTable);
-        ScoreCounterForAI sc = new ScoreCounterForAI();
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable, Server server,
+                                         Integer idOfCardToChange, Card toChangeInto) throws CloneNotSupportedException {
+        Pair<Card,Integer> bestToTake =  giveCardToTakeFromTable(originalHand, cardsOnTable, server);
+        ScoreCounterForAI sc = new ScoreCounterForAI(server);
         //System.out.println("Counting TakeCardOfType");
         Card bestCardToTake = bestToTake.getKey();
         int bestScore = bestToTake.getValue();
@@ -150,24 +154,17 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
         if(bestCardToTake != null){
             originalHand.add(bestCardToTake);
             cardsOnTable.remove(bestCardToTake);
-            if(bestCardToTake.interactives != null){
-                for(Interactive innew : bestCardToTake.interactives){
+            if(bestCardToTake.getInteractives() != null){
+                for(Interactive innew : bestCardToTake.getInteractives()){
                     // If we drew another card with Necromancer like bonus, resolve it immediately
                     if(innew instanceof TakeCardOfTypeAtTheEnd){
-                        innew.changeHandWithInteractive(originalHand, cardsOnTable);
+                        innew.changeHandWithInteractive(originalHand, cardsOnTable, server,
+                                idOfCardToChange, toChangeInto);
                     }
                 }
             }
             bestScore = sc.countScore(originalHand, cardsOnTable,false);
-            //System.out.println("Out of all cards on table: ");
-            for(Card cardOnTable : cardsOnTable){
-                //System.out.print(cardOnTable.name + ", ");
-            }
-            //System.out.print(" the AI chose to take " + bestCardToTake.name);
         }
-        long elapsedTime = System.nanoTime() - startTime;
-        //System.out.println("Total execution time spent in TakeCardOfType in millis: " + elapsedTime/1000000);
-
         return bestScore;
     }
 
@@ -175,16 +172,14 @@ public class TakeCardOfTypeAtTheEnd extends Interactive  {
     public Interactive clone() throws CloneNotSupportedException{
         TakeCardOfTypeAtTheEnd newi = (TakeCardOfTypeAtTheEnd)super.clone();
         newi.priority = this.priority;
-        newi.text = this.text;
-        newi.types = (ArrayList<Type>) this.types.clone();
+        newi.types = new ArrayList<>(this.types);
         newi.thiscardid = this.thiscardid;
         return newi;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 }

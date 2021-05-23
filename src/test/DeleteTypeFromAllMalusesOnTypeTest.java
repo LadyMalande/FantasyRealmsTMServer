@@ -1,7 +1,6 @@
 package test;
 
 import bonuses.Bonus;
-import maluses.Malus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.Card;
@@ -10,9 +9,9 @@ import server.Type;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class DeleteTypeFromAllMalusesOnTypeTest {
 
@@ -32,7 +31,7 @@ class DeleteTypeFromAllMalusesOnTypeTest {
         d.setDeck(false);
         deck = d.getDeck();
 
-        cardsInHands = new ArrayList<Card>();
+        cardsInHands = new ArrayList<>();
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Válečná loď")).findAny().get();
         cardsInHands.add(cardToBeTested);
@@ -48,7 +47,7 @@ class DeleteTypeFromAllMalusesOnTypeTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         bonus.count(cardsInHands);
         assertFalse(toBeEnhanced.getMaluses().get(0).getTypes().stream().anyMatch(type -> type == Type.ARMY));
     }
@@ -62,11 +61,11 @@ class DeleteTypeFromAllMalusesOnTypeTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         bonus.count(cardsInHands);
 
-        assertNotNull(toBeEnhanced.maluses.get(0).getTypes());
-        assertFalse(toBeEnhanced.maluses.get(0).getTypes().contains(Type.ARMY));
+        assertNotNull(toBeEnhanced.getMaluses().get(0).getTypes());
+        assertFalse(toBeEnhanced.getMaluses().get(0).getTypes().contains(Type.ARMY));
     }
 
 }

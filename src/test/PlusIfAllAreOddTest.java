@@ -1,7 +1,6 @@
 package test;
 
 import bonuses.Bonus;
-import bonuses.BonusOrBonus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.Card;
@@ -9,7 +8,7 @@ import server.Card;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlusIfAllAreOddTest {
     ArrayList<Card> deck;
@@ -37,7 +36,7 @@ class PlusIfAllAreOddTest {
     void countConditionSatisfied() {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Meč")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 50);
     }
 
@@ -47,7 +46,7 @@ class PlusIfAllAreOddTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Ostrov")).findAny().get());
 
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 15);
     }
 }

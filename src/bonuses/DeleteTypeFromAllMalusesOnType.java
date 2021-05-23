@@ -2,7 +2,7 @@ package bonuses;
 
 import artificialintelligence.State;
 import maluses.*;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -11,25 +11,35 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
+/**
+ * Bonus that represents bonus which removes given type on all maluses of given type.
+ * @author Tereza Miklóšová
+ */
 public class DeleteTypeFromAllMalusesOnType extends Bonus  {
-    public long serialVersionUID = 6;
+    /**
+     * The priority of the bonus. Goes before the deleting penalties are counted.
+     */
     public int priority = 5;
+    /**
+     * This type will be deleted from given types of maluses.
+     */
     private Type deleteThisTypeFromMaluses;
-    private Type onWhichType;
-    public final String text;
 
+    /**
+     * On this type of maluses the given type to delete will be removed.
+     */
+    private Type onWhichType;
+
+    /**
+     * Constructor for the bonus.
+     * @param whichType Which type is to be deleted from types on maluses.
+     * @param onWhichType On which type of maluses will be the type deleted.
+     */
     public DeleteTypeFromAllMalusesOnType(Type whichType, Type onWhichType){
         this.deleteThisTypeFromMaluses = whichType;
         this.onWhichType = onWhichType;
-        text = "Remove word " + BigSwitches.switchTypeForName(whichType) + " on types "+BigSwitches.switchTypeForName(onWhichType);
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
-    @Override
-    public String getText(){
-        return this.text;
-    }
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
@@ -51,9 +61,9 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
     @Override
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
-            if(c.type.equals(onWhichType)) {
-                if (c.maluses!=null && !c.maluses.isEmpty()) {
-                    for (Malus m : c.maluses) {
+            if(c.getType().equals(onWhichType)) {
+                if (c.getMaluses() !=null && !c.getMaluses().isEmpty()) {
+                    for (Malus m : c.getMaluses()) {
                         if((m.types != null) && (!m.types.isEmpty()) && (m.types.contains(deleteThisTypeFromMaluses))) {
                             m.types.remove(deleteThisTypeFromMaluses);
                             Logger log = Logger.getLogger("Loger");
@@ -70,7 +80,7 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double saved = 0.0;
+        double saved;
         double minus = 0.0;
         double withoutType = 0.0;
         for(Card c : hand){
@@ -84,7 +94,7 @@ public class DeleteTypeFromAllMalusesOnType extends Bonus  {
                         withoutType += giveValue(hand, whatToRemove);
                         m.types.add(deleteThisTypeFromMaluses);
                     }
-                    if(m instanceof MinusForEachType || m instanceof MinusForEachType){
+                    if(m instanceof MinusForEachType){
                         minus += m.count(hand);
                         m.types.remove(deleteThisTypeFromMaluses);
                         withoutType += m.count(hand);

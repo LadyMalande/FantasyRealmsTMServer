@@ -1,56 +1,52 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives points if the hand contains at least one of the cards.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfYouHaveAtLeastOneCard extends Bonus {
-    public long serialVersionUID = 21;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     private int how_much;
+    /**
+     * One of cards of these ids is needed to activate the bonus.
+     */
     public ArrayList<Integer> idsOfCardsNeeded;
 
+    /**
+     * Constructor for the bonus.
+     * @param hm How many points will the player get for completing the bonus.
+     * @param cards One of this cards completes the bonus.
+     */
     public PlusIfYouHaveAtLeastOneCard(int hm, ArrayList<Integer> cards){
 
         this.how_much = hm;
         this.idsOfCardsNeeded = cards;
-
-        String listcards = "";
-        boolean first = true;
-        for(Integer c: cards){
-            if(!first){
-                listcards +=" or ";
-            }
-            listcards += BigSwitches.switchIdForName(c);
-            first = false;
-        }
-        this.text = "+" + how_much + " if with any of these: " + listcards;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
-        ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
         ResourceBundle rbbonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + how_much);
+        sb.append("+").append(how_much);
         sb.append(rbbonuses.getString("ifYouHave"));
         sb.append(" ");
         sb.append(rbbonuses.getString("atLeastOneOfTheseCards"));
         sb.append(" ");
-        sb.append(giveListOfCardsWithSeparator(idsOfCardsNeeded, "or",locale, 4,false));
+        sb.append(TextCreators.giveListOfCardsWithSeparator(idsOfCardsNeeded, "or",locale, 4));
         sb.append(".");
         return sb.toString();
     }
@@ -62,7 +58,7 @@ public class PlusIfYouHaveAtLeastOneCard extends Bonus {
             names.add(BigSwitches.switchIdForName(i));
         }
         for(Card c: hand){
-            if(names.contains(c.name)){
+            if(names.contains(c.getName())){
                 return how_much;
             }
         }

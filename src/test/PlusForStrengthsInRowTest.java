@@ -37,7 +37,7 @@ class PlusForStrengthsInRowTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Nejvyšší mág")).findAny().get()); //25
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bažina")).findAny().get()); //18
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bazilišek")).findAny().get()); //35
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 10);
     }
 
@@ -51,7 +51,7 @@ class PlusForStrengthsInRowTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get()); //6
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Meč")).findAny().get()); //7
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bouře")).findAny().get()); //8
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 30);
     }
 
@@ -66,7 +66,7 @@ class PlusForStrengthsInRowTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Meč")).findAny().get()); //7
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bouře")).findAny().get()); //8
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 60);
     }
 
@@ -81,7 +81,7 @@ class PlusForStrengthsInRowTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Meč")).findAny().get()); //7
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bouře")).findAny().get()); //8
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 100);
     }
 
@@ -96,7 +96,7 @@ class PlusForStrengthsInRowTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Meč")).findAny().get()); //7
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bouře")).findAny().get()); //8
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 150);
     }
 
@@ -111,7 +111,7 @@ class PlusForStrengthsInRowTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bažina")).findAny().get()); //18
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bazilišek")).findAny().get()); //35
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 }

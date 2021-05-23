@@ -2,27 +2,44 @@ package maluses;
 
 import artificialintelligence.ScoreCounterForAI;
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 import util.HandCloner;
+import util.TextCreators;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Implements the penalty that deletes its host card if the hand contains any card of given type.
+ * @author Tereza Miklóšová
+ */
 public class CardIsDeletedIfYouHaveAnyType extends Malus {
+    /**
+     * This card will be resolved after types have been deleted by different kinds of penalty.
+     */
     public int priority = 7;
-    public String text;
+    /**
+     * Id of the card that contains this penalty.
+     */
     private int thiscardid;
+
+    /**
+     * Any card of one of these types will force this card to erase itself.
+     */
     public ArrayList<Type> types;
 
+    /**
+     * Constructor for this penalty.
+     * @param thiscardid Id of the card that contains this penalty.
+     * @param types Any card of one of these types will force this card to erase itself.
+     */
     public CardIsDeletedIfYouHaveAnyType(int thiscardid,  ArrayList<Type> types) {
-        this.text = "Blanked with any " + giveListOfTypesWithSeparator(types, " or " );
         this.thiscardid = thiscardid;
         this.types = types;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
         List<Card> match = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
@@ -32,7 +49,7 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
         }
         if(match.size() == 1){
             ArrayList<Type> colors =
-                    new ArrayList<Type>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
+                    new ArrayList<>(Arrays.asList(Type.ARMY, Type.ARTIFACT, Type.BEAST, Type.FLAME, Type.FLOOD,
                             Type.LAND, Type.LEADER, Type.WEAPON, Type.WEATHER, Type.WIZARD));
             colors.removeAll(types);
             return colors;
@@ -40,6 +57,7 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
             return types;
         }
     }
+
     @Override
     public int getHowMuch(ArrayList<Card> hand) {
         List<Card> match = hand.stream().filter(card -> types.contains(card.getType())).collect(Collectors.toList());
@@ -60,11 +78,6 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
     }
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-
-    @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
@@ -74,30 +87,27 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
         sb.append(" ");
         sb.append(rb.getString("any4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, "or",locale,4,false));
+        sb.append(TextCreators.giveListOfTypesWithSeparator(types, "or",locale,4,false));
         sb.append(".");
         return sb.toString();
     }
+
     @Override
     public int getPriority(){ return this.priority; }
+
     @Override
     public int count(ArrayList<Card> hand, ArrayList<Card> whatToRemove) {
         boolean delete = false;
-        //System.out.println("Resolving card "+ BigSwitches.switchIdForName(thiscardid));
         for(Card c: hand){
             if (!whatToRemove.contains(c)) {
-                if(types.contains(c.type)){
+                if(types.contains(c.getType())){
                     delete = true;
-                    //System.out.println("c.type==" + BigSwitches.switchTypeForName(c.type) + " je v seznamu types");
                     break;
                 }
             }
         }
         if(delete){
-
-            //whatToRemove.add(hand.stream().filter(cardOnHand -> thiscardid == (cardOnHand.id)).findFirst().get());
-            hand.removeIf(x -> x.id == thiscardid);
-            //System.out.println("Card with id " + thiscardid + " was put to whatToremove, now cards in hand: " + hand.size());
+            hand.removeIf(x -> x.getId() == thiscardid);
         }
         return 0;
     }
@@ -108,28 +118,23 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
     }
 
     @Override
-    public Malus clone() throws CloneNotSupportedException{
-        ArrayList<Type> newtypes = new ArrayList<Type>();
-        for(Type t: types){
-            newtypes.add(t);
-        }
-        CardIsDeletedIfYouHaveAnyType newm = new CardIsDeletedIfYouHaveAnyType(this.thiscardid, newtypes);
-        //System.out.println("In cloning CardIsDeletedIfYouHaveAnyType: The new types and old types are equal = " + (newm.types == this.types));
-        return newm;
+    public Malus clone(){
+        ArrayList<Type> newtypes = new ArrayList<>(types);
+        return new CardIsDeletedIfYouHaveAnyType(this.thiscardid, newtypes);
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        return this.types.contains(Type.WILD) || this.types.stream().anyMatch(type -> types.contains(type));
+        return this.types.contains(Type.WILD) || this.types.stream().anyMatch(types::contains);
     }
 
+    @Override
     public int getReaction(Type t, ArrayList<Card> hand) {
         if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
             // no need to enhance for this card, it has been already broken
@@ -143,7 +148,7 @@ public class CardIsDeletedIfYouHaveAnyType extends Malus {
                     List<Card> toOmit = hand.stream().filter(card -> card.getMaluses().contains(this)).collect(Collectors.toList());
                     ArrayList<Card> withoutThis = hc.cloneHand(toOmit.get(0), hand);
                     ScoreCounterForAI sc = new ScoreCounterForAI();
-                    int newHandScore = sc.countScore(hand, null, true);
+                    int newHandScore = sc.countScore(newHand, null, true);
                     int handOmited = sc.countScore(withoutThis, null, true);
                     return handOmited - newHandScore;
                 } catch (CloneNotSupportedException e) {

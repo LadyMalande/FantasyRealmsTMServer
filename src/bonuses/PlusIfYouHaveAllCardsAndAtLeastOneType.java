@@ -1,9 +1,10 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,21 +12,37 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/**
+ * Bonus that represents bonus which gives the points if all cards are in hand and at least one type.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
-    public long serialVersionUID = 20;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     private int howMuch;
+    /**
+     * All of these cards of these ids are needed to complete the bonus.
+     */
     public ArrayList<Integer> idCardsNeeded;
+    /**
+     * At least one card of this type is needed to complete the one time bonus.
+     */
     public ArrayList<Type> types;
 
+    /**
+     * Constructor of the bonus.
+     * @param howMuch * Points given for each completion of the conditions to get it.
+     * @param idCardsNeeded All of these cards of these ids are needed to complete the bonus.
+     * @param types At least one card of this type is needed to complete the one time bonus.
+     */
     public PlusIfYouHaveAllCardsAndAtLeastOneType( int howMuch, ArrayList<Integer> idCardsNeeded, ArrayList<Type> types) {
-        this.text = "+" + howMuch + " if with " + giveListOfCardsWithSeparator(idCardsNeeded, " and ", "en",1,false) + " and at least one " + giveListOfTypesWithSeparator(types, " or ");
         this.howMuch = howMuch;
         this.idCardsNeeded = idCardsNeeded;
         this.types = types;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
+
     @Override
     public ArrayList<Type> getTypesAvailable(ArrayList<Card> hand) {
         if(hand.stream().anyMatch(card -> types.contains(card.getType()))){
@@ -36,9 +53,8 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
                 names.add(BigSwitches.switchIdForName(i));
             }
             int hascards = 0;
-            boolean hasoneofthese = false;
             for(Card c: hand){
-                if(names.contains(c.name)){
+                if(names.contains(c.getName())){
                     hascards++;
                 }
                 if(hascards == idCardsNeeded.size()){
@@ -57,10 +73,8 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
             if(count(hand) != 0){
                 return cards.get(0);
             }
-                return null;
-        } else{
-            return null;
         }
+        return null;
     }
 
     @Override
@@ -69,20 +83,15 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
     }
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-
-    @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
         ResourceBundle rbbonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + howMuch);
+        sb.append("+").append(howMuch);
         sb.append(rbbonuses.getString("ifYouHave"));
         sb.append(" ");
-        sb.append(giveListOfCardsWithSeparator(idCardsNeeded, "and",locale,4,false));
+        sb.append(TextCreators.giveListOfCardsWithSeparator(idCardsNeeded, "and",locale,4));
         sb.append(" ");
         sb.append(rb.getString("and"));
         sb.append(" ");
@@ -90,7 +99,7 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
         sb.append(" ");
         sb.append(rb.getString("one4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, "or",locale, 4,false));
+        sb.append(TextCreators.giveListOfTypesWithSeparator(types, "or",locale, 4));
         sb.append(".");
         return sb.toString();
     }
@@ -104,10 +113,10 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
         int hascards = 0;
         boolean hasoneofthese = false;
         for(Card c: hand){
-            if(names.contains(c.name)){
+            if(names.contains(c.getName())){
                 hascards++;
             }
-            else if(types.contains(c.type)){
+            else if(types.contains(c.getType())){
                 hasoneofthese = true;
             }
             if(hascards == idCardsNeeded.size() && hasoneofthese){
@@ -119,15 +128,14 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
         return idCardsNeeded.stream().anyMatch(id -> types.contains(BigSwitches.switchNameForType(BigSwitches.switchIdForSimplifiedName((id))))) ||
-                types.stream().anyMatch(type -> types.contains(type)) ;
+                types.stream().anyMatch(types::contains) ;
 
     }
 
@@ -167,11 +175,16 @@ public class PlusIfYouHaveAllCardsAndAtLeastOneType extends Bonus  {
         return 0;
     }
 
+    /**
+     * Counts how many cards are missing to complete the bonus.
+     * @param hand The cards in hand.
+     * @return Number of the cards missing to complete the bonus.
+     */
     private ArrayList<Integer> howManyCardsAreMissing(ArrayList<Card> hand){
         ArrayList<Integer> missingCards = new ArrayList<>(idCardsNeeded);
         for(int id: idCardsNeeded){
             for(Card card: hand){
-                if(BigSwitches.switchIdForName(id).equals(card.name)){
+                if(BigSwitches.switchIdForName(id).equals(card.getName())){
                     idCardsNeeded.remove(card.getId());
                 }
             }

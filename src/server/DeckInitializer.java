@@ -9,7 +9,14 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Class for initializing the original deck.
+ * @author Tereza Miklóšová
+ */
 public class DeckInitializer implements Serializable{
+    /**
+     * Stores the cards as objects to a file.
+     */
     void storeDecktoFile() {
         Locale locale = new Locale("en");
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames", locale);
@@ -67,7 +74,7 @@ public class DeckInitializer implements Serializable{
         tempDeck.add(new Card(51, rb.getString("smoke"),27, Type.WEATHER, null, new ArrayList<>() {{add(new CardIsDeletedIfYouDontHaveAtLeastOneType(51,new ArrayList<>(){{add(Type.FLAME);}}));}}, null));
         tempDeck.add(new Card(52, rb.getString("shapeshifter"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(52,new ArrayList<>() {{add(Type.ARTIFACT); add(Type.LEADER); add(Type.WIZARD); add(Type.WEAPON); add(Type.BEAST);}}));}}));
         tempDeck.add(new Card(53, rb.getString("mirage"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(53,new ArrayList<>() {{add(Type.WEATHER); add(Type.ARMY); add(Type.LAND); add(Type.FLOOD); add(Type.FLAME);}}));}}));
-        tempDeck.add(new Card(54, rb.getString("doppleganger"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameColorStrengthMalusFromHand(54));}}));
+        tempDeck.add(new Card(54, rb.getString("doppleganger"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyCardFromHand(54));}}));
 
         try {
             FileOutputStream f = new FileOutputStream(new File("DefaultGameDeckCardsObjects.txt"));
@@ -76,13 +83,9 @@ public class DeckInitializer implements Serializable{
             // Write objects to file
             for(Card c: tempDeck){
                 o.writeObject(c);
-                //System.out.println("ID: " + c.id + " Name: " + c.name);
             }
-
             o.close();
             f.close();
-
-
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
@@ -92,6 +95,10 @@ public class DeckInitializer implements Serializable{
         }
     }
 
+    /**
+     * Loads the deck from the file.
+     * @return List of initialized cards.
+     */
     public static ArrayList<Card> loadDeckFromFile(){
         ArrayList<Card> deck = new ArrayList<>();
 
@@ -110,12 +117,9 @@ public class DeckInitializer implements Serializable{
             System.out.println("Error initializing stream while loading");
         }
         catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         return deck;
     }
-
-
 }

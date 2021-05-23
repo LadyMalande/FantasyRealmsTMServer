@@ -1,7 +1,7 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -9,54 +9,57 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus that deletes all maluses on cards of given type.
+ * @author Tereza Miklóšová
+ */
 public class DeleteAllMalusesOnType extends Bonus  {
-    public long serialVersionUID = 4;
+    /**
+     * The priority of the bonus. Goes before the deleting penalties are counted.
+     */
     public int priority = 5;
-    public final String text;
+
+    /**
+     * On which type of cards will be the penalties deleted.
+     */
     private Type deleteMalusesOnThisType;
 
+    /**
+     * Constructor for the bonus.
+     * @param t On which type of cards will the penalties deleted.
+     */
     public DeleteAllMalusesOnType(Type t){
         this.deleteMalusesOnThisType = t;
-        this.text = "Remove all maluses from type " + BigSwitches.switchTypeForName(deleteMalusesOnThisType);
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
-    @Override
-    public String getText(){
-        return this.text;
-    }
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append(bonuses.getString("deleteAllMalusesOnType"));
+        sb.append(bonuses.getString("deleteAllMalusesOnType")).append(" ");
         sb.append(rb.getString(BigSwitches.switchTypeForName(deleteMalusesOnThisType).toLowerCase() + "6"));
         sb.append(".");
         return sb.toString();
     }
     @Override
     public int getPriority(){ return this.priority; }
+
     @Override
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
-            if(c.type.equals(deleteMalusesOnThisType)){
-                if(c.maluses != null){
-                    c.maluses.clear();
-                    //System.out.println("=========Mazu POSTIH NA karte " + c.name + " !!!//////////////---------" + this.getText());
+            if(c.getType().equals(deleteMalusesOnThisType)){
+                if(c.getMaluses() != null){
+                    c.getMaluses().clear();
                 }
-
             }
-
         }
         return 0;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         double swamp = 0.0;
         double wildfire = 0.0;
         double greatflood = 0.0;

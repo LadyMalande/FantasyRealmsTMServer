@@ -2,7 +2,7 @@ package bonuses;
 
 import artificialintelligence.State;
 import maluses.*;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
 
@@ -11,48 +11,52 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which deletes its selftype from all maluses.
+ * @author Tereza Miklóšová
+ */
 public class DeleteSelftypeFromAllMaluses extends Bonus  {
-    public long serialVersionUID = 5;
+    /**
+     * The priority of the bonus. Goes before the deleting penalties are counted.
+     */
     public int priority = 5;
+    /**
+     * This type will be deleted in all occurrences of types on maluses.
+     */
     private Type deleteThisTypeFromMaluses;
-    public final String text;
 
+    /**
+     * Constructor for DeleteSelftypeFromAllMaluses.
+     * @param t Type which will be deleted from all list of types to punish on maluses.
+     */
     public DeleteSelftypeFromAllMaluses(Type t){
-
         this.deleteThisTypeFromMaluses = t;
-        this.text = "Remove word " + BigSwitches.switchTypeForName(deleteThisTypeFromMaluses) + " from all maluses";
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
-    @Override
-    public String getText(){
-        return this.text;
-    }
     @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses", loc);
         ResourceBundle types = ResourceBundle.getBundle("server.CardTypes", loc);
-        sb.append(bonuses.getString("deleteSelfTypeFromAllMaluses"));
+        sb.append(bonuses.getString("deleteSelfTypeFromAllMaluses")).append(" ");
         sb.append(types.getString(Objects.requireNonNull(BigSwitches.switchTypeForName(deleteThisTypeFromMaluses)).toLowerCase()));
         sb.append(bonuses.getString("deleteSelfTypeFromAllMaluses2"));
         return sb.toString();
     }
     @Override
     public int getPriority(){ return this.priority; }
+
     @Override
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
-            if(c.maluses != null && !c.maluses.isEmpty()){
-                for(Malus m: c.maluses){
+            if(c.getMaluses() != null && !c.getMaluses().isEmpty()){
+                for(Malus m: c.getMaluses()){
 
                     if(m.types != null && m.types.contains(deleteThisTypeFromMaluses)) {
                         if(!(m instanceof DeletesAllExceptTypeOrCard) && !(m instanceof MinusIfYouDontHaveAtLeastOneType)) {
                             m.types.remove(deleteThisTypeFromMaluses);
                         }
-                        //System.out.println("------------------Mazu typ "  + deleteThisTypeFromMaluses + "  z karty " + c.name);
                     }
                     if(m instanceof DeletesAllTypeOrOtherSelftype){
                         if(deleteThisTypeFromMaluses == ((DeletesAllTypeOrOtherSelftype) m).selftype){
@@ -66,14 +70,13 @@ public class DeleteSelftypeFromAllMaluses extends Bonus  {
                     }
                 }
             }
-
         }
         return 0;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double saved = 0.0;
+        double saved;
         double minus = 0.0;
         double withoutType = 0.0;
         for(Card c : hand){
@@ -86,7 +89,7 @@ public class DeleteSelftypeFromAllMaluses extends Bonus  {
                     withoutType += giveValue(hand, whatToRemove);
                     m.types.add(deleteThisTypeFromMaluses);
                 }
-                if(m instanceof MinusForEachType || m instanceof MinusForEachType){
+                if(m instanceof MinusForEachType){
                     minus += m.count(hand);
                     m.types.remove(deleteThisTypeFromMaluses);
                     withoutType += m.count(hand);

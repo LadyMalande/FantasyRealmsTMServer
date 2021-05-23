@@ -1,33 +1,45 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Bonus that represents bonus which gives one time bonus when the hand contains cardNeeded
+ * and at least one of idsOfCardsNeeded.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
-    public long serialVersionUID = 23;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     private int how_much;
+    /**
+     * One of these these cards with this ids are needed to activate the bonus.
+     */
     private ArrayList<Integer> idsOfCardsNeeded;
+    /**
+     * Card of this id is needed to complete this bonus.
+     */
     private int cardNeeded;
 
+    /**
+     * Constructor of this bonus.
+     * @param hm How much is this bonus giving when completed.
+     * @param cards Which card needs to be in the hand to complete the bonus.
+     * @param idcardneeded One of those cards is needed to complete the bonus.
+     */
     public PlusIfYouHaveCardAndAtLeastOneFrom(int hm, ArrayList<Integer> cards, int idcardneeded){
         this.how_much = hm;
         this.idsOfCardsNeeded = cards;
         this.cardNeeded = idcardneeded;
-        this.text = "+" + how_much + " if with " + BigSwitches.switchIdForName(cardNeeded,"en") + " and at least one: " + giveListOfCardsWithSeparator(cards, " or ", "en",1, false);
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
-    }
-
-    @Override
-    public String getText(){
-        return this.text;
     }
 
     @Override
@@ -36,7 +48,7 @@ public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
         Locale loc = new Locale(locale);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames",loc);
         ResourceBundle rbbonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
-        sb.append("+" + how_much);
+        sb.append("+").append(how_much);
         sb.append(rbbonuses.getString("ifYouHave"));
         sb.append(" ");
         sb.append(rb.getString(BigSwitches.switchIdForSimplifiedName(cardNeeded) + "4"));
@@ -45,7 +57,7 @@ public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
         sb.append(" ");
         sb.append(rbbonuses.getString("atLeastOneOfTheseCards"));
         sb.append(" ");
-        sb.append(giveListOfCardsWithSeparator(idsOfCardsNeeded, "and",locale,4,false));
+        sb.append(TextCreators.giveListOfCardsWithSeparator(idsOfCardsNeeded, "and",locale,4));
         sb.append(".");
         return sb.toString();
     }
@@ -59,13 +71,13 @@ public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
         boolean hascard = false;
         boolean hasoneofthese = false;
         for(Card c: hand){
-            if(c.name.equals(BigSwitches.switchIdForName(cardNeeded, "en"))){
+            if(c.getName().equals(BigSwitches.switchIdForName(cardNeeded, "en"))){
                 hascard = true;
             }
-            else if(names.contains(c.name)){
+            else if(names.contains(c.getName())){
                 hasoneofthese = true;
             }
-            if(hascard == true && hasoneofthese == true){
+            if(hascard && hasoneofthese){
                 return how_much;
             }
         }
@@ -74,9 +86,8 @@ public class PlusIfYouHaveCardAndAtLeastOneFrom extends Bonus{
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 
     @Override

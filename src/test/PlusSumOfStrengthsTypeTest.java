@@ -38,7 +38,7 @@ class PlusSumOfStrengthsTypeTest {
         cardsInHands.add(new Card(45, rb.getString("mountain"),9, Type.LAND, new ArrayList<>() {{add(new PlusIfYouHaveAll(50, new ArrayList<>() {{add(51);add(41);}}));add(new DeleteAllMalusesOnType(Type.FLOOD));}}, null, null));
         cardsInHands.add(new Card(46, rb.getString("forest"),7, Type.LAND, new ArrayList<>() {{add(new PlusForEachTypeAndForEachCard(12,new ArrayList<>() {{add(Type.BEAST);}}, new ArrayList<>() {{add(25);}}));}}, null, null));
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 20);
     }
 
@@ -50,7 +50,7 @@ class PlusSumOfStrengthsTypeTest {
         cardsInHands.add(new Card(44, rb.getString("cavern"),6, Type.LAND, new ArrayList<>() {{add(new PlusIfYouHaveAtLeastOneCard(25,new ArrayList<>() {{add(5);add(24);}}));add(new DeleteAllMalusesOnType(Type.WEATHER));}}, null, null));
         cardsInHands.add(new Card(45, rb.getString("mountain"),9, Type.LAND, new ArrayList<>() {{add(new PlusIfYouHaveAll(50, new ArrayList<>() {{add(51);add(41);}}));add(new DeleteAllMalusesOnType(Type.FLOOD));}}, null, null));
         cardsInHands.add(new Card(23, rb.getString("rangers"),5, Type.ARMY, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.LAND);}},10));add(new DeleteSelftypeFromAllMaluses(Type.ARMY));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 25);
     }
 
@@ -62,7 +62,7 @@ class PlusSumOfStrengthsTypeTest {
         cardsInHands.add(new Card(24, rb.getString("dwarfs"),15, Type.ARMY, null, new ArrayList<>() {{add(new MinusForEachOtherSelftypeOrType(-2, null, Type.ARMY, 24));}}, null));
         cardsInHands.add(new Card(45, rb.getString("mountain"),9, Type.LAND, new ArrayList<>() {{add(new PlusIfYouHaveAll(50, new ArrayList<>() {{add(51);add(41);}}));add(new DeleteAllMalusesOnType(Type.FLOOD));}}, null, null));
         cardsInHands.add(new Card(23, rb.getString("rangers"),5, Type.ARMY, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.LAND);}},10));add(new DeleteSelftypeFromAllMaluses(Type.ARMY));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 40);
     }
 
@@ -74,7 +74,7 @@ class PlusSumOfStrengthsTypeTest {
         cardsInHands.add(new Card(24, rb.getString("dwarfs"),15, Type.ARMY, null, new ArrayList<>() {{add(new MinusForEachOtherSelftypeOrType(-2, null, Type.ARMY, 24));}}, null));
         cardsInHands.add(new Card(25, rb.getString("archers"),10, Type.ARMY, new ArrayList<>() {{add(new PlusIfYouDontHaveType(5,Type.WEATHER));}}, null, null));
         cardsInHands.add(new Card(23, rb.getString("rangers"),5, Type.ARMY, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.LAND);}},10));add(new DeleteSelftypeFromAllMaluses(Type.ARMY));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 50);
     }
 
@@ -86,7 +86,7 @@ class PlusSumOfStrengthsTypeTest {
         cardsInHands.add(new Card(24, rb.getString("dwarfs"),15, Type.ARMY, null, new ArrayList<>() {{add(new MinusForEachOtherSelftypeOrType(-2, null, Type.ARMY, 24));}}, null));
         cardsInHands.add(new Card(25, rb.getString("archers"),10, Type.ARMY, new ArrayList<>() {{add(new PlusIfYouDontHaveType(5,Type.WEATHER));}}, null, null));
         cardsInHands.add(new Card(23, rb.getString("rangers"),5, Type.ARMY, new ArrayList<>() {{add(new PlusForEachType(new ArrayList<>() {{add(Type.LAND);}},10));add(new DeleteSelftypeFromAllMaluses(Type.ARMY));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 67);
     }
 
@@ -98,7 +98,7 @@ class PlusSumOfStrengthsTypeTest {
         cardsInHands.add(new Card(45, rb.getString("mountain"),9, Type.LAND, new ArrayList<>() {{add(new PlusIfYouHaveAll(50, new ArrayList<>() {{add(51);add(41);}}));add(new DeleteAllMalusesOnType(Type.FLOOD));}}, null, null));
         cardsInHands.add(new Card(46, rb.getString("forest"),7, Type.LAND, new ArrayList<>() {{add(new PlusForEachTypeAndForEachCard(12,new ArrayList<>() {{add(Type.BEAST);}}, new ArrayList<>() {{add(25);}}));}}, null, null));
         cardsInHands.add(new Card(39, rb.getString("candle"),2, Type.FLAME, new ArrayList<>() {{add(new PlusIfYouHaveAllCardsAndAtLeastOneType(100, new ArrayList<>() {{add(31);add(42);}},new ArrayList<>() {{add(Type.WIZARD);}}));}}, null, null));
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 

@@ -5,22 +5,28 @@ import artificialintelligence.State;
 import maluses.Malus;
 import server.Card;
 import server.ClientHandler;
+import server.Server;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public class CopyNameColorStrengthMalusFromHand extends Interactive  {
+/**
+ * The interactive bonus that implements the possibility to copy a name, strength, type and all maluses
+ * from any other card in hand.
+ * @author Tereza Miklóšová
+ */
+public class CopyCardFromHand extends Interactive  {
+    /**
+     * This bonus is counted before CopyNameAndType.
+     */
     public int priority = 2;
-    public String text = "Copy name, type, strength and malus of any card in your hand";
+    /**
+     * Id of the card containing this bonus.
+     */
     private int thiscardid;
 
-
-    @Override
-    public String getText(){
-        return this.text;
-    }
 
     @Override
     public String getText(String locale){
@@ -31,30 +37,30 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
         return sb.toString();
     }
 
-    public CopyNameColorStrengthMalusFromHand(int id){
+    /**
+     * Constructor for this interactive bonus.
+     * @param id Id of the card containing this bonus.
+     */
+    public CopyCardFromHand(int id){
         this.thiscardid = id;
-        //System.out.println("Card INIT: Text: " + getText());
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
-    public boolean askPlayer(ClientHandler client) {
-        return client.sendInteractive("CopyCardFromHand#" + thiscardid);
+    public void askPlayer(ClientHandler client) {
+        client.sendMessage("CopyCardFromHand#" + thiscardid);
 
     }
 
     @Override
-    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
-
-        long startTime = System.nanoTime();
+    public int changeHandWithInteractive(ArrayList<Card> originalHand, ArrayList<Card> cardsOnTable, Server server,
+                                         Integer idOfCardToChange, Card toChangeInto) throws CloneNotSupportedException {
         //System.out.println("Counting CopyNameColorStrengthMalus From hand");
         //Count the hand without this to not get wrong combination
-        int bestScore = 0;
+        int bestScore;
 
         for(Card original : originalHand){
-            if(thiscardid == original.id){
-                original.interactives.remove(this);
+            if(thiscardid == original.getId()){
+                original.getInteractives().remove(this);
             }
         }
 
@@ -65,22 +71,22 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
             ArrayList<Interactive> interactives = new ArrayList<>();
             // bonuses are never deleted, they can be the same objects
             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
-            if(copy.maluses != null){
+            if(copy.getMaluses() != null){
                 //System.out.println("Klonuji kartu " + copy.name);
-                for(Malus m : copy.maluses){
+                for(Malus m : copy.getMaluses()){
                     maluses.add(m.clone());
                 }
             }
             // The same rule apply to interactives = they can be deleted to signal it has been used
-            if(copy.interactives != null){
-                for(Interactive inter : copy.interactives){
+            if(copy.getInteractives() != null){
+                for(Interactive inter : copy.getInteractives()){
                     interactives.add(inter.clone());
                 }
             }
-            newHandOldScore.add(new Card(copy.id,copy.name,copy.strength, copy.type, copy.bonuses, maluses, interactives));
+            newHandOldScore.add(new Card(copy.getId(),copy.getName(),copy.getStrength(), copy.getType(), copy.getBonuses(), maluses, interactives));
         }
 
-        ScoreCounterForAI sc = new ScoreCounterForAI();
+        ScoreCounterForAI sc = new ScoreCounterForAI(server);
         bestScore = sc.countScore(newHandOldScore, cardsOnTable, true);
 
 
@@ -88,42 +94,40 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
         for(Card cardInHand : originalHand){
             ArrayList<Card> newHand = new ArrayList<>();
             //Make copy of this hand without this interactive and copy one card
-            if(cardInHand.id != thiscardid){
+            if(cardInHand.getId() != thiscardid){
 
                 ArrayList<Malus> maluses2 = new ArrayList<>();
                 for(Card copy : originalHand){
-                    if(copy.id != thiscardid){
+                    if(copy.getId() != thiscardid){
                         //copy the card to new hand
                         ArrayList<Malus> maluses = new ArrayList<>();
 
                             ArrayList<Interactive> interactives = new ArrayList<>();
                             // bonuses are never deleted, they can be the same objects
                             // Maluses can be deleted so they need to be cloned to form new objects so the reference doesnt vanish from old card
-                            if(copy.maluses != null){
-                                //System.out.println("Klonuji kartu " + copy.name);
-                                for(Malus m : copy.maluses){
+                            if(copy.getMaluses() != null){
+                                for(Malus m : copy.getMaluses()){
                                     maluses.add(m.clone());
                                     maluses2.add(m.clone());
                                 }
                             }
                             // The same rule apply to interactives = they can be deleted to signal it has been used
-                            if(copy.interactives != null){
-                                for(Interactive inter : copy.interactives){
+                            if(copy.getInteractives() != null){
+                                for(Interactive inter : copy.getInteractives()){
                                     interactives.add(inter.clone());
                                 }
                             }
-                            newHand.add(new Card(copy.id,copy.name,copy.strength, copy.type, copy.bonuses, maluses, interactives));
+                            newHand.add(new Card(copy.getId(),copy.getName(),copy.getStrength(), copy.getType(), copy.getBonuses(), maluses, interactives));
 
                     }
                 }
-                if(cardInHand.maluses != null){
-                    //System.out.println("Klonuji kartu " + copy.name);
-                    for(Malus m : cardInHand.maluses){
+                if(cardInHand.getMaluses() != null){
+                    for(Malus m : cardInHand.getMaluses()){
                         maluses2.add(m.clone());
                     }
                 }
                 // Add the changed Doppleganger to hand
-                newHand.add(new Card(thiscardid, cardInHand.name, cardInHand.strength, cardInHand.type,null, maluses2, null));
+                newHand.add(new Card(thiscardid, cardInHand.getName(), cardInHand.getStrength(), cardInHand.getType(),null, maluses2, null));
             }
 
             int currentScore = sc.countScore(newHand,cardsOnTable, true);
@@ -132,44 +136,39 @@ public class CopyNameColorStrengthMalusFromHand extends Interactive  {
                 whichCardToCopy = cardInHand;
 
             }
-
         }
         if(whichCardToCopy != null){
             for(Card fromOriginalHand : originalHand){
-                if(fromOriginalHand.id == thiscardid){
-                    fromOriginalHand.name = whichCardToCopy.name;
-                    fromOriginalHand.strength = whichCardToCopy.strength;
-                    fromOriginalHand.type = whichCardToCopy.type;
+                if(fromOriginalHand.getId() == thiscardid){
+                    fromOriginalHand.setName(whichCardToCopy.getName());
+                    fromOriginalHand.setStrength(whichCardToCopy.getStrength());
+                    fromOriginalHand.setType(whichCardToCopy.getType());
                     ArrayList<Malus> newMaluses = new ArrayList<>();
-                    if(fromOriginalHand.maluses != null){
-                        for(Malus m : fromOriginalHand.maluses){
+                    if(fromOriginalHand.getMaluses() != null){
+                        for(Malus m : fromOriginalHand.getMaluses()){
                             newMaluses.add(m.clone());
                         }
                     }
-                    fromOriginalHand.maluses = newMaluses;
+                    fromOriginalHand.setMaluses(newMaluses);
+                    idOfCardToChange = thiscardid;
+                    toChangeInto = fromOriginalHand;
                 }
             }
-            //System.out.println("Skinchanger changed into: " + whichCardToCopy.name);
         }
-
-        long elapsedTime = System.nanoTime() - startTime;
-        //System.out.println("Total execution time spent in CopyNameColorStrengthMalus from hand in millis: "+ elapsedTime/1000000);
         return bestScore;
     }
 
     @Override
     public Interactive clone() throws CloneNotSupportedException{
-        CopyNameColorStrengthMalusFromHand newi = (CopyNameColorStrengthMalusFromHand)super.clone();
+        CopyCardFromHand newi = (CopyCardFromHand)super.clone();
         newi.priority = this.priority;
-        newi.text = this.text;
         newi.thiscardid = this.thiscardid;
         return newi;
     }
 
     @Override
     public double getPotential(ArrayList<Card> hand, ArrayList<Card> table, int deckSize, int unknownCards, State state){
-        double potential = 0.0;
         // TODO
-        return potential;
+        return 0.0;
     }
 }

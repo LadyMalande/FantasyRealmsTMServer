@@ -1,9 +1,11 @@
 package test;
 
-import bonuses.Bonus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import server.*;
+import server.Card;
+import server.ClientHandler;
+import server.ScoreCounter;
+import server.Server;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,75 +13,72 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.ResourceBundle;
+import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ScoreCounterTest {
     ArrayList<Card> deck;
     ArrayList<Card> cardsInHands;
     Card cardToBeTested;
 
-    //cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("")).findAny().get());
-
     @BeforeEach
     void initHand(){
         deck = OriginalDeck.getDeck();
 
-        cardsInHands = new ArrayList<Card>();
+        cardsInHands = new ArrayList<>();
 
     }
 
     @Test
     void countWarshipDeletes() {
-        ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
-        cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Válečná loď")).findAny().get();
+        cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Válečná loď")).findAny().orElse(null);
         cardsInHands.add(cardToBeTested);
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Svíčka")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Stoletá voda")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Rytíři")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bouře")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Princezna")).findAny().get());
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Svíčka")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Stoletá voda")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Rytíři")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bouře")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Princezna")).findAny().orElse(null));
         Socket s = new Socket();
         try {
             ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
             ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
             ClientHandler c = new ClientHandler(s, "client ", dis, dos, new Server(new ServerSocket(), null));
             ScoreCounter sc = new ScoreCounter(c);
-            sc.run();
+            sc.start();
             wait(1000);
             int score = c.getScore();
             assertEquals(score,155 );
-        } catch(IOException | InterruptedException ec){
-
+        } catch(IOException | InterruptedException ex){
+            System.out.println(Arrays.toString(ex.getStackTrace()));
         }
 
     }
 
     @Test
     void countMountainDeletes() {
-        ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
-        cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Hora")).findAny().get();
+        cardToBeTested = deck.stream().filter(card -> card.getNameLoc("cs").equals("Hora")).findAny().orElse(null);
         cardsInHands.add(cardToBeTested);
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bažina")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Stoletá voda")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Rytíři")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Císařovna")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
-        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Kouř")).findAny().get());
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Bažina")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Stoletá voda")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Rytíři")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Císařovna")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().orElse(null));
+        cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Kouř")).findAny().orElse(null));
         Socket s = new Socket();
         try {
             ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
             ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
+
             ClientHandler c = new ClientHandler(s, "client ", dis, dos, new Server(new ServerSocket(), null));
             ScoreCounter sc = new ScoreCounter(c);
-            sc.run();
+            sc.start();
             wait(1000);
             int score = c.getScore();
             assertEquals(score,144 );
-        } catch(IOException | InterruptedException ec){
-
+        } catch(IOException | InterruptedException ex){
+            System.out.println(Arrays.toString(ex.getStackTrace()));
         }
 
     }

@@ -1,18 +1,18 @@
 package artificialintelligence;
 
-import javafx.util.Pair;
 import server.Card;
-import server.ExperimentOutputCreator;
 import server.PlayerOrAI;
 import server.Server;
+import util.ExperimentOutputCreator;
+import util.Pair;
+import util.TuplesMapCreator;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.FutureTask;
 
-import static java.util.stream.Collectors.toList;
-
-public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligenceInterface{
+public class LearningPlayer implements ArtificialIntelligenceInterface, PlayerOrAI{
         ArrayList<Card> hand;
         Card bestCardToTake;
         Card bestCardToDrop;
@@ -20,23 +20,23 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         int bestPossibleScore;
         int rank;
         String name;
-        private FutureTask<Integer> futureTask;
         private int numberOfRoundsPlayed;
-        String beginningHandCards;
-        int beginningHandScore;
         boolean playing = false;
-        int stateID;
         boolean stateRecognized;
         double alpha; // learning coefficient
         double epsilon; // choose random action with this probability
-        Map<Pair<Integer,Integer>,Coefficients> coefficientsMap;
-        int currentActualValue;
-        Map<int[], Integer> handValuesMap;
+        //Map<Pair<Integer,Integer>,Coefficients> coefficientsMap;
+        Map<Pair<Integer,Integer>,Double> coefficientsMap;
+        Map<Integer, Double> cardsCoefficientsMap;
+        double currentActualValue;
+        Map<int[], Double> handValuesMap;
         Map<Integer, int[]> historyHandRound;
+        ArrayList<Integer> scoresInRound;
         int round = 0;
+        int score = 0;
 
 
-    public LearningPlayer(Server server, String name, double alpha, double epsilon) throws CloneNotSupportedException {
+    public LearningPlayer(Server server, String name, double alpha, double epsilon){
             this.name = name;
             //System.out.println("Name of Learning " + this.name);
             hand = new ArrayList<>();
@@ -47,23 +47,21 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             handValuesMap = new HashMap<>();
             historyHandRound = new HashMap<>();
             stateRecognized = false;
-            //1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,  ,52,53,54
-            TuplesMapCreator tmc = new TuplesMapCreator(new int[]{25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51});
-            coefficientsMap = loadCoefficientsFromFile();
+            TuplesMapCreator tmc = new TuplesMapCreator(arrayCreatorForRow(54), server);
+            coefficientsMap = loadPairCoefficientsFromFile("map_coefficients");
+            cardsCoefficientsMap = loadCardCoefficientsFromFile("card_coefficients");
             if(coefficientsMap == null){
-                coefficientsMap = tmc.makeStateMap();
+                coefficientsMap = tmc.makePairCoefficientsMap();
+            }
+            //System.out.println("Size of pairMap: " + coefficientsMap.size());
+            if(cardsCoefficientsMap == null){
+                cardsCoefficientsMap = tmc.makeCardCoefficientsMap();
             }
             this.alpha = alpha;
             this.epsilon = epsilon;
             currentActualValue = 0;
             getInitCards();
             rank = 0;
-
-            for(Map.Entry<Pair<Integer,Integer>, Coefficients> entry : coefficientsMap.entrySet()){
-                System.out.println(entry.getKey().toString() + " value: " + entry.getValue().getActualValue() + " coefficient: " + entry.getValue().getActalValueCoefficient());
-            }
-            //System.out.println("Making Greedy player with gain threshold: " + gainThreshold);
-
         }
 
         @Override
@@ -71,13 +69,28 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             return hand;
         }
 
-        @Override
+    @Override
+    public void sendNamesInOrder(String s) {
+
+    }
+
+    @Override
         public String getName(){
             return this.name;
         }
 
-        @Override
-        public void endGame(){
+    @Override
+    public void setScoreTable(StringBuilder sb) {
+
+    }
+
+    @Override
+    public StringBuilder getScoreTable() {
+        return null;
+    }
+
+    @Override
+    public void endGame(){
         countScore();
     }
 
@@ -95,16 +108,6 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         }
 
         @Override
-        public String getBeginningHandCards(){
-            return beginningHandCards;
-        }
-
-        @Override
-        public int getBeginningHandScore(){
-            return beginningHandScore;
-        }
-
-        @Override
         public int getRank(){return this.rank;}
         @Override
         public int getScore(){return this.score;}
@@ -119,47 +122,68 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         }
 
     @Override
-    public void getInitCards() throws CloneNotSupportedException {
+    public void getInitCards(){
         round = 0;
         handValuesMap.clear();
         historyHandRound.clear();
+        scoresInRound = new ArrayList<>();
         hand.clear();
         numberOfRoundsPlayed = 0;
-        //Random randomGenerator = new Random();
         for (int j = 0; j < server.CARDS_ON_HAND; j++) {
-            //System.out.println("In getInitCards in GreedyPlayer constructor, number of loop is " + j);
-            //int index = randomGenerator.nextInt(server.deck.getDeck().size());
-            Card newCard = server.deck.getDeck().get(0);
+            Card newCard = server.getDeck().getDeck().get(0);
             hand.add(newCard);
-            server.deck.getDeck().remove(newCard);
+            server.getDeck().getDeck().remove(newCard);
+        }
+        /*
+        for(Map.Entry<Pair<Integer,Integer>,Double> entry :coefficientsMap.entrySet()){
+            System.out.println("EntryInMap: " + entry.getKey().getKey() + "," + entry.getKey().getValue() + "=" + entry.getValue());
         }
 
+         */
             currentActualValue = countActualValue(collectIDs(hand));
-        historyHandRound.put(round, collectIDs(hand));
-        //System.out.println("Pocet karet v ruce: " + hand.size());
+            historyHandRound.put(round, collectIDs(hand));
+            ScoreCounterForAI sc = new ScoreCounterForAI();
+            scoresInRound.add(sc.countScore(hand, server.cardsOnTable, true));
         }
 
-        private void recognizeState(ArrayList<Card> cardsOnTable){
+    @Override
+    public ArrayList<Card> getStoredHand() {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Integer> getScoresInRound() {
+        return scoresInRound;
+    }
+
+    int[] arrayCreatorForRow(int numberOfElements){
+        int[] array = new int[numberOfElements];
+        for(int i = 1; i <= numberOfElements; i++){
+            array[i-1] = i;
+        }
+        return array;
+    }
+    /*
+    private void recognizeState(ArrayList<Card> cardsOnTable){
             int handSize = hand.size();
             int tableSize = cardsOnTable.size();
             int[] currentState = new int[handSize + tableSize];
-            List<Integer> listHand = hand.stream().map(card -> card.getId()).collect(toList());
-            List<Integer> listTable = cardsOnTable.stream().map(card -> card.getId()).collect(toList());
+            List<Integer> listHand = hand.stream().map(Card::getId).collect(toList());
+            List<Integer> listTable = cardsOnTable.stream().map(Card::getId).collect(toList());
             Collections.sort(listHand);
             Collections.sort(listTable);
             int[] handIDs = listHand.stream().mapToInt(i -> i).toArray();
             int[] tableIDs = listTable.stream().mapToInt(i -> i).toArray();
             System.arraycopy(handIDs,0,currentState,0,handSize);
             System.arraycopy(tableIDs,0,currentState,handSize,tableSize);
-           // stateID = stateMap.entrySet().stream().filter(entry -> Arrays.equals(entry.getValue(),currentState)).map(Map.Entry::getKey).findFirst().get();
             stateRecognized = true;
-            //System.out.println("Player is in state id :" + stateID);
         }
 
+
+     */
     @Override
-    public Card performMove(ArrayList<Card> cardsOnTable) throws CloneNotSupportedException {
+    public Card performMove(ArrayList<Card> cardsOnTable){
         if (performRandomMove()) {
-            //System.out.println("random move Pocet karet v ruce: " + hand.size());
             Random randomMove = new Random();
             int move = randomMove.nextInt(server.cardsOnTable.size() + 1);
             if(move < server.cardsOnTable.size()){
@@ -170,17 +194,16 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             }
             move = randomMove.nextInt(hand.size());
             Card toDrop = hand.get(move);
-            //server.putCardOnTable(toDrop);
             hand.remove(toDrop);
+            ScoreCounterForAI sc = new ScoreCounterForAI();
+            scoresInRound.add(sc.countScore(hand, server.cardsOnTable, true));
             return toDrop;
         } else{
+            double handActualValue = currentActualValue;
 
-            int handActualValue = currentActualValue;
-            //System.out.println("zac perform move Pocet karet v ruce: " + hand.size());
+            double maxFromTable = maxForPossibleActualValuesFromTable();
 
-            int maxFromTable = maxForPossibleActualValuesFromTable();
-
-            int avgFromDeck = checkForPossibleActualValuesFromDeck();
+            double avgFromDeck = checkForPossibleActualValuesFromDeck();
             if(handActualValue < maxFromTable || handActualValue < avgFromDeck){
                 if(maxFromTable < avgFromDeck){
                     hand.add(server.drawCardFromDeck());
@@ -191,33 +214,32 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
                 }
             }
 
-
             hand.remove(bestCardToDrop);
 
             round++;
             historyHandRound.put(round, collectIDs(hand));
-           // server.putCardOnTable(bestCardToDrop);
         }
+        ScoreCounterForAI sc = new ScoreCounterForAI();
+        scoresInRound.add(sc.countScore(hand, server.cardsOnTable, true));
         numberOfRoundsPlayed++;
-        //System.out.println("konec perform move Pocet karet v ruce: " + hand.size());
         return bestCardToDrop;
     }
 
-    private int maxForPossibleActualValuesFromTable(){
-        int cummulativeValue = 0;
-        int maxValue = currentActualValue;
+    private double maxForPossibleActualValuesFromTable(){
+        double cummulativeValue;
+        double maxValue = currentActualValue;
         int[] ids = collectIDs(hand);
 
-        TuplesMapCreator tmc = new TuplesMapCreator(ids);
+        TuplesMapCreator tmc = new TuplesMapCreator(ids, server);
         ArrayList<Integer> idsInHand = tmc.makeList(ids);
 
         for(Card cardInHand:hand){
-            idsInHand.remove(new Integer(cardInHand.getId()));
+            idsInHand.removeIf(value -> value == cardInHand.getId());
             for(Card cardOnTable : server.cardsOnTable){
                 idsInHand.add(cardOnTable.getId());
                 ids = collectIDs(hand);
                 cummulativeValue = countActualValue(ids);
-                idsInHand.remove(new Integer(cardOnTable.getId()));
+                idsInHand.removeIf(value -> value == cardOnTable.getId());
 
                 if(cummulativeValue > maxValue){
                     maxValue = cummulativeValue;
@@ -231,25 +253,21 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         return maxValue;
     }
 
-    private int checkForPossibleActualValuesFromDeck(){
+    private double checkForPossibleActualValuesFromDeck(){
         // We want to get the average value we get if we take card from deck = average of possibilities
-        int cummulativeValue = 0;
+        double cummulativeValue = 0;
         int numberOfPossibilities = 0;
-        int maxValue = 0;
+        double maxValue;
         ArrayList<Card> canBeInDeck = server.getMightBeInDeck();
         canBeInDeck.removeAll(hand);
         ArrayList<Card> listForSearch = new ArrayList<>(hand);
-        for(Card table : canBeInDeck){
-            hand.add(table);
-            //System.out.println("Pridavam do ruky z balicku : " + table.getId());
+        for(Card deck : canBeInDeck){
+            hand.add(deck);
             maxValue = 0;
             for(Card c : listForSearch){
                 hand.remove(c);
-                for(Card c1: hand){
-                    //System.out.println("V ruce: " + c1.getId());
-                }
                 int[] idsInHand = collectIDs(hand);
-                int valueInHand = countActualValue(idsInHand);
+                double valueInHand = countActualValue(idsInHand);
                 if(valueInHand > maxValue){
                     maxValue = valueInHand;
                     bestCardToDrop = c;
@@ -260,19 +278,21 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
             }
             cummulativeValue += maxValue;
             numberOfPossibilities++;
-            hand.remove(table);
+            hand.remove(deck);
         }
-        return cummulativeValue / numberOfPossibilities;
+        double averageCoefficientSumWithDeck = cummulativeValue / numberOfPossibilities;
+        //System.out.println("Average coefficients sum from deck is " + averageCoefficientSumWithDeck);
+        return averageCoefficientSumWithDeck;
     }
 
     private void checkForPossibleValuesInHand(){
         // 8 cards in hand, one must go out
-        int maxValue = 0;
+        double maxValue = 0;
         ArrayList<Card> toBeSearched = new ArrayList<>(hand);
         for(Card c : toBeSearched){
             hand.remove(c);
             int[] idsInHand = collectIDs(hand);
-            int valueInHand = countActualValue(idsInHand);
+            double valueInHand = countActualValue(idsInHand);
             if(valueInHand > maxValue){
                 maxValue = valueInHand;
                 bestCardToDrop = c;
@@ -281,77 +301,172 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
         }
     }
 
-    private int countActualValue(int[] ids){
+    private double countActualValue(int[] ids){
         if(handValuesMap.containsKey(ids)){
             return handValuesMap.get(ids);
         }
-        int cummulativeValue = 0;
-        TuplesMapCreator tmc = new TuplesMapCreator(ids);
-        for(int id : ids){
-            //System.out.println("ids pro vytvoreni dvojic: "  + id);
+        double cummulativeValue = 0;
+        TuplesMapCreator tmc = new TuplesMapCreator(ids, server);
+        /*
+        System.out.println("Ids in hand count Actual value: ");
+        for(int i : ids){
+            System.out.print(i+ ",");
         }
-        ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(ids);
+        System.out.println();
+        System.out.println("CountCummulativeValue " + ids);
+
+         */
+        ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs();
         for(Pair<Integer,Integer> pair : pairs){
-            //System.out.println(pair);
-            Coefficients co = coefficientsMap.get(pair);
-            //cummulativeValue += co.getActualValue() * co.getActalValueCoefficient();
-            cummulativeValue += co.getActalValueCoefficient();
+            //System.out.println("Pair in countActualValue: " + pair.getKey() + "," + pair.getValue());
+            if(coefficientsMap == null){
+                System.out.println("COEFFICIENTS MAP IS NULL");
+            }
+            Object valueFromMap = coefficientsMap.get(pair);
+            if(valueFromMap == null){
+                System.out.println("VALUE FROM MAP IS NULL");
+            }
+            cummulativeValue += coefficientsMap.get(pair);
         }
+        for(Card c : hand){
+            cummulativeValue += cardsCoefficientsMap.get(c.getId());
+        }
+        //System.out.println("cummulative value of hand " + ids + " = " + cummulativeValue);
         handValuesMap.put(ids, cummulativeValue);
         return cummulativeValue;
+    }
+
+    private int getScoreBoundaries(){
+        if(score <= 0){
+            return 0;
+        }
+        return score / 10;
     }
 
     @Override
     public void learn() {
         ArrayList<Pair<Integer,Integer>> alreadyEvaluatedInThisRound = new ArrayList<>();
-        int[] idsInHand = collectIDs(hand);
-        TuplesMapCreator tmc = new TuplesMapCreator(idsInHand);
-        //ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(idsInHand);
+        ArrayList<Integer> alreadyEvaluatedCardsThisRound = new ArrayList<>();
+
         int reward = 0;
         if(rank == 1){
             reward = 1;
         }
+        reward += getScoreBoundaries() * 0.001;
+        //System.out.println("Reward for this round is " + reward);
 
-        for(int i = round; i > round-5 || i > -1; i--){
+        for(int i = round; i > round-5 && i > -1; i--){
+            //System.out.println("historyHandRound size " + historyHandRound.size() + " cards in historyHand: ");
+            int[] historyHand = historyHandRound.get(i);
+            /*
+            for(int id : historyHand){
+                System.out.print(id + ",");
+            }
+            System.out.println();
+
+             */
+            TuplesMapCreator tmc = new TuplesMapCreator(historyHand, server);
             // learn hands in history too
-            ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs(idsInHand);
+            ArrayList<Pair<Integer,Integer>> pairs = tmc.makeListOfPairs();
+
             for(Pair<Integer,Integer> pair : pairs){
                 if(!alreadyEvaluatedInThisRound.contains(pair)) {
-                    Coefficients c = coefficientsMap.get(pair);
-                    double oldValue = c.getActalValueCoefficient();
-                    double newValue = oldValue + (alpha * (reward - oldValue))*(1-(round-i)*0.02);
-                    c.setActalValueCoefficient(newValue);
+                    Double pairCoefficient = coefficientsMap.get(pair);
+                    double oldValuePair = pairCoefficient;
+                    double newValuePair = oldValuePair + (alpha * (reward - oldValuePair))*(1-(round-i)*0.02);
+                    //System.out.println("New value for pair: " + pair.getKey() + "," + pair.getValue() + " = " + newValuePair);
+                    coefficientsMap.put(pair, newValuePair);
                     alreadyEvaluatedInThisRound.add(pair);
-                    //System.out.println(pair + " value: " + c.actualValue + " oldc: " + oldValue + " newc: "+ newValue);
+                }
+            }
+            for(int id : historyHand){
+                if(!alreadyEvaluatedCardsThisRound.contains(id)){
+                    Double cardCoefficient = cardsCoefficientsMap.get(id);
+                    double oldValue = cardCoefficient;
+                    double newValue = oldValue + (alpha * (reward - oldValue))*(1-(round-i)*0.02);
+                    //System.out.println("New value for pair: " + id + " = " + newValue);
+
+                    cardsCoefficientsMap.put(id, newValue);
+                    alreadyEvaluatedCardsThisRound.add(id);
                 }
             }
         }
         if(server.ithRound % 100 == 0){
-            writeValuesToFile();
+            writeValuesToFile("map_coefficients");
+            writeValuesToFile("card_coefficients");
         }
     }
 
-    private void writeValuesToFile(){
+    private void writeValuesToFile(String fileName){
         ExperimentOutputCreator ex = new ExperimentOutputCreator(server.getPlayers());
-        ex.writeCoefficients(ex.createOutputFile("map_coefficients"),coefficientsMap);
+        if(fileName.equals("map_coefficients")){
+            ex.writePairCoefficients(ex.createOutputFile(fileName),coefficientsMap);
+        }
+        if(fileName.equals("card_coefficients")){
+            ex.writeCardsCoefficients(ex.createOutputFile(fileName),cardsCoefficientsMap);
+        }
     }
 
-    private Map<Pair<Integer,Integer>, Coefficients> loadCoefficientsFromFile(){
-        Map<Pair<Integer,Integer>, Coefficients> map = new HashMap<>();
+    private Map<Integer, Double> loadCardCoefficientsFromFile(String fileName){
+        Map<Integer, Double> map = new HashMap<>();
         try{
-            FileReader r = new FileReader("map_coefficients.txt");
+            FileReader r = new FileReader(fileName + ".txt");
             BufferedReader fr = new BufferedReader(r);
 
             String line;
             // Read objects
             while((line = fr.readLine()) != null){
                 String[] separated = line.split(";");
-                map.put(new Pair<Integer, Integer>(Integer.parseInt(separated[0]), Integer.parseInt(separated[1])),
+                map.put( Integer.parseInt(separated[0]),
+                        Double.parseDouble(separated[1]));
+            }
+
+            fr.close();
+        } catch (IOException e) {
+            System.out.println("Error initializing stream while loading");
+            return null;
+        }
+
+        return map;
+    }
+
+    private Map<Pair<Integer,Integer>, Double> loadPairCoefficientsFromFile(String fileName){
+        Map<Pair<Integer,Integer>, Double> map = new HashMap<>();
+        try{
+            FileReader r = new FileReader(fileName + ".txt");
+            BufferedReader fr = new BufferedReader(r);
+
+            String line;
+            // Read objects
+            while((line = fr.readLine()) != null){
+                String[] separated = line.split(";");
+                map.put(new Pair<>(Integer.parseInt(separated[0]), Integer.parseInt(separated[1])),
+                        Double.parseDouble(separated[2]));
+            }
+
+            fr.close();
+        } catch (IOException e) {
+            System.out.println("Error initializing stream while loading");
+            return null;
+        }
+
+        return map;
+    }
+
+    private Map<Pair<Integer,Integer>, Coefficients> loadCoefficientsFromFile(String fileName){
+        Map<Pair<Integer,Integer>, Coefficients> map = new HashMap<>();
+        try{
+            FileReader r = new FileReader(fileName + ".txt");
+            BufferedReader fr = new BufferedReader(r);
+
+            String line;
+            // Read objects
+            while((line = fr.readLine()) != null){
+                String[] separated = line.split(";");
+                map.put(new Pair<>(Integer.parseInt(separated[0]), Integer.parseInt(separated[1])),
                         new Coefficients(Integer.parseInt(separated[2]), Double.parseDouble((separated[3]))));
             }
-            for(Map.Entry entry: map.entrySet()){
-                System.out.println(entry.getKey() + " value: " + ((Coefficients)entry.getValue()).getActualValue() + " newc: "+ ((Coefficients)entry.getValue()).getActalValueCoefficient());
-            }
+
             fr.close();
         } catch (IOException e) {
             System.out.println("Error initializing stream while loading");
@@ -374,23 +489,39 @@ public class LearningPlayer extends PlayerOrAI implements ArtificialIntelligence
     private boolean performRandomMove(){
         Random randomNum = new Random();
         int rand = 1 + randomNum.nextInt(100);
-        double result = rand /100;
-        if(result <= epsilon ){
-            return true;
-        } else{
-            return false;
-        }
+        double result = rand /100.0;
+        /*
+        System.out.println("Result is " + result + " so epsilon is " + String.valueOf(epsilon) + " We did "  +
+                (result <= epsilon ? "random" : "normal") + " move.");
+
+         */
+        return result <= epsilon;
     }
 
     @Override
     public void countScore() {
         // Create different hands by interactives that AI has
-        ScoreCounterForAI sc = new ScoreCounterForAI();
+        ScoreCounterForAI sc = new ScoreCounterForAI(server);
+
         score = sc.countScore(hand, server.cardsOnTable, false);
 
         while (score < -999) {
-            // wait;
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         server.increaseCountedScoreNumber();
+    }
+
+    @Override
+    public void putCardOnTable(Card c){
+
+    }
+
+    @Override
+    public void eraseCardFromTable(Card c) {
+
     }
 }

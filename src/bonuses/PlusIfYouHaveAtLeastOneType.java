@@ -1,9 +1,10 @@
 package bonuses;
 
 import artificialintelligence.State;
-import server.BigSwitches;
+import util.BigSwitches;
 import server.Card;
 import server.Type;
+import util.TextCreators;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,29 +12,29 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/**
+ * Bonus that represents bonus which gives one time bonus for having at least one card of given type.
+ * Counted last as it has default priority = 8.
+ * @author Tereza Miklóšová
+ */
 public class PlusIfYouHaveAtLeastOneType extends Bonus  {
-    public long serialVersionUID = 22;
-    public final String text;
+    /**
+     * Points given for each completion of the conditions to get it.
+     */
     private int howMuch;
+    /**
+     * One card of these types is needed to activate the bonus.
+     */
     public ArrayList<Type> types;
 
+    /**
+     * Constructor for the bonus.
+     * @param hm How many points will be given for completing the bonus.
+     * @param types Types from at least one card is needed to activate the bonus.
+     */
     public PlusIfYouHaveAtLeastOneType(int hm, ArrayList<Type> types){
-
         this.howMuch = hm;
         this.types = types;
-
-        String listtypes = "";
-        boolean first = true;
-        for(Type t: types){
-            if(!first){
-                listtypes +=" or ";
-            }
-            listtypes += BigSwitches.switchTypeForName(t);
-            first = false;
-        }
-        this.text = "+" + howMuch + " if you have any type " + listtypes;
-        //System.out.println("Card INIT: Text: " + getText("en"));
-        //System.out.println("Card INIT: Text: " + getText("cs"));
     }
 
     @Override
@@ -44,6 +45,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
             return types;
         }
     }
+
     @Override
     public Card satisfiesCondition(ArrayList<Card> hand)
     {
@@ -53,10 +55,8 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
             if(count(hand) != 0){
                 return cards.get(0);
             }
-            return null;
-        } else{
-            return null;
         }
+        return null;
     }
 
     @Override
@@ -65,24 +65,19 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
     }
 
     @Override
-    public String getText(){
-        return this.text;
-    }
-
-    @Override
     public String getText(String locale){
         StringBuilder sb = new StringBuilder();
         Locale loc = new Locale(locale);
         ResourceBundle bonuses = ResourceBundle.getBundle("bonuses.CardBonuses",loc);
         ResourceBundle rb = ResourceBundle.getBundle("server.CardTypes",loc);
-        sb.append("+" + howMuch);
+        sb.append("+").append(howMuch);
         sb.append(bonuses.getString("ifYouHave"));
         sb.append(" ");
         sb.append(rb.getString("atLeast"));
         sb.append(" ");
         sb.append(rb.getString("one4" + BigSwitches.switchTypeForGender(types.get(0))));
         sb.append(" ");
-        sb.append(giveListOfTypesWithSeparator(types, "or",locale,4,false));
+        sb.append(TextCreators.giveListOfTypesWithSeparator(types, "or",locale,4));
         sb.append(".");
         return sb.toString();
     }
@@ -90,7 +85,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
     @Override
     public int count(ArrayList<Card> hand) {
         for(Card c: hand){
-            if(types.contains(c.type)){
+            if(types.contains(c.getType())){
                 return howMuch;
             }
         }
@@ -113,7 +108,7 @@ public class PlusIfYouHaveAtLeastOneType extends Bonus  {
 
     @Override
     public boolean reactsWithTypes(ArrayList<Type> types){
-        return types.stream().anyMatch(type -> types.contains(type));
+        return types.stream().anyMatch(types::contains);
     }
 
     @Override

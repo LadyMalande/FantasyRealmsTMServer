@@ -7,9 +7,8 @@ import server.Card;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlusIfYouHaveAtLeastOneTypeTest {
 
@@ -38,7 +37,7 @@ class PlusIfYouHaveAtLeastOneTypeTest {
     void countConditionSatisfied() {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Šašek")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 25);
     }
 
@@ -46,7 +45,7 @@ class PlusIfYouHaveAtLeastOneTypeTest {
     void countConditionSatisfied2() {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Nekromant")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 25);
     }
 
@@ -55,7 +54,7 @@ class PlusIfYouHaveAtLeastOneTypeTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Pán šelem")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 25);
     }
 
@@ -64,7 +63,7 @@ class PlusIfYouHaveAtLeastOneTypeTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Sběratel")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 25);
     }
 
@@ -73,7 +72,7 @@ class PlusIfYouHaveAtLeastOneTypeTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Kouzelnice")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 25);
     }
 
@@ -82,7 +81,7 @@ class PlusIfYouHaveAtLeastOneTypeTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Císařovna")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 

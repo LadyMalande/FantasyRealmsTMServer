@@ -1,17 +1,14 @@
 package test;
 
 import bonuses.Bonus;
-import maluses.Malus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.Card;
-import server.Type;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BonusOrBonusTest {
     ArrayList<Card> deck;
@@ -39,7 +36,7 @@ class BonusOrBonusTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Princezna")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals( bonus.count(cardsInHands), 30);
     }
 
@@ -48,7 +45,7 @@ class BonusOrBonusTest {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals( bonus.count(cardsInHands), 15);
     }
 
@@ -58,7 +55,7 @@ class BonusOrBonusTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Císařovna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Princezna")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
 
 
         assertEquals( bonus.count(cardsInHands), 30);
@@ -70,7 +67,7 @@ class BonusOrBonusTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
 
 
         assertEquals( bonus.count(cardsInHands), 0);

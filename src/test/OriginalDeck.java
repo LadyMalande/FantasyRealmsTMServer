@@ -65,7 +65,7 @@ public final class OriginalDeck {
             add(new Card(51, rb.getString("smoke"),27, Type.WEATHER, null, new ArrayList<>() {{add(new CardIsDeletedIfYouDontHaveAtLeastOneType(51,new ArrayList<>(){{add(Type.FLAME);}}));}}, null));
             add(new Card(52, rb.getString("shapeshifter"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(52,new ArrayList<>() {{add(Type.ARTIFACT); add(Type.LEADER); add(Type.WIZARD); add(Type.WEAPON); add(Type.BEAST);}}));}}));
             add(new Card(53, rb.getString("mirage"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameAndType(53,new ArrayList<>() {{add(Type.WEATHER); add(Type.ARMY); add(Type.LAND); add(Type.FLOOD); add(Type.FLAME);}}));}}));
-            add(new Card(54, rb.getString("doppleganger"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyNameColorStrengthMalusFromHand(54));}}));
+            add(new Card(54, rb.getString("doppleganger"),0, Type.WILD, null, null, new ArrayList<>() {{add(new CopyCardFromHand(54));}}));
 
         }
     };

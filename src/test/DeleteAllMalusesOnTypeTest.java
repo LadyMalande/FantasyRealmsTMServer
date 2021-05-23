@@ -46,7 +46,7 @@ class DeleteAllMalusesOnTypeTest {
         cardsInHands.add(toBeEnhanced);
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         bonus.count(cardsInHands);
         assertEquals(toBeEnhanced.getMaluses().size(), 0);
     }
@@ -60,13 +60,14 @@ class DeleteAllMalusesOnTypeTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Královna")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hraničáři")).findAny().get());
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Strom světa")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         bonus.count(cardsInHands);
         Logger log = Logger.getLogger("Loger");
-        String msg = "Text on Malus " + cardsInHands.stream().filter(card -> card.getNameLoc("cs").equals("Stoletá voda")).findAny().get().getMaluses().get(0).getText("cs");
+        String msg = "Text on Malus " + cardsInHands.stream().filter(card -> card.getNameLoc("cs").
+                equals("Stoletá voda")).findAny().get().getMaluses().get(0).getText("cs");
         log.info(cardToBeTested.getName());
-        log.info(cardToBeTested.bonuses.get(0).getText("cs"));
-        log.info(String.valueOf(toBeEnhanced.maluses.size()));
+        log.info(cardToBeTested.getBonuses().get(0).getText("cs"));
+        log.info(String.valueOf(toBeEnhanced.getMaluses().size()));
         for(Malus m : toBeEnhanced.getMaluses()){
             for(Type t: m.getTypes()){
                 log.info(t.name()

@@ -36,7 +36,7 @@ class PlusIfTypesAreUniqueTest {
     void countConditionSatisfied() {
         ResourceBundle rb = ResourceBundle.getBundle("server.CardNames");
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Hydra")).findAny().get());
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 50);
     }
 
@@ -46,7 +46,7 @@ class PlusIfTypesAreUniqueTest {
         cardsInHands.add(deck.stream().filter(card -> card.getNameLoc("cs").equals("Sněhová vánice")).findAny().get());
 
 
-        Bonus bonus = cardToBeTested.bonuses.get(0);
+        Bonus bonus = cardToBeTested.getBonuses().get(0);
         assertEquals(bonus.count(cardsInHands), 0);
     }
 }
